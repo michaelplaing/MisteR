@@ -5,7 +5,7 @@
 #include <ctype.h>
 #include <string.h>
 
-#include "../redismodule.h"
+#include "redismodule.h"
 #include "mqtt_protocol.h"
 
 int MqttPingReq_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) {
