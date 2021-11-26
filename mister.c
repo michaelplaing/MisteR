@@ -8,10 +8,12 @@
 #include <hiredis/async.h>
 #include <hiredis/adapters/libev.h>
 
+#include "redismodule.h"
 #include "mqtt_protocol.h"
 #include "mister.h"
 
 void mqttPingreqCallback(redisAsyncContext *ctx, void *reply_void, void *private_data_void) {
+    REDISMODULE_NOT_USED(ctx);
     redisReply *reply = reply_void;
     uuid_t *pcorrid = private_data_void;
     size_t i;
@@ -23,7 +25,16 @@ void mqttPingreqCallback(redisAsyncContext *ctx, void *reply_void, void *private
     printf("Callback - expecting PINGRESP (%s)\n", PINGRESP_MRCMD);
     printf("  private data rcvd (corrid): %s\n", corrid_str);
     printf("  %lu elements in reply array\n", reply->elements);
-    printf("    %s\n", reply->element[0]->str);
+    redisReply *ele0 = reply->element[0];
+    printf("    %s - PINGRESP_MRCMD ", ele0->str);
+
+    if (strcmp(ele0->str, PINGRESP_MRCMD)) {
+        printf("does not match\n");
+    }
+    else {
+        printf("matches\n");
+    }
+
     redisReply *ele1 = reply->element[1];
     printf("    %lu chars received in buffer: ", ele1->len);
     
@@ -31,15 +42,16 @@ void mqttPingreqCallback(redisAsyncContext *ctx, void *reply_void, void *private
         printf("%hhX ", ele1->str[i]);
     }
 
-    if (ele1->str[0] == CMD_PINGRESP) {
+    if (ele1->str[0] == CMD_PINGRESP && ele1->str[1] == 0 && ele1->len == 2) {
         printf("\n    Confirmed that buffer is a valid PINGRESP\n");
     }
     else {
         printf("\n    Buffer is not a valid PINGRESP\n");
     }
-
+/*
     redisAsyncDisconnect(ctx);
     printf("Disconnect sent\n");
+*/
 }
 
 void connectCallback(const redisAsyncContext *ctx, int status) {
