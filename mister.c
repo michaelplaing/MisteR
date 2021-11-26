@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+#include <uuid/uuid.h>
 
 #include <hiredis/hiredis.h>
 #include <hiredis/async.h>
@@ -11,12 +12,14 @@
 
 void mqttPingreqCallback(redisAsyncContext *ctx, void *reply_void, void *private_data_void) {
     redisReply *reply = reply_void;
-    char *private_data = private_data_void;
+    uuid_t *pcorrid = private_data_void;
     size_t i;
+    char corrid_str[UUID_STR_LEN];
+    uuid_unparse(*pcorrid, corrid_str);
 
     if (reply == NULL) return;
-    printf("Expecting PINGRESP\n");
-    printf("  private data: %s\n", private_data);
+    printf("Callback - expecting PINGRESP\n");
+    printf("  private data (corrid): %s\n", corrid_str);
     printf("  %lu elements in reply array\n", reply->elements);
     printf("    %s\n", reply->element[0]->str);
     redisReply *ele1 = reply->element[1];
@@ -68,22 +71,23 @@ int main (void) {
     }
 
     printf("Connect sent\n");
+
+    uuid_t corrid;
+    uuid_generate_random(corrid);
+    char corrid_str[UUID_STR_LEN];
+    uuid_unparse(corrid, corrid_str);
+
     redisLibevAttach(EV_DEFAULT_ ctx);
     redisAsyncSetConnectCallback(ctx, connectCallback);
     redisAsyncSetDisconnectCallback(ctx, disconnectCallback);
 
     redisAsyncCommand(
-        ctx, 
-        mqttPingreqCallback, 
-        (char *)MQTT_PINGREQ, 
-        "%s %b", 
-        MQTT_PINGREQ, 
-        PINGREQ_BUF, 
-        sizeof(PINGREQ_BUF)
+        ctx, mqttPingreqCallback, (uuid_t *)&corrid,
+        "%s %b", MQTT_PINGREQ, PINGREQ_BUF, sizeof(PINGREQ_BUF)
     );
     
     printf("Async Command sent: %s\n", MQTT_PINGREQ);
-    printf("  private data: %s\n", MQTT_PINGREQ);
+    printf("  private data (corrid): %s\n", corrid_str);
     printf("  %lu chars sent in buffer: ", sizeof(PINGREQ_BUF));
 
     for (i = 0; i < sizeof(PINGREQ_BUF); i++) {
@@ -91,6 +95,8 @@ int main (void) {
     }
 
     printf("\n");
+    printf("  Buffer is a valid PINGREQ\n");
+    printf("Activating event loop...\n");
     ev_loop(EV_DEFAULT_ 0);
     return 0;
 }

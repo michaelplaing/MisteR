@@ -1,5 +1,5 @@
 CFLAGS = -Wall -Wextra -std=c99 -O2 -fPIC -g -ggdb
-LDLIBS = -lhiredis -lev
+LDLIBS = -lhiredis -lev -luuid
 
 MRLDFLAGS = -shared
 MRLDLIBS = -lc
