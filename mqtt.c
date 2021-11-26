@@ -7,6 +7,7 @@
 
 #include "redismodule.h"
 #include "mqtt_protocol.h"
+#include "mister.h"
 
 int MqttPingReq_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) {
     const unsigned char PINGRESP_BUF[2] = {CMD_PINGRESP, 0};
@@ -14,7 +15,7 @@ int MqttPingReq_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv, int 
     REDISMODULE_NOT_USED(argv);
     if (argc != 2) return RedisModule_WrongArity(ctx);
     RedisModule_ReplyWithArray(ctx, 2);
-    RedisModule_ReplyWithSimpleString(ctx, "mqtt.pingresp");
+    RedisModule_ReplyWithSimpleString(ctx, PINGRESP_MRCMD);
     RedisModule_ReplyWithStringBuffer(ctx, (const  char *)PINGRESP_BUF, 2);
     return REDISMODULE_OK;
 }

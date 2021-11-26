@@ -6,11 +6,11 @@ MRLDLIBS = -lc
 
 all: mister mqtt.so
 
-mister.o: mqtt_protocol.h
+mister.o: mister.h mqtt_protocol.h
 
 mister: mister.o
 
-mqtt.o: mqtt.c redismodule.h mqtt_protocol.h
+mqtt.o: mqtt.c redismodule.h mqtt_protocol.h mister.h
 
 mqtt.so: mqtt.o
 	$(CC) $(MRLDFLAGS) $< $(MRLDLIBS) -o $@
