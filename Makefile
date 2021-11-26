@@ -2,6 +2,7 @@ CFLAGS = -Wall -Wextra -std=c99 -O2 -fPIC -g -ggdb
 LDLIBS = -lhiredis -lev
 
 MRLDFLAGS = -shared
+MRLDLIBS = -lc
 
 all: mister mqtt.so
 
@@ -12,9 +13,9 @@ mister: mister.o
 mqtt.o: mqtt.c redismodule.h mqtt_protocol.h
 
 mqtt.so: mqtt.o
-	$(CC) $(MRLDFLAGS) $< -lc -o $@
-
-.PHONY: clean
+	$(CC) $(MRLDFLAGS) $< $(MRLDLIBS) -o $@
 
 clean:
 	rm -f *.o mister mqtt.so
+
+.PHONY: all clean
