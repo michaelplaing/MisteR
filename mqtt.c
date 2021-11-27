@@ -6,11 +6,11 @@
 #include <string.h>
 
 #include "redismodule.h"
-#include "mqtt_protocol.h"
+#include "mqtt5_protocol.h"
 #include "mister.h"
 
 int MqttPingReq_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) {
-    const unsigned char PINGRESP_BUF[2] = {CMD_PINGRESP, 0};
+    const uint8_t PINGRESP_BUF[2] = {CMD_PINGRESP, 0};
     
     REDISMODULE_NOT_USED(argv);
     if (argc != 2) return RedisModule_WrongArity(ctx);
@@ -21,7 +21,7 @@ int MqttPingReq_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv, int 
 }
 
 int MqttConnect_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) {
-    const unsigned char CONNACK_BUF[2] = {CMD_CONNACK, 0};
+    const uint8_t CONNACK_BUF[2] = {CMD_CONNACK, 0};
     
     REDISMODULE_NOT_USED(argv);
     if (argc != 2) return RedisModule_WrongArity(ctx);

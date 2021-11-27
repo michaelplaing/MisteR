@@ -9,7 +9,7 @@
 #include <hiredis/adapters/libev.h>
 
 #include "redismodule.h"
-#include "mqtt_protocol.h"
+#include "mqtt5_protocol.h"
 #include "mister.h"
 
 void mqttPingreqCallback(redisAsyncContext *ctx, void *reply_void, void *private_data_void) {
