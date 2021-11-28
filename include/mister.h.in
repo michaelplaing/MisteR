@@ -1,12 +1,97 @@
+/*============================================================================*
+ * mister: MQTT protocol for Redis.
+ * Copyright (C) 2021  Michael P. Laing
 
-#ifndef MQTT5_PROTOCOL_H
-#define MQTT5_PROTOCOL_H
+ * This file is part of mister.
 
-/*
- * File: mqtt5_protocol.h
- *
- * This header contains definitions of MQTT values as defined in the specifications.
- */
+ * mister is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * mister is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+
+ * You should have received a copy of the GNU General Public License
+ * along with libbsat.  If not, see <https://www.gnu.org/licenses/>.
+ *----------------------------------------------------------------------------*/
+
+#ifndef MISTER_H
+#define MISTER_H
+
+#include <sys/types.h>
+#include <stdint.h>
+#include <stdio.h>
+
+#ifdef __cplusplus
+//extern "C" {
+#endif /* __cplusplus */
+
+/* MisteR Commands understood by the Redis module mqtt.so */
+#define CONNECT_MRCMD       "mqtt.connect"
+#define CONNACK_MRCMD       "mqtt.connack"
+#define PUBLISH_MRCMD       "mqtt.publish"
+#define PUBACK_MRCMD        "mqtt.puback"
+#define PUBREC_MRCMD        "mqtt.pubrec"
+#define PUBREL_MRCMD        "mqtt.pubrel"
+#define PUBCOMP_MRCMD       "mqtt.pubcomp"
+#define SUBSCRIBE_MRCMD     "mqtt.subscribe"
+#define SUBACK_MRCMD        "mqtt.suback"
+#define UNSUBSCRIBE_MRCMD   "mqtt.unsubscribe"
+#define UNSUBACK_MRCMD      "mqtt.unsuback"
+#define PINGREQ_MRCMD       "mqtt.pingreq"
+#define PINGRESP_MRCMD      "mqtt.pingresp"
+#define DISCONNECT_MRCMD    "mqtt.disconnect"
+#define AUTH_MRCMD          "mqtt.auth"
+
+struct mrpacket{
+	uint8_t *payload;
+	uint32_t len;
+	uint32_t pos;
+};
+
+/* Error values */
+enum mrerr_t {
+	MRERR_AUTH_CONTINUE = -4,
+	MRERR_NO_SUBSCRIBERS = -3,
+	MRERR_SUB_EXISTS = -2,
+	MRERR_CONN_PENDING = -1,
+	MRERR_SUCCESS = 0,
+	MRERR_NOMEM = 1,
+	MRERR_PROTOCOL = 2,
+	MRERR_INVAL = 3,
+	MRERR_NO_CONN = 4,
+	MRERR_CONN_REFUSED = 5,
+	MRERR_NOT_FOUND = 6,
+	MRERR_CONN_LOST = 7,
+	MRERR_TLS = 8,
+	MRERR_PAYLOAD_SIZE = 9,
+	MRERR_NOT_SUPPORTED = 10,
+	MRERR_AUTH = 11,
+	MRERR_ACL_DENIED = 12,
+	MRERR_UNKNOWN = 13,
+	MRERR_ERRNO = 14,
+	MRERR_EAI = 15,
+	MRERR_PROXY = 16,
+	MRERR_PLUGIN_DEFER = 17,
+	MRERR_MALFORMED_UTF8 = 18,
+	MRERR_KEEPALIVE = 19,
+	MRERR_LOOKUP = 20,
+	MRERR_MALFORMED_PACKET = 21,
+	MRERR_DUPLICATE_PROPERTY = 22,
+	MRERR_TLS_HANDSHAKE = 23,
+	MRERR_QOS_NOT_SUPPORTED = 24,
+	MRERR_OVERSIZE_PACKET = 25,
+	MRERR_OCSP = 26,
+	MRERR_TIMEOUT = 27,
+	MRERR_RETAIN_NOT_SUPPORTED = 28,
+	MRERR_TOPIC_ALIAS_INVALID = 29,
+	MRERR_ADMINISTRATIVE_ACTION = 30,
+	MRERR_ALREADY_EXISTS = 31,
+};
+
 
 #define PROTOCOL_NAME "MQTT"
 #define PROTOCOL_VERSION_v5 5
@@ -151,4 +236,8 @@ enum mqtt5_sub_options {
 
 #define MQTT_MAX_PAYLOAD 268435455U
 
-#endif
+#ifdef __cpluplus
+//}
+#endif /* __cplusplus */
+
+#endif /* MISTER_H */
