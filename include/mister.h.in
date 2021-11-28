@@ -30,21 +30,21 @@
 #endif /* __cplusplus */
 
 /* MisteR Commands understood by the Redis module mqtt.so */
-#define CONNECT_MRCMD       "mqtt.connect"
-#define CONNACK_MRCMD       "mqtt.connack"
-#define PUBLISH_MRCMD       "mqtt.publish"
-#define PUBACK_MRCMD        "mqtt.puback"
-#define PUBREC_MRCMD        "mqtt.pubrec"
-#define PUBREL_MRCMD        "mqtt.pubrel"
-#define PUBCOMP_MRCMD       "mqtt.pubcomp"
-#define SUBSCRIBE_MRCMD     "mqtt.subscribe"
-#define SUBACK_MRCMD        "mqtt.suback"
-#define UNSUBSCRIBE_MRCMD   "mqtt.unsubscribe"
-#define UNSUBACK_MRCMD      "mqtt.unsuback"
-#define PINGREQ_MRCMD       "mqtt.pingreq"
-#define PINGRESP_MRCMD      "mqtt.pingresp"
-#define DISCONNECT_MRCMD    "mqtt.disconnect"
-#define AUTH_MRCMD          "mqtt.auth"
+#define MRCMD_CONNECT       "mqtt.connect"
+#define MRCMD_CONNACK       "mqtt.connack"
+#define MRCMD_PUBLISH	    "mqtt.publish"
+#define MRCMD_PUBACK        "mqtt.puback"
+#define MRCMD_PUBREC        "mqtt.pubrec"
+#define MRCMD_PUBREL        "mqtt.pubrel"
+#define MRCMD_PUBCOMP       "mqtt.pubcomp"
+#define MRCMD_SUBSCRIBE     "mqtt.subscribe"
+#define MRCMD_SUBACK        "mqtt.suback"
+#define MRCMD_UNSUBSCRIBE   "mqtt.unsubscribe"
+#define MRCMD_UNSUBACK      "mqtt.unsuback"
+#define MRCMD_PINGREQ       "mqtt.pingreq"
+#define MRCMD_PINGRESP      "mqtt.pingresp"
+#define MRCMD_DISCONNECT    "mqtt.disconnect"
+#define MRCMD_AUTH          "mqtt.auth"
 
 struct mrpacket{
 	uint8_t *payload;
