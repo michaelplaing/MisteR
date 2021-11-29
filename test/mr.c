@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <string.h>
 #include <signal.h>
 #include <uuid/uuid.h>
@@ -103,41 +102,16 @@ void mrConnectCallback(redisAsyncContext *ctx, void *reply_void, void *private_d
 void mrSendConnect(redisAsyncContext *ctx) {
     size_t i;
     uint8_t *connect_packet;
-
-    typedef struct connect_packet_vars {
-        uint8_t packet_type;
-        size_t remaining_len;
-        uint8_t protocol_name[6];
-        uint8_t protocol_version;
-        bool reserved;
-        bool clean_start;
-        bool will_flag;
-        uint8_t will_qos;
-        bool will_retain;
-        bool password_flag;
-        bool username_flag;
-    } cp_vars;
-
-    cp_vars cpv = {
-        .packet_type = CMD_CONNECT,
-        .remaining_len = 0,
-        .protocol_name = {0x00, 0x04, 'M', 'Q', 'T', 'T'},
-        .protocol_version = 5,
-        .reserved = false,
-        .clean_start = false,
-        .will_flag = false,
-        .will_qos = 0,
-        .will_retain = false,
-        .password_flag = false,
-        .username_flag = false
-    };
-
+ 
     uuid_t *corrid = malloc(sizeof(uuid_t));
     uuid_generate_random(*corrid);
     char corrid_str[UUID_STR_LEN];
     uuid_unparse(*corrid, corrid_str);
 
-    size_t buflen = cpv.remaining_len + 2;
+    connect_packet_vars *cp_var = malloc(sizeof(cp_vars_template));
+    memcpy(cp_var, &cp_vars_template, sizeof(cp_vars_template));
+
+    size_t buflen = 2; /* FIX - ignores size of remaining_length etc */
 
     redisAsyncCommand(
         ctx, mrConnectCallback, corrid,

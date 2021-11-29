@@ -24,10 +24,31 @@
 #include <sys/types.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 //extern "C" {
 #endif /* __cplusplus */
+
+#define PROTOCOL_NAME "MQTT"
+#define PROTOCOL_VERSION_v5 5
+
+/* Message types */
+#define CMD_CONNECT 0x10U
+#define CMD_CONNACK 0x20U
+#define CMD_PUBLISH 0x30U
+#define CMD_PUBACK 0x40U
+#define CMD_PUBREC 0x50U
+#define CMD_PUBREL 0x60U
+#define CMD_PUBCOMP 0x70U
+#define CMD_SUBSCRIBE 0x80U
+#define CMD_SUBACK 0x90U
+#define CMD_UNSUBSCRIBE 0xA0U
+#define CMD_UNSUBACK 0xB0U
+#define CMD_PINGREQ 0xC0U
+#define CMD_PINGRESP 0xD0U
+#define CMD_DISCONNECT 0xE0U
+#define CMD_AUTH 0xF0U
 
 /* MisteR Commands understood by the Redis module mqtt.so */
 #define MRCMD_CONNECT       "mqtt.connect"
@@ -45,6 +66,77 @@
 #define MRCMD_PINGRESP      "mqtt.pingresp"
 #define MRCMD_DISCONNECT    "mqtt.disconnect"
 #define MRCMD_AUTH          "mqtt.auth"
+
+typedef struct connect_packet_vars {
+	uint8_t packet_type;
+	uint32_t remaining_length;
+	uint8_t protocol_name[6];
+	uint8_t protocol_version;
+	bool reserved;
+	bool clean_start;
+	bool will_flag;
+	uint8_t will_qos;
+	bool will_retain;
+	bool password_flag;
+	bool username_flag;
+	uint16_t keep_alive;
+	/* properties - each optionally present */
+	uint32_t property_length;
+	uint8_t session_expiry_id;
+	uint32_t session_expiry;
+	uint8_t receive_maximum_id;
+	uint16_t receive_maximum;
+	uint8_t maximum_packet_size_id;
+	uint32_t maximum_packet_size;
+	uint8_t topic_alias_maximum_id;
+	uint16_t topic_alias_maximum;
+	uint8_t request_response_information_id;
+	uint8_t request_response_information;
+	uint8_t request_problem_information_id;
+	uint8_t request_problem_information;
+	uint8_t user_property_id; /* Note: prefix each String Pair below with this id when building packet */
+	uint8_t *user_properties; /* pointer to catenated MQTT UTF-8 String Pairs */
+	uint8_t authentication_method_id; /* 0x15 */
+	uint8_t *authentication_method; /* pointer to a UTF-8 Encoded String with the authentication method */
+	uint8_t authentication_data_id; /* 0x16 */
+	uint8_t *authentication_data; /* pointer to Binary Data containing authentication data */
+} cp_vars;
+
+const cp_vars cpv_prototype = {
+	.packet_type = CMD_CONNECT,
+	.remaining_length = 0,
+	.protocol_name = {0x00, 0x04, 'M', 'Q', 'T', 'T'},
+	.protocol_version = 5,
+	.reserved = false,
+	.clean_start = false,
+	.will_flag = false,
+	.will_qos = 0,
+	.will_retain = false,
+	.password_flag = false,
+	.username_flag = false,
+	.keep_alive = 0,
+	/* properties - 0 for an id indicates the property should not be present in the packet */
+	.property_length = 0,
+	.session_expiry_id = 0, /* 0x11 */
+	.session_expiry = 0,
+	.receive_maximum_id = 0, /* 0x33 */
+	.receive_maximum = 0,
+	.maximum_packet_size_id = 0, /* 0x39 */
+	.maximum_packet_size = 0,
+	.topic_alias_maximum_id = 0, /* 0x22 */
+	.topic_alias_maximum = 0,
+	.request_response_information_id = 0, /* 0x19 */
+	.request_response_information = 0,
+	.request_problem_information_id = 0, /* 0x17 */
+	.request_problem_information = 0,
+	.user_property_id = 0, /* 0x26 */
+	.user_properties = NULL,
+	.authentication_method_id = 0, /* 0x15 */
+	.authentication_method = NULL,
+	.authentication_data_id = 0, /* 0x16 */
+	.authentication_data = NULL
+};
+
 
 struct mrpacket{
 	uint8_t *payload;
