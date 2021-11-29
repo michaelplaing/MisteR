@@ -21,13 +21,13 @@ void mrPingreqCallback(redisAsyncContext *ctx, void *reply_void, void *private_d
     free(corrid);
 
     if (reply == NULL) return;
-    printf("Callback - expecting PINGRESP (%s)\n", MRCMD_PINGRESP);
+    printf("Callback - expecting PINGRESP (%s)\n", MR_PINGRESP);
     printf("  private data rcvd (corrid): %s\n", corrid_str);
     printf("  %lu elements in reply array\n", reply->elements);
     redisReply *ele0 = reply->element[0];
-    printf("    %s - MRCMD_PINGRESP ", ele0->str);
+    printf("    %s - MR_PINGRESP ", ele0->str);
 
-    if (strcmp(ele0->str, MRCMD_PINGRESP)) {
+    if (strcmp(ele0->str, MR_PINGRESP)) {
         printf("does not match\n");
     }
     else {
@@ -49,7 +49,7 @@ void mrPingreqCallback(redisAsyncContext *ctx, void *reply_void, void *private_d
     }
 
     redisAsyncDisconnect(ctx);
-    printf("Disconnect sent\n");
+    printf("Redis Disconnect sent\n");
 }
 
 void redisAsyncConnectCallback(const redisAsyncContext *ctx, int status) {
@@ -58,7 +58,7 @@ void redisAsyncConnectCallback(const redisAsyncContext *ctx, int status) {
         return;
     }
 
-    printf("Connected...\n");
+    printf("Connected to Redis...\n");
 }
 
 void redisAsyncDisconnectCallback(const redisAsyncContext *ctx, int status) {
@@ -67,7 +67,7 @@ void redisAsyncDisconnectCallback(const redisAsyncContext *ctx, int status) {
         return;
     }
 
-    printf("Disconnected...\n");
+    printf("Disconnected from Redis\n");
 }
 
 void mrSendPingreq(redisAsyncContext *ctx) {
@@ -81,10 +81,10 @@ void mrSendPingreq(redisAsyncContext *ctx) {
 
     redisAsyncCommand(
         ctx, mrPingreqCallback, corrid,
-        "%s %b", MRCMD_PINGREQ, PINGREQ_BUF, sizeof(PINGREQ_BUF)
+        "%s %b", MR_PINGREQ, PINGREQ_BUF, sizeof(PINGREQ_BUF)
     );
     
-    printf("Async Command sent PINGREQ (%s)\n", MRCMD_PINGREQ);
+    printf("Async Command sent PINGREQ (%s)\n", MR_PINGREQ);
     printf("  private data sent (corrid): %s\n", corrid_str);
     printf("  %lu chars sent in buffer: ", sizeof(PINGREQ_BUF));
 
@@ -108,17 +108,19 @@ void mrSendConnect(redisAsyncContext *ctx) {
     char corrid_str[UUID_STR_LEN];
     uuid_unparse(*corrid, corrid_str);
 
-    connect_packet_vars *cp_var = malloc(sizeof(cp_vars_template));
-    memcpy(cp_var, &cp_vars_template, sizeof(cp_vars_template));
+    connect_packet_vars *cp_vars = malloc(sizeof(cp_vars_template));
+    memcpy(cp_vars, &cp_vars_template, sizeof(cp_vars_template));
+    printf("sizeof template: %d\n", sizeof(cp_vars_template));
 
-    size_t buflen = 2; /* FIX - ignores size of remaining_length etc */
+/*
+    size_t buflen = 2;
 
     redisAsyncCommand(
         ctx, mrConnectCallback, corrid,
-        "%s %b", MRCMD_CONNECT, connect_packet, buflen
+        "%s %b", MR_CONNECT, connect_packet, buflen
     );
     
-    printf("Async Command sent CONNECT (%s)\n", MRCMD_CONNECT);
+    printf("Async Command sent CONNECT (%s)\n", MR_CONNECT);
     printf("  private data sent (corrid): %s\n", corrid_str);
     printf("  %lu chars sent in buffer: ", buflen);
 
@@ -128,7 +130,7 @@ void mrSendConnect(redisAsyncContext *ctx) {
 
     printf("\n");
     printf("  Buffer is a valid PINGREQ\n");
-
+*/
 }
 
 int main (void) {
@@ -140,12 +142,16 @@ int main (void) {
         return 1;
     }
 
-    printf("Connect sent\n");
+    printf("Redis Connect sent\n");
 
     redisLibevAttach(EV_DEFAULT_ ctx);
     redisAsyncSetConnectCallback(ctx, redisAsyncConnectCallback);
     redisAsyncSetDisconnectCallback(ctx, redisAsyncDisconnectCallback);
 
+    printf("MisteR CONNECT sent\n");
+    mrSendConnect(ctx);
+
+    printf("MisteR PINGREQ sent - will terminate when PINGRESP is handled\n");
     mrSendPingreq(ctx);
 
     printf("Activating event loop...\n");
