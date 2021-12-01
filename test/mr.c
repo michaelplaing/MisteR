@@ -8,6 +8,7 @@
 #include <hiredis/async.h>
 #include <hiredis/adapters/libev.h>
 
+/* #define MAXLINELEN 1000000           // define maximum string length */
 #include "redismodule.h"
 #include "mister.h"
 
@@ -102,17 +103,77 @@ void mrConnectCallback(redisAsyncContext *ctx, void *reply_void, void *private_d
 void mrSendConnect(redisAsyncContext *ctx) {
     size_t i;
     uint8_t *connect_packet;
- 
+    uint8_t buf[1000] = {0};
+    size_t pos = 0;
+    Pvoid_t PJSLArray = (Pvoid_t)NULL;  // initialize JudySL array
+    connect_hv **PPconnect_hv;
+  
+    size_t hv_count = sizeof(connect_hvs) / sizeof(connect_hv);
+    printf("hv_count = %d\n", hv_count);
+
+    for (i = 0; i < hv_count; i++) {
+        JSLI(PPconnect_hv, PJSLArray, connect_hvs[i].name);
+        *PPconnect_hv = &connect_hvs[i];
+    }
+
+    JSLG(PPconnect_hv, PJSLArray, "remaining_length");
+    printf("remaining_length read: %u\n", (**PPconnect_hv).value, sizeof(Word_t));
+    (**PPconnect_hv).value = 42;
+
+    connect_hv hv;
+    for (i = 0; i < hv_count; i++) {
+        JSLG(PPconnect_hv, PJSLArray, connect_hvs[i].name);
+        hv = **PPconnect_hv;
+        hv.Packfunc(hv.value, buf, &pos);
+        printf("name: %s; value: %hhX; buf[pos]: %hhX; next pos: %d\n", hv.name, hv.value, buf[pos - 1], pos);
+    }
+
+    printf("Buf:");
+    for (i = 0; i < pos; i++) printf(" %hhX", buf[i]);
+    printf("\n");
+
+  
+/*
     uuid_t *corrid = malloc(sizeof(uuid_t));
     uuid_generate_random(*corrid);
     char corrid_str[UUID_STR_LEN];
     uuid_unparse(*corrid, corrid_str);
 
-    connect_packet_vars *cp_vars = malloc(sizeof(cp_vars_template));
-    memcpy(cp_vars, &cp_vars_template, sizeof(cp_vars_template));
-    printf("sizeof template: %d\n", sizeof(cp_vars_template));
+    size_t ch_vars_size = sizeof(connect_header_vars_template);
+    connect_header_vars *ch_vars = malloc(ch_vars_size);
+    memcpy(ch_vars, &connect_header_vars_template, ch_vars_size);
+    printf("sizeof connect_header_vars_template: %d\n", ch_vars_size);
 
-/*
+    memcpy(buf + pos, &ch_vars->packet_type, 1); pos++;
+*/
+
+/*    
+    char *hdr_nms[] = {
+        "foo",
+        "bar"
+    };
+
+    typedef struct hdr {
+        char *name;
+        char type;
+    } hdr;
+
+    hdr hdrs[] = {
+        {"foo", 10},
+        {"bar", 11}
+    };
+
+    hdr **PPhdr;
+    JSLI(PPhdr, PJSLArray, hdrs[0].name);
+    printf("Phdr: %d\n", *PPhdr);
+    *PPhdr = &hdrs[0];
+    printf("Phdr: %d\n", *PPhdr);
+    printf("insert type: %d\n", (**PPhdr).type);
+    JSLG(PPhdr, PJSLArray, hdrs[0].name);
+    printf("Phdr: %d\n", *PPhdr);
+    printf("lookup type: %d\n", (**PPhdr).type);
+
+
     size_t buflen = 2;
 
     redisAsyncCommand(
