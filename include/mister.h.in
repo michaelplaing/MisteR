@@ -26,6 +26,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#include <Judy.h>
+
 #ifdef __cplusplus
 //extern "C" {
 #endif /* __cplusplus */
@@ -50,28 +52,66 @@
 #define CMD_DISCONNECT 0xE0U
 #define CMD_AUTH 0xF0U
 
-/* MisteR Commands understood by the Redis module mqtt.so */
-#define MRCMD_CONNECT       "mqtt.connect"
-#define MRCMD_CONNACK       "mqtt.connack"
-#define MRCMD_PUBLISH	    "mqtt.publish"
-#define MRCMD_PUBACK        "mqtt.puback"
-#define MRCMD_PUBREC        "mqtt.pubrec"
-#define MRCMD_PUBREL        "mqtt.pubrel"
-#define MRCMD_PUBCOMP       "mqtt.pubcomp"
-#define MRCMD_SUBSCRIBE     "mqtt.subscribe"
-#define MRCMD_SUBACK        "mqtt.suback"
-#define MRCMD_UNSUBSCRIBE   "mqtt.unsubscribe"
-#define MRCMD_UNSUBACK      "mqtt.unsuback"
-#define MRCMD_PINGREQ       "mqtt.pingreq"
-#define MRCMD_PINGRESP      "mqtt.pingresp"
-#define MRCMD_DISCONNECT    "mqtt.disconnect"
-#define MRCMD_AUTH          "mqtt.auth"
+/* MisteR Commands understood by the Redis module mister.so */
+#define MR_CONNECT       "mr.connect"
+#define MR_CONNACK       "mr.connack"
+#define MR_PUBLISH	     "mr.publish"
+#define MR_PUBACK        "mr.puback"
+#define MR_PUBREC        "mr.pubrec"
+#define MR_PUBREL        "mr.pubrel"
+#define MR_PUBCOMP       "mr.pubcomp"
+#define MR_SUBSCRIBE     "mr.subscribe"
+#define MR_SUBACK        "mr.suback"
+#define MR_UNSUBSCRIBE   "mr.unsubscribe"
+#define MR_UNSUBACK      "mr.unsuback"
+#define MR_PINGREQ       "mr.pingreq"
+#define MR_PINGRESP      "mr.pingresp"
+#define MR_DISCONNECT    "mr.disconnect"
+#define MR_AUTH          "mr.auth"
 
-typedef struct connect_packet_vars {
-	uint8_t packet_type;
-	uint32_t remaining_length;
-	uint8_t protocol_name[6];
-	uint8_t protocol_version;
+typedef struct connect_hv {
+	char *name;
+	Word_t value; /* can handle each header_var value */
+	int (*pack_fn)(Word_t value, uint8_t *buf, size_t *pos);
+} connect_hv;
+
+int pack_uint8(Word_t value, uint8_t buf[], size_t *Ppos){
+	buf[*Ppos] = value;
+	*Ppos += 1;
+	return 0;
+}
+
+int pack_uint16(Word_t value, uint8_t buf[], size_t *Ppos){
+	uint16_t val16 = value;
+	buf[*Ppos] = (val16 >> 8) & 0xFF;
+	buf[*Ppos + 1] = val16 & 0xFF;
+	*Ppos += 2;
+	return 0;
+}
+
+int pack_uint32(Word_t value, uint8_t buf[], size_t *Ppos){
+	uint32_t val32 = value;
+	buf[*Ppos] = (val32 >> 24) & 0xFF;
+	buf[*Ppos + 1] = (val32 >> 16) & 0xFF;
+	buf[*Ppos + 2] = (val32 >> 8) & 0xFF;
+	buf[*Ppos + 3] = val32 & 0xFF;
+	*Ppos += 4;
+	return 0;
+}
+
+int pack_VBI(Word_t value, uint8_t buf[], size_t *Ppos){ // assume 1 byte for now
+	buf[*Ppos] = value;
+	*Ppos += 1;
+	return 0;
+}
+
+connect_hv connect_hvs[] = {
+	{"packet_type", CMD_CONNECT, pack_uint8},
+	{"remaining_length", 0, pack_VBI},
+	{"protocol_name_prefix", 0x0004, pack_uint16},
+	{"protocol_name", 0x4D515454, pack_uint32}, // MQTT
+	{"protocol_version", 5, pack_uint8}
+/*
 	bool reserved;
 	bool clean_start;
 	bool will_flag;
@@ -80,7 +120,6 @@ typedef struct connect_packet_vars {
 	bool password_flag;
 	bool username_flag;
 	uint16_t keep_alive;
-	/* properties - each optionally present */
 	uint32_t property_length;
 	uint8_t session_expiry_id;
 	uint32_t session_expiry;
@@ -94,15 +133,51 @@ typedef struct connect_packet_vars {
 	uint8_t request_response_information;
 	uint8_t request_problem_information_id;
 	uint8_t request_problem_information;
-	uint8_t user_property_id; /* Note: prefix each String Pair below with this id when building packet */
-	uint8_t *user_properties; /* pointer to catenated MQTT UTF-8 String Pairs */
-	uint8_t authentication_method_id; /* 0x15 */
-	uint8_t *authentication_method; /* pointer to a UTF-8 Encoded String with the authentication method */
-	uint8_t authentication_data_id; /* 0x16 */
-	uint8_t *authentication_data; /* pointer to Binary Data containing authentication data */
-} cp_vars;
+	uint8_t user_property_id;
+	uint8_t *user_properties;
+	uint8_t authentication_method_id;
+	uint8_t *authentication_method;
+	uint8_t authentication_data_id;
+	uint8_t *authentication_data;
+*/
+};
 
-const cp_vars cpv_prototype = {
+typedef struct connect_header_vars {
+	uint8_t packet_type;
+	uint32_t remaining_length; /* encode as Variable Byte Integer (VBI) */
+	uint8_t protocol_name[6];
+	uint8_t protocol_version;
+	bool reserved;
+	bool clean_start;
+	bool will_flag;
+	uint8_t will_qos;
+	bool will_retain;
+	bool password_flag;
+	bool username_flag;
+	uint16_t keep_alive;
+	/* properties - each optionally present */
+	uint32_t property_length; /* encode as a VBI tho for MQTT 5 it is always a single byte */
+	uint8_t session_expiry_id;
+	uint32_t session_expiry;
+	uint8_t receive_maximum_id;
+	uint16_t receive_maximum;
+	uint8_t maximum_packet_size_id;
+	uint32_t maximum_packet_size;
+	uint8_t topic_alias_maximum_id;
+	uint16_t topic_alias_maximum;
+	uint8_t request_response_information_id;
+	uint8_t request_response_information;
+	uint8_t request_problem_information_id;
+	uint8_t request_problem_information;
+	uint8_t user_property_id; /* prefix each String Pair below with this id when building packet */
+	uint8_t *user_properties; /* pointer to catenated MQTT UTF-8 String Pairs if any */
+	uint8_t authentication_method_id; /* 0x15 */
+	uint8_t *authentication_method; /* pointer to a UTF-8 Encoded String with the authentication method if any */
+	uint8_t authentication_data_id; /* 0x16 */
+	uint8_t *authentication_data; /* pointer to Binary Data containing authentication data if any*/
+} connect_header_vars;
+
+const connect_header_vars connect_header_vars_template = {
 	.packet_type = CMD_CONNECT,
 	.remaining_length = 0,
 	.protocol_name = {0x00, 0x04, 'M', 'Q', 'T', 'T'},
@@ -136,7 +211,6 @@ const cp_vars cpv_prototype = {
 	.authentication_data_id = 0, /* 0x16 */
 	.authentication_data = NULL
 };
-
 
 struct mrpacket{
 	uint8_t *payload;

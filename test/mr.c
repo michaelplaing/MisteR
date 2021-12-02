@@ -107,37 +107,28 @@ void mrSendConnect(redisAsyncContext *ctx) {
     size_t pos = 0;
     Pvoid_t PJSLArray = (Pvoid_t)NULL;  // initialize JudySL array
     connect_hv hv, *Phv, **PPhv;
-
     size_t hv_count = sizeof(connect_hvs) / sizeof(connect_hv);
-    printf("hv_count = %d\n", hv_count);
 
-    // build an associative array of name to header variable (hv) via an indirect pointer
+    // build an associative array of name to header variable (hv) via a handle
     for (i = 0; i < hv_count; i++) {
         JSLI(PPhv, PJSLArray, connect_hvs[i].name); 
         *PPhv = &connect_hvs[i];
     }
 
     // for example, set remaining_length to 42
-    JSLG(PPhv, PJSLArray, "remaining_length"); // 1st get the indirect pointer
-    Phv = *PPhv; // dereference to get a simple pointer to the hv
-    printf("remaining_length read: %u\n", Phv->value);
+    JSLG(PPhv, PJSLArray, "remaining_length"); // get the handle
+    Phv = *PPhv; // dereference to get a pointer to the hv
     Phv->value = 42; // then reset the value for the header variable
 
     // Values should all have been set - pack into a buffer using the packing function for each header var
     for (i = 0; i < hv_count; i++) {
         hv = connect_hvs[i];
         hv.pack_fn(hv.value, buf, &pos);
-
-        printf(
-            "name: %s; value: %hhX; buf[pos - 1]: %hhX; next pos: %d\n", 
-            hv.name, hv.value, buf[pos - 1], pos
-        );
     }
 
-    printf("Buf:");
-    for (i = 0; i < pos; i++) printf(" %hhX", buf[i]);
+    printf("Connect Buf:");
+    for (i = 0; i < pos; i++) printf(" %02hhX", buf[i]);
     printf("\n");
-
   
 /*
     uuid_t *corrid = malloc(sizeof(uuid_t));
@@ -215,11 +206,11 @@ int main (void) {
     redisAsyncSetConnectCallback(ctx, redisAsyncConnectCallback);
     redisAsyncSetDisconnectCallback(ctx, redisAsyncDisconnectCallback);
 
-    printf("MisteR CONNECT sent\n");
     mrSendConnect(ctx);
+    printf("MisteR CONNECT sent\n");
 
-    printf("MisteR PINGREQ sent - will terminate when PINGRESP is handled\n");
     mrSendPingreq(ctx);
+    printf("MisteR PINGREQ sent - will terminate when PINGRESP is handled\n");
 
     printf("Activating event loop...\n");
     ev_loop(EV_DEFAULT_ 0);
