@@ -123,7 +123,7 @@ void mrSendConnect(redisAsyncContext *ctx) {
     // Values should all have been set - pack into a buffer using the packing function for each header var
     for (i = 0; i < hv_count; i++) {
         hv = connect_hvs[i];
-        hv.pack_fn(hv.value, buf, &pos);
+        hv.pack_fn(hv.value, hv.len, buf, &pos);
     }
 
     printf("Connect Buf:");

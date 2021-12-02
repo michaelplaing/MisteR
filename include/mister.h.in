@@ -25,6 +25,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
 
 #include <Judy.h>
 
@@ -72,16 +73,17 @@
 typedef struct connect_hv {
 	char *name;
 	Word_t value; /* can handle each header_var value */
-	int (*pack_fn)(Word_t value, uint8_t *buf, size_t *pos);
+	size_t len;
+	int (*pack_fn)(Word_t value, size_t len, uint8_t *buf, size_t *pos);
 } connect_hv;
 
-int pack_uint8(Word_t value, uint8_t buf[], size_t *Ppos){
+int pack_uint8(Word_t value, size_t len, uint8_t buf[], size_t *Ppos){
 	buf[*Ppos] = value;
 	*Ppos += 1;
 	return 0;
 }
 
-int pack_uint16(Word_t value, uint8_t buf[], size_t *Ppos){
+int pack_uint16(Word_t value, size_t len, uint8_t buf[], size_t *Ppos){
 	uint16_t val16 = value;
 	buf[*Ppos] = (val16 >> 8) & 0xFF;
 	buf[*Ppos + 1] = val16 & 0xFF;
@@ -89,7 +91,7 @@ int pack_uint16(Word_t value, uint8_t buf[], size_t *Ppos){
 	return 0;
 }
 
-int pack_uint32(Word_t value, uint8_t buf[], size_t *Ppos){
+int pack_uint32(Word_t value, size_t len, uint8_t buf[], size_t *Ppos){
 	uint32_t val32 = value;
 	buf[*Ppos] = (val32 >> 24) & 0xFF;
 	buf[*Ppos + 1] = (val32 >> 16) & 0xFF;
@@ -99,18 +101,28 @@ int pack_uint32(Word_t value, uint8_t buf[], size_t *Ppos){
 	return 0;
 }
 
-int pack_VBI(Word_t value, uint8_t buf[], size_t *Ppos){ // assume 1 byte for now
+int pack_VBI(Word_t value, size_t len, uint8_t buf[], size_t *Ppos){ // assume 1 byte for now
 	buf[*Ppos] = value;
 	*Ppos += 1;
 	return 0;
 }
 
+int pack_buffer(Word_t value, size_t len, uint8_t* buf, size_t *Ppos){
+	uint8_t *buffer = (uint8_t *)value;
+	memcpy(buf + *Ppos, buffer, len);
+	*Ppos += len;
+	return 0;
+}
+
+uint8_t test[] = {0x00, 0x04, 'M', 'Q', 'T', 'T'};
+
 connect_hv connect_hvs[] = {
-	{"packet_type", CMD_CONNECT, pack_uint8},
-	{"remaining_length", 0, pack_VBI},
-	{"protocol_name_prefix", 0x0004, pack_uint16},
-	{"protocol_name", 0x4D515454, pack_uint32}, // MQTT
-	{"protocol_version", 5, pack_uint8}
+	{"packet_type", CMD_CONNECT, 1, pack_uint8},
+	{"remaining_length", 0, 0, pack_VBI},
+	{"protocol_name_prefix", 0x0004, 2, pack_uint16},
+	{"protocol_name", 0x4D515454, 4, pack_uint32}, // MQTT
+	{"protocol_version", 5, 1, pack_uint8},
+	{"test", (Word_t)test, sizeof(test), pack_buffer}
 /*
 	bool reserved;
 	bool clean_start;
