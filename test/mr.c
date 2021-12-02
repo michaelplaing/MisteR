@@ -106,26 +106,27 @@ void mrSendConnect(redisAsyncContext *ctx) {
     uint8_t buf[1000] = {0};
     size_t pos = 0;
     Pvoid_t PJSLArray = (Pvoid_t)NULL;  // initialize JudySL array
-    connect_hv **PPconnect_hv;
-  
+    connect_hv hv, *Phv, **PPhv;
+
     size_t hv_count = sizeof(connect_hvs) / sizeof(connect_hv);
     printf("hv_count = %d\n", hv_count);
 
     for (i = 0; i < hv_count; i++) {
-        JSLI(PPconnect_hv, PJSLArray, connect_hvs[i].name);
-        *PPconnect_hv = &connect_hvs[i];
+        JSLI(PPhv, PJSLArray, connect_hvs[i].name); 
+        *PPhv = &connect_hvs[i];
     }
 
-    JSLG(PPconnect_hv, PJSLArray, "remaining_length");
-    printf("remaining_length read: %u\n", (**PPconnect_hv).value, sizeof(Word_t));
-    (**PPconnect_hv).value = 42;
+    JSLG(PPhv, PJSLArray, "remaining_length"); // to set remaining_length to 42, 1st get the indirect pointer
+    Phv = *PPhv; // dereference to get a pointer to the hv
+    printf("remaining_length read: %u\n", Phv->value);
+    Phv->value = 42; // now reset the value
 
-    connect_hv hv;
+    
     for (i = 0; i < hv_count; i++) {
-        JSLG(PPconnect_hv, PJSLArray, connect_hvs[i].name);
-        hv = **PPconnect_hv;
+        // JSLG(PPhv, PJSLArray, connect_hvs[i].name);
+        hv = connect_hvs[i];
         hv.Packfunc(hv.value, buf, &pos);
-        printf("name: %s; value: %hhX; buf[pos]: %hhX; next pos: %d\n", hv.name, hv.value, buf[pos - 1], pos);
+        printf("name: %s; value: %hhX; buf[pos - 1]: %hhX; next pos: %d\n", hv.name, hv.value, buf[pos - 1], pos);
     }
 
     printf("Buf:");
