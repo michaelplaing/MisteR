@@ -111,22 +111,27 @@ void mrSendConnect(redisAsyncContext *ctx) {
     size_t hv_count = sizeof(connect_hvs) / sizeof(connect_hv);
     printf("hv_count = %d\n", hv_count);
 
+    // build an associative array of name to header variable (hv) via an indirect pointer
     for (i = 0; i < hv_count; i++) {
         JSLI(PPhv, PJSLArray, connect_hvs[i].name); 
         *PPhv = &connect_hvs[i];
     }
 
-    JSLG(PPhv, PJSLArray, "remaining_length"); // to set remaining_length to 42, 1st get the indirect pointer
-    Phv = *PPhv; // dereference to get a pointer to the hv
+    // for example, set remaining_length to 42
+    JSLG(PPhv, PJSLArray, "remaining_length"); // 1st get the indirect pointer
+    Phv = *PPhv; // dereference to get a simple pointer to the hv
     printf("remaining_length read: %u\n", Phv->value);
-    Phv->value = 42; // now reset the value
+    Phv->value = 42; // then reset the value for the header variable
 
-    
+    // Values should all have been set - pack into a buffer using the packing function for each header var
     for (i = 0; i < hv_count; i++) {
-        // JSLG(PPhv, PJSLArray, connect_hvs[i].name);
         hv = connect_hvs[i];
-        hv.Packfunc(hv.value, buf, &pos);
-        printf("name: %s; value: %hhX; buf[pos - 1]: %hhX; next pos: %d\n", hv.name, hv.value, buf[pos - 1], pos);
+        hv.pack_fn(hv.value, buf, &pos);
+
+        printf(
+            "name: %s; value: %hhX; buf[pos - 1]: %hhX; next pos: %d\n", 
+            hv.name, hv.value, buf[pos - 1], pos
+        );
     }
 
     printf("Buf:");
