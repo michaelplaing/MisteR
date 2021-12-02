@@ -79,7 +79,7 @@ typedef struct connect_hv {
 
 int pack_uint8(Word_t value, size_t len, uint8_t buf[], size_t *Ppos){
 	buf[*Ppos] = value;
-	*Ppos += 1;
+	(*Ppos)++;
 	return 0;
 }
 
@@ -103,34 +103,49 @@ int pack_uint32(Word_t value, size_t len, uint8_t buf[], size_t *Ppos){
 
 int pack_VBI(Word_t value, size_t len, uint8_t buf[], size_t *Ppos){ // assume 1 byte for now
 	buf[*Ppos] = value;
-	*Ppos += 1;
+	(*Ppos)++;
 	return 0;
 }
 
 int pack_buffer(Word_t value, size_t len, uint8_t* buf, size_t *Ppos){
-	uint8_t *buffer = (uint8_t *)value;
-	memcpy(buf + *Ppos, buffer, len);
+	memcpy(buf + *Ppos, (uint8_t *)value, len);
 	*Ppos += len;
 	return 0;
 }
 
-uint8_t test[] = {0x00, 0x04, 'M', 'Q', 'T', 'T'};
+const uint8_t single_bit = 0x01;
+
+int pack_bool_in_uint8(Word_t value, size_t len, uint8_t buf[], size_t *Ppos){
+	if (value) buf[*Ppos] = (buf[*Ppos] | (single_bit << len));
+	if (len == 7) (*Ppos)++;
+	return 0;
+}
+
+int pack_uint8_in_uint8(Word_t value, size_t len, uint8_t buf[], size_t *Ppos){
+	if (value) {
+		uint8_t val = value;
+		buf[*Ppos] = (buf[*Ppos] | (val << len));
+	}
+
+	return 0;
+}
+
+const uint8_t protocol_name[] = {0x00, 0x04, 'M', 'Q', 'T', 'T'};
 
 connect_hv connect_hvs[] = {
 	{"packet_type", CMD_CONNECT, 1, pack_uint8},
 	{"remaining_length", 0, 0, pack_VBI},
-	{"protocol_name_prefix", 0x0004, 2, pack_uint16},
-	{"protocol_name", 0x4D515454, 4, pack_uint32}, // MQTT
+	{"protocol_name", (Word_t)protocol_name, sizeof(protocol_name), pack_buffer},
 	{"protocol_version", 5, 1, pack_uint8},
-	{"test", (Word_t)test, sizeof(test), pack_buffer}
+	{"reserved", false, 0, pack_bool_in_uint8}, // use len for bit position
+	{"clean_start", false, 1, pack_bool_in_uint8},
+	{"will_flag", false, 2, pack_bool_in_uint8},
+	{"will_qos", 0, 3, pack_uint8_in_uint8},
+	{"will_retain", false, 5, pack_bool_in_uint8},
+	{"password_flag", false, 6, pack_bool_in_uint8},
+	{"username_flag", false, 7, pack_bool_in_uint8}
+
 /*
-	bool reserved;
-	bool clean_start;
-	bool will_flag;
-	uint8_t will_qos;
-	bool will_retain;
-	bool password_flag;
-	bool username_flag;
 	uint16_t keep_alive;
 	uint32_t property_length;
 	uint8_t session_expiry_id;
