@@ -10,6 +10,7 @@
 
 #include "redismodule.h"
 #include "mister.h"
+#include "pack.h"
 
 void mrPingreqCallback(redisAsyncContext *rctx, void *reply_void, void *private_data_void) {
     REDISMODULE_NOT_USED(rctx);
@@ -104,14 +105,55 @@ void mrSendConnect(redisAsyncContext *rctx) {
     uint8_t *connect_packet;
     Pvoid_t PJSLArray = (Pvoid_t)NULL;  // initialize JudySL array
     connect_hv hv, *chv, **Pchv;
-    size_t hv_count = sizeof(connect_hvs) / sizeof(connect_hv);
     uint8_t buf[1000] = {0};
     pack_ctx myctx = {buf, 0};
     pack_ctx *pctx = &myctx;
 
+    const uint8_t protocol_name[] = {0x00, 0x04, 'M', 'Q', 'T', 'T'};
+
+connect_hv connect_hvs[] = {
+/*  name, function, value, bitpos, exists, id, len */
+    {"packet_type", pack_uint8, CMD_CONNECT, 0},
+    {"remaining_length", pack_VBI, 0},
+    {"protocol_name", pack_buffer, (Word_t)protocol_name, 0, 0, 0, sizeof(protocol_name)},
+    {"protocol_version", pack_uint8, 5, 0},
+    {"reserved", pack_bool_in_uint8, false, 0, 0},
+    {"clean_start", pack_bool_in_uint8, false, 1, 0},
+    {"will_flag", pack_bool_in_uint8, false, 2, 0},
+    {"will_qos", pack_uint8_in_uint8, 0, 3, 0},
+    {"will_retain", pack_bool_in_uint8, false, 5, 0},
+    {"password_flag", pack_bool_in_uint8, false, 6, 0},
+    {"username_flag", pack_bool_in_uint8, false, 7, 0},
+    {"keep_alive", pack_uint16, 0},
+    {"property_length", pack_VBI, 0},
+    {"session_expiry", pack_prop_uint32, 0, 0, false, 0x11, 0}
+};
+
+/*
+    uint8_t receive_maximum_id;
+    uint16_t receive_maximum;
+    uint8_t maximum_packet_size_id;
+    uint32_t maximum_packet_size;
+    uint8_t topic_alias_maximum_id;
+    uint16_t topic_alias_maximum;
+    uint8_t request_response_information_id;
+    uint8_t request_response_information;
+    uint8_t request_problem_information_id;
+    uint8_t request_problem_information;
+    uint8_t user_property_id;
+    uint8_t *user_properties;
+    uint8_t authentication_method_id;
+    uint8_t *authentication_method;
+    uint8_t authentication_data_id;
+    uint8_t *authentication_data;
+*/
+
+    size_t hv_count = sizeof(connect_hvs) / sizeof(connect_hv);
+
     /*  build an associative array of name to header variable
         via a handle
     */
+
     for (i = 0; i < hv_count; i++) {
         JSLI(Pchv, PJSLArray, connect_hvs[i].name);
         *Pchv = &connect_hvs[i];

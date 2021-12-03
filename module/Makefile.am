@@ -10,4 +10,4 @@ mister_la_CFLAGS= -I@top_builddir@/include
 
 mister_la_LDFLAGS= -avoid-version -module -shared
 
-mister_la_SOURCES= mister.c pack.c
+mister_la_SOURCES= mister.c

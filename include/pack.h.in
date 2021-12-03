@@ -1,10 +1,46 @@
 #ifndef PACK_H
 #define PACK_H
 
+#include "mister.h"
 
 #ifdef __cplusplus
 //extern "C" {
 #endif /* __cplusplus */
+
+typedef struct pack_ctx {
+    uint8_t *buf;
+    size_t pos;
+    size_t propcnt;
+    size_t len;
+} pack_ctx;
+
+struct connect_hv;
+
+typedef struct connect_hv {
+    char *name;
+    int (*pack_fn)(pack_ctx *pctx, struct connect_hv *chv);
+    Word_t value; /* can handle each header_var value including pointers */
+    size_t bitpos; // for sub-byte values
+    bool exists; // for properties
+    uint8_t id; // for properties
+    size_t len; // for pointer values & VBIs
+} connect_hv;
+
+int pack_uint8(pack_ctx *pctx, connect_hv *chv);
+
+int pack_uint16(pack_ctx *pctx, connect_hv *chv);
+
+int pack_uint32(pack_ctx *pctx, connect_hv *chv);
+
+int pack_prop_uint32(pack_ctx *pctx, connect_hv *chv);
+
+int pack_VBI(pack_ctx *pctx, connect_hv *chv);
+
+int pack_buffer(pack_ctx *pctx, connect_hv *chv);
+
+int pack_bool_in_uint8(pack_ctx *pctx, connect_hv *chv);
+
+int pack_uint8_in_uint8(pack_ctx *pctx, connect_hv *chv);
 
 
 #ifdef __cpluplus

@@ -7,4 +7,5 @@
 misterdir=@includedir@
 mister_HEADERS=\
 	mister.h\
-	redismodule.h
+	redismodule.h\
+	pack.h
