@@ -2,6 +2,12 @@
 
 #include "pack.h"
 
+pack_ctx *initPackContext(size_t bufsize){
+    pack_ctx *pctx = calloc(sizeof(pack_ctx) + bufsize, 1);
+    pctx->buf = pctx + bufsize;
+    return pctx;
+}
+
 int pack_uint8(pack_ctx *pctx, connect_hv *chv){
     pctx->buf[pctx->pos] = chv->value;
     pctx->pos++;

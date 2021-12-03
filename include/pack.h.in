@@ -26,6 +26,8 @@ typedef struct connect_hv {
     size_t len; // for pointer values & VBIs
 } connect_hv;
 
+pack_ctx *initPackContext(size_t bufsize);
+
 int pack_uint8(pack_ctx *pctx, connect_hv *chv);
 
 int pack_uint16(pack_ctx *pctx, connect_hv *chv);
@@ -41,7 +43,6 @@ int pack_buffer(pack_ctx *pctx, connect_hv *chv);
 int pack_bool_in_uint8(pack_ctx *pctx, connect_hv *chv);
 
 int pack_uint8_in_uint8(pack_ctx *pctx, connect_hv *chv);
-
 
 #ifdef __cpluplus
 //}

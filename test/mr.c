@@ -102,12 +102,10 @@ void mrConnectCallback(redisAsyncContext *rctx, void *reply_void, void *private_
 
 void mrSendConnect(redisAsyncContext *rctx) {
     size_t i;
-    uint8_t *connect_packet;
     Pvoid_t PJSLArray = (Pvoid_t)NULL;  // initialize JudySL array
     connect_hv hv, *chv, **Pchv;
-    uint8_t buf[1000] = {0};
-    pack_ctx myctx = {buf, 0};
-    pack_ctx *pctx = &myctx;
+
+    pack_ctx *pctx = initPackContext(1000);
 
     const uint8_t protocol_name[] = {0x00, 0x04, 'M', 'Q', 'T', 'T'};
 
@@ -170,8 +168,8 @@ connect_hv connect_hvs[] = {
     (*Pchv)->value = 3;
 
     (*Pchv)->value = 1; // reset will_qos to 1
-
-    /*  Values are all set so pack into a buffer using the
+    /*
+        Values are all set so pack into a buffer using the
         packing function for each header var
     */
     for (i = 0; i < hv_count; i++) {
@@ -179,8 +177,10 @@ connect_hv connect_hvs[] = {
         chv->pack_fn(pctx, chv);
     }
 
+
+
     printf("Connect Buf:");
-    for (i = 0; i < pctx->pos; i++) printf(" %02hhX", buf[i]);
+    for (i = 0; i < pctx->pos; i++) printf(" %02hhX", pctx->buf[i]);
     printf("\n");
 
 }
