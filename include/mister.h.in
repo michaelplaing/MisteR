@@ -70,219 +70,252 @@
 #define MR_DISCONNECT    "mr.disconnect"
 #define MR_AUTH          "mr.auth"
 
+typedef struct pack_ctx {
+    uint8_t *buf;
+    size_t pos;
+    size_t propcnt;
+    size_t len;
+} pack_ctx;
+
+struct connect_hv;
+
 typedef struct connect_hv {
-	char *name;
-	Word_t value; /* can handle each header_var value */
-	size_t len;
-	int (*pack_fn)(Word_t value, size_t len, uint8_t *buf, size_t *pos);
+    char *name;
+    int (*pack_fn)(pack_ctx *pctx, struct connect_hv *chv);
+    Word_t value; /* can handle each header_var value including pointers */
+    size_t bitpos; // for sub-byte values
+    bool exists; // for properties
+    uint8_t id; // for properties
+    size_t len; // for pointer values & VBIs
 } connect_hv;
 
-int pack_uint8(Word_t value, size_t len, uint8_t buf[], size_t *Ppos){
-	buf[*Ppos] = value;
-	(*Ppos)++;
-	return 0;
+int pack_uint8(pack_ctx *pctx, connect_hv *chv){
+    pctx->buf[pctx->pos] = chv->value;
+    pctx->pos++;
+    return 0;
 }
 
-int pack_uint16(Word_t value, size_t len, uint8_t buf[], size_t *Ppos){
-	uint16_t val16 = value;
-	buf[*Ppos] = (val16 >> 8) & 0xFF;
-	buf[*Ppos + 1] = val16 & 0xFF;
-	*Ppos += 2;
-	return 0;
+int pack_uint16(pack_ctx *pctx, connect_hv *chv){
+    uint16_t val16 = chv->value;
+    pctx->buf[pctx->pos] = (val16 >> 8) & 0xFF;
+    pctx->buf[pctx->pos + 1] = val16 & 0xFF;
+    pctx->pos += 2;
+    return 0;
 }
 
-int pack_uint32(Word_t value, size_t len, uint8_t buf[], size_t *Ppos){
-	uint32_t val32 = value;
-	buf[*Ppos] = (val32 >> 24) & 0xFF;
-	buf[*Ppos + 1] = (val32 >> 16) & 0xFF;
-	buf[*Ppos + 2] = (val32 >> 8) & 0xFF;
-	buf[*Ppos + 3] = val32 & 0xFF;
-	*Ppos += 4;
-	return 0;
+int pack_uint32(pack_ctx *pctx, connect_hv *chv){
+    uint32_t val32 = chv->value;
+    pctx->buf[pctx->pos] = (val32 >> 24) & 0xFF;
+    pctx->buf[pctx->pos + 1] = (val32 >> 16) & 0xFF;
+    pctx->buf[pctx->pos + 2] = (val32 >> 8) & 0xFF;
+    pctx->buf[pctx->pos + 3] = val32 & 0xFF;
+    pctx->pos += 4;
+    return 0;
 }
 
-int pack_VBI(Word_t value, size_t len, uint8_t buf[], size_t *Ppos){ // assume 1 byte for now
-	buf[*Ppos] = value;
-	(*Ppos)++;
-	return 0;
+int pack_prop_uint32(pack_ctx *pctx, connect_hv *chv) {
+    if (chv->exists) {
+        uint32_t tempvalue = chv->value;
+        chv->value = chv->id;
+        pack_uint8(pctx, chv);
+        chv->value = tempvalue;
+        pack_uint32(pctx, chv);
+    }
+
+    return 0;
 }
 
-int pack_buffer(Word_t value, size_t len, uint8_t* buf, size_t *Ppos){
-	memcpy(buf + *Ppos, (uint8_t *)value, len);
-	*Ppos += len;
-	return 0;
+int pack_VBI(pack_ctx *pctx, connect_hv *chv) { // assume 1 byte for now
+    pctx->buf[pctx->pos] = chv->value;
+    pctx->pos++;
+    return 0;
+}
+
+int pack_buffer(pack_ctx *pctx, connect_hv *chv){
+    memcpy(pctx->buf + pctx->pos, (uint8_t *)(chv->value), chv->len);
+    pctx->pos += chv->len;
+    return 0;
 }
 
 const uint8_t single_bit = 0x01;
+const uint8_t two_bits = 0x03;
 
-int pack_bool_in_uint8(Word_t value, size_t len, uint8_t buf[], size_t *Ppos){
-	if (value) buf[*Ppos] = (buf[*Ppos] | (single_bit << len));
-	if (len == 7) (*Ppos)++;
-	return 0;
+int pack_bool_in_uint8(pack_ctx *pctx, connect_hv *chv){
+    if (chv->value) {
+        pctx->buf[pctx->pos] = (pctx->buf[pctx->pos] | (single_bit << chv->bitpos));
+    } else {
+        pctx->buf[pctx->pos] = (pctx->buf[pctx->pos] & ~(single_bit << chv->bitpos));
+    }
+
+    if (chv->bitpos == 7) pctx->pos++;
+    return 0;
 }
 
-int pack_uint8_in_uint8(Word_t value, size_t len, uint8_t buf[], size_t *Ppos){
-	if (value) {
-		uint8_t val = value;
-		buf[*Ppos] = (buf[*Ppos] | (val << len));
-	}
+int pack_uint8_in_uint8(pack_ctx *pctx, connect_hv *chv){
+    pctx->buf[pctx->pos] = (pctx->buf[pctx->pos] & ~(two_bits << chv->bitpos));
 
-	return 0;
+    if (chv->value) {
+        uint8_t val = chv->value;
+        pctx->buf[pctx->pos] = (pctx->buf[pctx->pos] | (val << chv->bitpos));
+    }
+
+    return 0;
 }
 
 const uint8_t protocol_name[] = {0x00, 0x04, 'M', 'Q', 'T', 'T'};
 
-connect_hv connect_hvs[] = {
-	{"packet_type", CMD_CONNECT, 1, pack_uint8},
-	{"remaining_length", 0, 0, pack_VBI},
-	{"protocol_name", (Word_t)protocol_name, sizeof(protocol_name), pack_buffer},
-	{"protocol_version", 5, 1, pack_uint8},
-	{"reserved", false, 0, pack_bool_in_uint8}, // use len for bit position
-	{"clean_start", false, 1, pack_bool_in_uint8},
-	{"will_flag", false, 2, pack_bool_in_uint8},
-	{"will_qos", 0, 3, pack_uint8_in_uint8},
-	{"will_retain", false, 5, pack_bool_in_uint8},
-	{"password_flag", false, 6, pack_bool_in_uint8},
-	{"username_flag", false, 7, pack_bool_in_uint8}
+connect_hv connect_hvs[] = { // name, function, value, bitpos, exists, id, len
+    {"packet_type", pack_uint8, CMD_CONNECT, 0},
+    {"remaining_length", pack_VBI, 0},
+    {"protocol_name", pack_buffer, (Word_t)protocol_name, 0, 0, 0, sizeof(protocol_name)},
+    {"protocol_version", pack_uint8, 5, 0},
+    {"reserved", pack_bool_in_uint8, false, 0, 0},
+    {"clean_start", pack_bool_in_uint8, false, 1, 0},
+    {"will_flag", pack_bool_in_uint8, false, 2, 0},
+    {"will_qos", pack_uint8_in_uint8, 0, 3, 0},
+    {"will_retain", pack_bool_in_uint8, false, 5, 0},
+    {"password_flag", pack_bool_in_uint8, false, 6, 0},
+    {"username_flag", pack_bool_in_uint8, false, 7, 0},
+    {"keep_alive", pack_uint16, 0},
+    {"property_length", pack_VBI, 0},
+    {"session_expiry", pack_prop_uint32, 0, 0, false, 0x11, 0}
 
 /*
-	uint16_t keep_alive;
-	uint32_t property_length;
-	uint8_t session_expiry_id;
-	uint32_t session_expiry;
-	uint8_t receive_maximum_id;
-	uint16_t receive_maximum;
-	uint8_t maximum_packet_size_id;
-	uint32_t maximum_packet_size;
-	uint8_t topic_alias_maximum_id;
-	uint16_t topic_alias_maximum;
-	uint8_t request_response_information_id;
-	uint8_t request_response_information;
-	uint8_t request_problem_information_id;
-	uint8_t request_problem_information;
-	uint8_t user_property_id;
-	uint8_t *user_properties;
-	uint8_t authentication_method_id;
-	uint8_t *authentication_method;
-	uint8_t authentication_data_id;
-	uint8_t *authentication_data;
+    uint8_t session_expiry_id;
+    uint32_t session_expiry;
+    uint8_t receive_maximum_id;
+    uint16_t receive_maximum;
+    uint8_t maximum_packet_size_id;
+    uint32_t maximum_packet_size;
+    uint8_t topic_alias_maximum_id;
+    uint16_t topic_alias_maximum;
+    uint8_t request_response_information_id;
+    uint8_t request_response_information;
+    uint8_t request_problem_information_id;
+    uint8_t request_problem_information;
+    uint8_t user_property_id;
+    uint8_t *user_properties;
+    uint8_t authentication_method_id;
+    uint8_t *authentication_method;
+    uint8_t authentication_data_id;
+    uint8_t *authentication_data;
 */
 };
 
 typedef struct connect_header_vars {
-	uint8_t packet_type;
-	uint32_t remaining_length; /* encode as Variable Byte Integer (VBI) */
-	uint8_t protocol_name[6];
-	uint8_t protocol_version;
-	bool reserved;
-	bool clean_start;
-	bool will_flag;
-	uint8_t will_qos;
-	bool will_retain;
-	bool password_flag;
-	bool username_flag;
-	uint16_t keep_alive;
-	/* properties - each optionally present */
-	uint32_t property_length; /* encode as a VBI tho for MQTT 5 it is always a single byte */
-	uint8_t session_expiry_id;
-	uint32_t session_expiry;
-	uint8_t receive_maximum_id;
-	uint16_t receive_maximum;
-	uint8_t maximum_packet_size_id;
-	uint32_t maximum_packet_size;
-	uint8_t topic_alias_maximum_id;
-	uint16_t topic_alias_maximum;
-	uint8_t request_response_information_id;
-	uint8_t request_response_information;
-	uint8_t request_problem_information_id;
-	uint8_t request_problem_information;
-	uint8_t user_property_id; /* prefix each String Pair below with this id when building packet */
-	uint8_t *user_properties; /* pointer to catenated MQTT UTF-8 String Pairs if any */
-	uint8_t authentication_method_id; /* 0x15 */
-	uint8_t *authentication_method; /* pointer to a UTF-8 Encoded String with the authentication method if any */
-	uint8_t authentication_data_id; /* 0x16 */
-	uint8_t *authentication_data; /* pointer to Binary Data containing authentication data if any*/
+    uint8_t packet_type;
+    uint32_t remaining_length; /* encode as Variable Byte Integer (VBI) */
+    uint8_t protocol_name[6];
+    uint8_t protocol_version;
+    bool reserved;
+    bool clean_start;
+    bool will_flag;
+    uint8_t will_qos;
+    bool will_retain;
+    bool password_flag;
+    bool username_flag;
+    uint16_t keep_alive;
+    /* properties - each optionally present */
+    uint32_t property_length; /* encode as a VBI tho for MQTT 5 it is always a single byte */
+    uint8_t session_expiry_id;
+    uint32_t session_expiry;
+    uint8_t receive_maximum_id;
+    uint16_t receive_maximum;
+    uint8_t maximum_packet_size_id;
+    uint32_t maximum_packet_size;
+    uint8_t topic_alias_maximum_id;
+    uint16_t topic_alias_maximum;
+    uint8_t request_response_information_id;
+    uint8_t request_response_information;
+    uint8_t request_problem_information_id;
+    uint8_t request_problem_information;
+    uint8_t user_property_id; /* prefix each String Pair below with this id when building packet */
+    uint8_t *user_properties; /* pointer to catenated MQTT UTF-8 String Pairs if any */
+    uint8_t authentication_method_id; /* 0x15 */
+    uint8_t *authentication_method; /* pointer to a UTF-8 Encoded String with the authentication method if any */
+    uint8_t authentication_data_id; /* 0x16 */
+    uint8_t *authentication_data; /* pointer to Binary Data containing authentication data if any*/
 } connect_header_vars;
 
 const connect_header_vars connect_header_vars_template = {
-	.packet_type = CMD_CONNECT,
-	.remaining_length = 0,
-	.protocol_name = {0x00, 0x04, 'M', 'Q', 'T', 'T'},
-	.protocol_version = 5,
-	.reserved = false,
-	.clean_start = false,
-	.will_flag = false,
-	.will_qos = 0,
-	.will_retain = false,
-	.password_flag = false,
-	.username_flag = false,
-	.keep_alive = 0,
-	/* properties - 0 for an id indicates the property should not be present in the packet */
-	.property_length = 0,
-	.session_expiry_id = 0, /* 0x11 */
-	.session_expiry = 0,
-	.receive_maximum_id = 0, /* 0x33 */
-	.receive_maximum = 0,
-	.maximum_packet_size_id = 0, /* 0x39 */
-	.maximum_packet_size = 0,
-	.topic_alias_maximum_id = 0, /* 0x22 */
-	.topic_alias_maximum = 0,
-	.request_response_information_id = 0, /* 0x19 */
-	.request_response_information = 0,
-	.request_problem_information_id = 0, /* 0x17 */
-	.request_problem_information = 0,
-	.user_property_id = 0, /* 0x26 */
-	.user_properties = NULL,
-	.authentication_method_id = 0, /* 0x15 */
-	.authentication_method = NULL,
-	.authentication_data_id = 0, /* 0x16 */
-	.authentication_data = NULL
+    .packet_type = CMD_CONNECT,
+    .remaining_length = 0,
+    .protocol_name = {0x00, 0x04, 'M', 'Q', 'T', 'T'},
+    .protocol_version = 5,
+    .reserved = false,
+    .clean_start = false,
+    .will_flag = false,
+    .will_qos = 0,
+    .will_retain = false,
+    .password_flag = false,
+    .username_flag = false,
+    .keep_alive = 0,
+    /* properties - 0 for an id indicates the property should not be present in the packet */
+    .property_length = 0,
+    .session_expiry_id = 0, /* 0x11 */
+    .session_expiry = 0,
+    .receive_maximum_id = 0, /* 0x33 */
+    .receive_maximum = 0,
+    .maximum_packet_size_id = 0, /* 0x39 */
+    .maximum_packet_size = 0,
+    .topic_alias_maximum_id = 0, /* 0x22 */
+    .topic_alias_maximum = 0,
+    .request_response_information_id = 0, /* 0x19 */
+    .request_response_information = 0,
+    .request_problem_information_id = 0, /* 0x17 */
+    .request_problem_information = 0,
+    .user_property_id = 0, /* 0x26 */
+    .user_properties = NULL,
+    .authentication_method_id = 0, /* 0x15 */
+    .authentication_method = NULL,
+    .authentication_data_id = 0, /* 0x16 */
+    .authentication_data = NULL
 };
 
 struct mrpacket{
-	uint8_t *payload;
-	uint32_t len;
-	uint32_t pos;
+    uint8_t *payload;
+    uint32_t len;
+    uint32_t pos;
 };
 
 /* Error values */
 enum mrerr_t {
-	MRERR_AUTH_CONTINUE = -4,
-	MRERR_NO_SUBSCRIBERS = -3,
-	MRERR_SUB_EXISTS = -2,
-	MRERR_CONN_PENDING = -1,
-	MRERR_SUCCESS = 0,
-	MRERR_NOMEM = 1,
-	MRERR_PROTOCOL = 2,
-	MRERR_INVAL = 3,
-	MRERR_NO_CONN = 4,
-	MRERR_CONN_REFUSED = 5,
-	MRERR_NOT_FOUND = 6,
-	MRERR_CONN_LOST = 7,
-	MRERR_TLS = 8,
-	MRERR_PAYLOAD_SIZE = 9,
-	MRERR_NOT_SUPPORTED = 10,
-	MRERR_AUTH = 11,
-	MRERR_ACL_DENIED = 12,
-	MRERR_UNKNOWN = 13,
-	MRERR_ERRNO = 14,
-	MRERR_EAI = 15,
-	MRERR_PROXY = 16,
-	MRERR_PLUGIN_DEFER = 17,
-	MRERR_MALFORMED_UTF8 = 18,
-	MRERR_KEEPALIVE = 19,
-	MRERR_LOOKUP = 20,
-	MRERR_MALFORMED_PACKET = 21,
-	MRERR_DUPLICATE_PROPERTY = 22,
-	MRERR_TLS_HANDSHAKE = 23,
-	MRERR_QOS_NOT_SUPPORTED = 24,
-	MRERR_OVERSIZE_PACKET = 25,
-	MRERR_OCSP = 26,
-	MRERR_TIMEOUT = 27,
-	MRERR_RETAIN_NOT_SUPPORTED = 28,
-	MRERR_TOPIC_ALIAS_INVALID = 29,
-	MRERR_ADMINISTRATIVE_ACTION = 30,
-	MRERR_ALREADY_EXISTS = 31,
+    MRERR_AUTH_CONTINUE = -4,
+    MRERR_NO_SUBSCRIBERS = -3,
+    MRERR_SUB_EXISTS = -2,
+    MRERR_CONN_PENDING = -1,
+    MRERR_SUCCESS = 0,
+    MRERR_NOMEM = 1,
+    MRERR_PROTOCOL = 2,
+    MRERR_INVAL = 3,
+    MRERR_NO_CONN = 4,
+    MRERR_CONN_REFUSED = 5,
+    MRERR_NOT_FOUND = 6,
+    MRERR_CONN_LOST = 7,
+    MRERR_TLS = 8,
+    MRERR_PAYLOAD_SIZE = 9,
+    MRERR_NOT_SUPPORTED = 10,
+    MRERR_AUTH = 11,
+    MRERR_ACL_DENIED = 12,
+    MRERR_UNKNOWN = 13,
+    MRERR_ERRNO = 14,
+    MRERR_EAI = 15,
+    MRERR_PROXY = 16,
+    MRERR_PLUGIN_DEFER = 17,
+    MRERR_MALFORMED_UTF8 = 18,
+    MRERR_KEEPALIVE = 19,
+    MRERR_LOOKUP = 20,
+    MRERR_MALFORMED_PACKET = 21,
+    MRERR_DUPLICATE_PROPERTY = 22,
+    MRERR_TLS_HANDSHAKE = 23,
+    MRERR_QOS_NOT_SUPPORTED = 24,
+    MRERR_OVERSIZE_PACKET = 25,
+    MRERR_OCSP = 26,
+    MRERR_TIMEOUT = 27,
+    MRERR_RETAIN_NOT_SUPPORTED = 28,
+    MRERR_TOPIC_ALIAS_INVALID = 29,
+    MRERR_ADMINISTRATIVE_ACTION = 30,
+    MRERR_ALREADY_EXISTS = 31,
 };
 
 
@@ -307,92 +340,92 @@ enum mrerr_t {
 #define CMD_AUTH 0xF0U
 
 enum mqtt5_return_codes {
-	MQTT_RC_SUCCESS = 0,						/* CONNACK, PUBACK, PUBREC, PUBREL, PUBCOMP, UNSUBACK, AUTH */
-	MQTT_RC_NORMAL_DISCONNECTION = 0,			/* DISCONNECT */
-	MQTT_RC_GRANTED_QOS0 = 0,					/* SUBACK */
-	MQTT_RC_GRANTED_QOS1 = 1,					/* SUBACK */
-	MQTT_RC_GRANTED_QOS2 = 2,					/* SUBACK */
-	MQTT_RC_DISCONNECT_WITH_WILL_MSG = 4,		/* DISCONNECT */
-	MQTT_RC_NO_MATCHING_SUBSCRIBERS = 16,		/* PUBACK, PUBREC */
-	MQTT_RC_NO_SUBSCRIPTION_EXISTED = 17,		/* UNSUBACK */
-	MQTT_RC_CONTINUE_AUTHENTICATION = 24,		/* AUTH */
-	MQTT_RC_REAUTHENTICATE = 25,				/* AUTH */
+    MQTT_RC_SUCCESS = 0,						/* CONNACK, PUBACK, PUBREC, PUBREL, PUBCOMP, UNSUBACK, AUTH */
+    MQTT_RC_NORMAL_DISCONNECTION = 0,			/* DISCONNECT */
+    MQTT_RC_GRANTED_QOS0 = 0,					/* SUBACK */
+    MQTT_RC_GRANTED_QOS1 = 1,					/* SUBACK */
+    MQTT_RC_GRANTED_QOS2 = 2,					/* SUBACK */
+    MQTT_RC_DISCONNECT_WITH_WILL_MSG = 4,		/* DISCONNECT */
+    MQTT_RC_NO_MATCHING_SUBSCRIBERS = 16,		/* PUBACK, PUBREC */
+    MQTT_RC_NO_SUBSCRIPTION_EXISTED = 17,		/* UNSUBACK */
+    MQTT_RC_CONTINUE_AUTHENTICATION = 24,		/* AUTH */
+    MQTT_RC_REAUTHENTICATE = 25,				/* AUTH */
 
-	MQTT_RC_UNSPECIFIED = 128,					/* CONNACK, PUBACK, PUBREC, SUBACK, UNSUBACK, DISCONNECT */
-	MQTT_RC_MALFORMED_PACKET = 129,				/* CONNACK, DISCONNECT */
-	MQTT_RC_PROTOCOL_ERROR = 130,				/* DISCONNECT */
-	MQTT_RC_IMPLEMENTATION_SPECIFIC = 131,		/* CONNACK, PUBACK, PUBREC, SUBACK, UNSUBACK, DISCONNECT */
-	MQTT_RC_UNSUPPORTED_PROTOCOL_VERSION = 132,	/* CONNACK */
-	MQTT_RC_CLIENTID_NOT_VALID = 133,			/* CONNACK */
-	MQTT_RC_BAD_USERNAME_OR_PASSWORD = 134,		/* CONNACK */
-	MQTT_RC_NOT_AUTHORIZED = 135,				/* CONNACK, PUBACK, PUBREC, SUBACK, UNSUBACK, DISCONNECT */
-	MQTT_RC_SERVER_UNAVAILABLE = 136,			/* CONNACK */
-	MQTT_RC_SERVER_BUSY = 137,					/* CONNACK, DISCONNECT */
-	MQTT_RC_BANNED = 138,						/* CONNACK */
-	MQTT_RC_SERVER_SHUTTING_DOWN = 139,			/* DISCONNECT */
-	MQTT_RC_BAD_AUTHENTICATION_METHOD = 140,	/* CONNACK */
-	MQTT_RC_KEEP_ALIVE_TIMEOUT = 141,			/* DISCONNECT */
-	MQTT_RC_SESSION_TAKEN_OVER = 142,			/* DISCONNECT */
-	MQTT_RC_TOPIC_FILTER_INVALID = 143,			/* SUBACK, UNSUBACK, DISCONNECT */
-	MQTT_RC_TOPIC_NAME_INVALID = 144,			/* CONNACK, PUBACK, PUBREC, DISCONNECT */
-	MQTT_RC_PACKET_ID_IN_USE = 145,				/* PUBACK, SUBACK, UNSUBACK */
-	MQTT_RC_PACKET_ID_NOT_FOUND = 146,			/* PUBREL, PUBCOMP */
-	MQTT_RC_RECEIVE_MAXIMUM_EXCEEDED = 147,		/* DISCONNECT */
-	MQTT_RC_TOPIC_ALIAS_INVALID = 148,			/* DISCONNECT */
-	MQTT_RC_PACKET_TOO_LARGE = 149,				/* CONNACK, PUBACK, PUBREC, DISCONNECT */
-	MQTT_RC_MESSAGE_RATE_TOO_HIGH = 150,		/* DISCONNECT */
-	MQTT_RC_QUOTA_EXCEEDED = 151,				/* PUBACK, PUBREC, SUBACK, DISCONNECT */
-	MQTT_RC_ADMINISTRATIVE_ACTION = 152,		/* DISCONNECT */
-	MQTT_RC_PAYLOAD_FORMAT_INVALID = 153,		/* CONNACK, DISCONNECT */
-	MQTT_RC_RETAIN_NOT_SUPPORTED = 154,			/* CONNACK, DISCONNECT */
-	MQTT_RC_QOS_NOT_SUPPORTED = 155,			/* CONNACK, DISCONNECT */
-	MQTT_RC_USE_ANOTHER_SERVER = 156,			/* CONNACK, DISCONNECT */
-	MQTT_RC_SERVER_MOVED = 157,					/* CONNACK, DISCONNECT */
-	MQTT_RC_SHARED_SUBS_NOT_SUPPORTED = 158,	/* SUBACK, DISCONNECT */
-	MQTT_RC_CONNECTION_RATE_EXCEEDED = 159,		/* CONNACK, DISCONNECT */
-	MQTT_RC_MAXIMUM_CONNECT_TIME = 160,			/* DISCONNECT */
-	MQTT_RC_SUBSCRIPTION_IDS_NOT_SUPPORTED = 161, /* SUBACK, DISCONNECT */
-	MQTT_RC_WILDCARD_SUBS_NOT_SUPPORTED = 162,	/* SUBACK, DISCONNECT */
+    MQTT_RC_UNSPECIFIED = 128,					/* CONNACK, PUBACK, PUBREC, SUBACK, UNSUBACK, DISCONNECT */
+    MQTT_RC_MALFORMED_PACKET = 129,				/* CONNACK, DISCONNECT */
+    MQTT_RC_PROTOCOL_ERROR = 130,				/* DISCONNECT */
+    MQTT_RC_IMPLEMENTATION_SPECIFIC = 131,		/* CONNACK, PUBACK, PUBREC, SUBACK, UNSUBACK, DISCONNECT */
+    MQTT_RC_UNSUPPORTED_PROTOCOL_VERSION = 132,	/* CONNACK */
+    MQTT_RC_CLIENTID_NOT_VALID = 133,			/* CONNACK */
+    MQTT_RC_BAD_USERNAME_OR_PASSWORD = 134,		/* CONNACK */
+    MQTT_RC_NOT_AUTHORIZED = 135,				/* CONNACK, PUBACK, PUBREC, SUBACK, UNSUBACK, DISCONNECT */
+    MQTT_RC_SERVER_UNAVAILABLE = 136,			/* CONNACK */
+    MQTT_RC_SERVER_BUSY = 137,					/* CONNACK, DISCONNECT */
+    MQTT_RC_BANNED = 138,						/* CONNACK */
+    MQTT_RC_SERVER_SHUTTING_DOWN = 139,			/* DISCONNECT */
+    MQTT_RC_BAD_AUTHENTICATION_METHOD = 140,	/* CONNACK */
+    MQTT_RC_KEEP_ALIVE_TIMEOUT = 141,			/* DISCONNECT */
+    MQTT_RC_SESSION_TAKEN_OVER = 142,			/* DISCONNECT */
+    MQTT_RC_TOPIC_FILTER_INVALID = 143,			/* SUBACK, UNSUBACK, DISCONNECT */
+    MQTT_RC_TOPIC_NAME_INVALID = 144,			/* CONNACK, PUBACK, PUBREC, DISCONNECT */
+    MQTT_RC_PACKET_ID_IN_USE = 145,				/* PUBACK, SUBACK, UNSUBACK */
+    MQTT_RC_PACKET_ID_NOT_FOUND = 146,			/* PUBREL, PUBCOMP */
+    MQTT_RC_RECEIVE_MAXIMUM_EXCEEDED = 147,		/* DISCONNECT */
+    MQTT_RC_TOPIC_ALIAS_INVALID = 148,			/* DISCONNECT */
+    MQTT_RC_PACKET_TOO_LARGE = 149,				/* CONNACK, PUBACK, PUBREC, DISCONNECT */
+    MQTT_RC_MESSAGE_RATE_TOO_HIGH = 150,		/* DISCONNECT */
+    MQTT_RC_QUOTA_EXCEEDED = 151,				/* PUBACK, PUBREC, SUBACK, DISCONNECT */
+    MQTT_RC_ADMINISTRATIVE_ACTION = 152,		/* DISCONNECT */
+    MQTT_RC_PAYLOAD_FORMAT_INVALID = 153,		/* CONNACK, DISCONNECT */
+    MQTT_RC_RETAIN_NOT_SUPPORTED = 154,			/* CONNACK, DISCONNECT */
+    MQTT_RC_QOS_NOT_SUPPORTED = 155,			/* CONNACK, DISCONNECT */
+    MQTT_RC_USE_ANOTHER_SERVER = 156,			/* CONNACK, DISCONNECT */
+    MQTT_RC_SERVER_MOVED = 157,					/* CONNACK, DISCONNECT */
+    MQTT_RC_SHARED_SUBS_NOT_SUPPORTED = 158,	/* SUBACK, DISCONNECT */
+    MQTT_RC_CONNECTION_RATE_EXCEEDED = 159,		/* CONNACK, DISCONNECT */
+    MQTT_RC_MAXIMUM_CONNECT_TIME = 160,			/* DISCONNECT */
+    MQTT_RC_SUBSCRIPTION_IDS_NOT_SUPPORTED = 161, /* SUBACK, DISCONNECT */
+    MQTT_RC_WILDCARD_SUBS_NOT_SUPPORTED = 162,	/* SUBACK, DISCONNECT */
 };
 
 enum mqtt5_property {
-	MQTT_PROP_PAYLOAD_FORMAT_INDICATOR = 1,		/* Byte :				PUBLISH, Will Properties */
-	MQTT_PROP_MESSAGE_EXPIRY_INTERVAL = 2,		/* 4 byte int :			PUBLISH, Will Properties */
-	MQTT_PROP_CONTENT_TYPE = 3,					/* UTF-8 string :		PUBLISH, Will Properties */
-	MQTT_PROP_RESPONSE_TOPIC = 8,				/* UTF-8 string :		PUBLISH, Will Properties */
-	MQTT_PROP_CORRELATION_DATA = 9,				/* Binary Data :		PUBLISH, Will Properties */
-	MQTT_PROP_SUBSCRIPTION_IDENTIFIER = 11,		/* Variable byte int :	PUBLISH, SUBSCRIBE */
-	MQTT_PROP_SESSION_EXPIRY_INTERVAL = 17,		/* 4 byte int :			CONNECT, CONNACK, DISCONNECT */
-	MQTT_PROP_ASSIGNED_CLIENT_IDENTIFIER = 18,	/* UTF-8 string :		CONNACK */
-	MQTT_PROP_SERVER_KEEP_ALIVE = 19,			/* 2 byte int :			CONNACK */
-	MQTT_PROP_AUTHENTICATION_METHOD = 21,		/* UTF-8 string :		CONNECT, CONNACK, AUTH */
-	MQTT_PROP_AUTHENTICATION_DATA = 22,			/* Binary Data :		CONNECT, CONNACK, AUTH */
-	MQTT_PROP_REQUEST_PROBLEM_INFORMATION = 23,	/* Byte :				CONNECT */
-	MQTT_PROP_WILL_DELAY_INTERVAL = 24,			/* 4 byte int :			Will properties */
-	MQTT_PROP_REQUEST_RESPONSE_INFORMATION = 25,/* Byte :				CONNECT */
-	MQTT_PROP_RESPONSE_INFORMATION = 26,		/* UTF-8 string :		CONNACK */
-	MQTT_PROP_SERVER_REFERENCE = 28,			/* UTF-8 string :		CONNACK, DISCONNECT */
-	MQTT_PROP_REASON_STRING = 31,				/* UTF-8 string :		All except Will properties */
-	MQTT_PROP_RECEIVE_MAXIMUM = 33,				/* 2 byte int :			CONNECT, CONNACK */
-	MQTT_PROP_TOPIC_ALIAS_MAXIMUM = 34,			/* 2 byte int :			CONNECT, CONNACK */
-	MQTT_PROP_TOPIC_ALIAS = 35,					/* 2 byte int :			PUBLISH */
-	MQTT_PROP_MAXIMUM_QOS = 36,					/* Byte :				CONNACK */
-	MQTT_PROP_RETAIN_AVAILABLE = 37,			/* Byte :				CONNACK */
-	MQTT_PROP_USER_PROPERTY = 38,				/* UTF-8 string pair :	All */
-	MQTT_PROP_MAXIMUM_PACKET_SIZE = 39,			/* 4 byte int :			CONNECT, CONNACK */
-	MQTT_PROP_WILDCARD_SUB_AVAILABLE = 40,		/* Byte :				CONNACK */
-	MQTT_PROP_SUBSCRIPTION_ID_AVAILABLE = 41,	/* Byte :				CONNACK */
-	MQTT_PROP_SHARED_SUB_AVAILABLE = 42,		/* Byte :				CONNACK */
+    MQTT_PROP_PAYLOAD_FORMAT_INDICATOR = 1,		/* Byte :				PUBLISH, Will Properties */
+    MQTT_PROP_MESSAGE_EXPIRY_INTERVAL = 2,		/* 4 byte int :			PUBLISH, Will Properties */
+    MQTT_PROP_CONTENT_TYPE = 3,					/* UTF-8 string :		PUBLISH, Will Properties */
+    MQTT_PROP_RESPONSE_TOPIC = 8,				/* UTF-8 string :		PUBLISH, Will Properties */
+    MQTT_PROP_CORRELATION_DATA = 9,				/* Binary Data :		PUBLISH, Will Properties */
+    MQTT_PROP_SUBSCRIPTION_IDENTIFIER = 11,		/* Variable byte int :	PUBLISH, SUBSCRIBE */
+    MQTT_PROP_SESSION_EXPIRY_INTERVAL = 17,		/* 4 byte int :			CONNECT, CONNACK, DISCONNECT */
+    MQTT_PROP_ASSIGNED_CLIENT_IDENTIFIER = 18,	/* UTF-8 string :		CONNACK */
+    MQTT_PROP_SERVER_KEEP_ALIVE = 19,			/* 2 byte int :			CONNACK */
+    MQTT_PROP_AUTHENTICATION_METHOD = 21,		/* UTF-8 string :		CONNECT, CONNACK, AUTH */
+    MQTT_PROP_AUTHENTICATION_DATA = 22,			/* Binary Data :		CONNECT, CONNACK, AUTH */
+    MQTT_PROP_REQUEST_PROBLEM_INFORMATION = 23,	/* Byte :				CONNECT */
+    MQTT_PROP_WILL_DELAY_INTERVAL = 24,			/* 4 byte int :			Will properties */
+    MQTT_PROP_REQUEST_RESPONSE_INFORMATION = 25,/* Byte :				CONNECT */
+    MQTT_PROP_RESPONSE_INFORMATION = 26,		/* UTF-8 string :		CONNACK */
+    MQTT_PROP_SERVER_REFERENCE = 28,			/* UTF-8 string :		CONNACK, DISCONNECT */
+    MQTT_PROP_REASON_STRING = 31,				/* UTF-8 string :		All except Will properties */
+    MQTT_PROP_RECEIVE_MAXIMUM = 33,				/* 2 byte int :			CONNECT, CONNACK */
+    MQTT_PROP_TOPIC_ALIAS_MAXIMUM = 34,			/* 2 byte int :			CONNECT, CONNACK */
+    MQTT_PROP_TOPIC_ALIAS = 35,					/* 2 byte int :			PUBLISH */
+    MQTT_PROP_MAXIMUM_QOS = 36,					/* Byte :				CONNACK */
+    MQTT_PROP_RETAIN_AVAILABLE = 37,			/* Byte :				CONNACK */
+    MQTT_PROP_USER_PROPERTY = 38,				/* UTF-8 string pair :	All */
+    MQTT_PROP_MAXIMUM_PACKET_SIZE = 39,			/* 4 byte int :			CONNECT, CONNACK */
+    MQTT_PROP_WILDCARD_SUB_AVAILABLE = 40,		/* Byte :				CONNACK */
+    MQTT_PROP_SUBSCRIPTION_ID_AVAILABLE = 41,	/* Byte :				CONNACK */
+    MQTT_PROP_SHARED_SUB_AVAILABLE = 42,		/* Byte :				CONNACK */
 };
 
 enum mqtt5_property_type {
-	MQTT_PROP_TYPE_BYTE = 1,
-	MQTT_PROP_TYPE_INT16 = 2,
-	MQTT_PROP_TYPE_INT32 = 3,
-	MQTT_PROP_TYPE_VARINT = 4,
-	MQTT_PROP_TYPE_BINARY = 5,
-	MQTT_PROP_TYPE_STRING = 6,
-	MQTT_PROP_TYPE_STRING_PAIR = 7
+    MQTT_PROP_TYPE_BYTE = 1,
+    MQTT_PROP_TYPE_INT16 = 2,
+    MQTT_PROP_TYPE_INT32 = 3,
+    MQTT_PROP_TYPE_VARINT = 4,
+    MQTT_PROP_TYPE_BINARY = 5,
+    MQTT_PROP_TYPE_STRING = 6,
+    MQTT_PROP_TYPE_STRING_PAIR = 7
 };
 
 /* Enum: mqtt5_sub_options
@@ -420,11 +453,11 @@ enum mqtt5_property_type {
  * retained messages will never be sent for this subscription.
  */
 enum mqtt5_sub_options {
-	MQTT_SUB_OPT_NO_LOCAL = 0x04,
-	MQTT_SUB_OPT_RETAIN_AS_PUBLISHED = 0x08,
-	MQTT_SUB_OPT_SEND_RETAIN_ALWAYS = 0x00,
-	MQTT_SUB_OPT_SEND_RETAIN_NEW = 0x10,
-	MQTT_SUB_OPT_SEND_RETAIN_NEVER = 0x20,
+    MQTT_SUB_OPT_NO_LOCAL = 0x04,
+    MQTT_SUB_OPT_RETAIN_AS_PUBLISHED = 0x08,
+    MQTT_SUB_OPT_SEND_RETAIN_ALWAYS = 0x00,
+    MQTT_SUB_OPT_SEND_RETAIN_NEW = 0x10,
+    MQTT_SUB_OPT_SEND_RETAIN_NEVER = 0x20,
 };
 
 #define MQTT_MAX_PAYLOAD 268435455U
