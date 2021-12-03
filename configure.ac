@@ -82,6 +82,7 @@ AM_CONDITIONAL([MAINTAINER_DEBUG],[test "x$enable_maintainer_debug" = "xyes"])
 AC_CONFIG_HEADERS([mister_config.h])
 AC_CONFIG_FILES(
   include/mister.h
+  include/pack.h
   include/redismodule.h
   Makefile
   module/Makefile
@@ -91,4 +92,3 @@ AC_CONFIG_FILES(
 )
 AC_OUTPUT
 AS_BOX([mister configuration complete])
-

@@ -164,7 +164,8 @@ int pack_uint8_in_uint8(pack_ctx *pctx, connect_hv *chv){
 
 const uint8_t protocol_name[] = {0x00, 0x04, 'M', 'Q', 'T', 'T'};
 
-connect_hv connect_hvs[] = { // name, function, value, bitpos, exists, id, len
+connect_hv connect_hvs[] = {
+/*  name, function, value, bitpos, exists, id, len */
     {"packet_type", pack_uint8, CMD_CONNECT, 0},
     {"remaining_length", pack_VBI, 0},
     {"protocol_name", pack_buffer, (Word_t)protocol_name, 0, 0, 0, sizeof(protocol_name)},
@@ -179,10 +180,9 @@ connect_hv connect_hvs[] = { // name, function, value, bitpos, exists, id, len
     {"keep_alive", pack_uint16, 0},
     {"property_length", pack_VBI, 0},
     {"session_expiry", pack_prop_uint32, 0, 0, false, 0x11, 0}
+};
 
 /*
-    uint8_t session_expiry_id;
-    uint32_t session_expiry;
     uint8_t receive_maximum_id;
     uint16_t receive_maximum;
     uint8_t maximum_packet_size_id;
@@ -200,7 +200,6 @@ connect_hv connect_hvs[] = { // name, function, value, bitpos, exists, id, len
     uint8_t authentication_data_id;
     uint8_t *authentication_data;
 */
-};
 
 typedef struct connect_header_vars {
     uint8_t packet_type;

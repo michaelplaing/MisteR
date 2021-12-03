@@ -1,0 +1,14 @@
+#ifndef PACK_H
+#define PACK_H
+
+
+#ifdef __cplusplus
+//extern "C" {
+#endif /* __cplusplus */
+
+
+#ifdef __cpluplus
+//}
+#endif /* __cplusplus */
+
+#endif /* PACK_H */
