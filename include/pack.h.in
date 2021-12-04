@@ -3,22 +3,19 @@
 
 #include "mister.h"
 
+#include <Judy.h>
+
 #ifdef __cplusplus
 //extern "C" {
 #endif /* __cplusplus */
 
-typedef struct pack_ctx {
-    uint8_t *buf;
-    size_t pos;
-    size_t propcnt;
-    size_t len;
-} pack_ctx;
-
 struct connect_hv;
+
+struct pack_ctx;
 
 typedef struct connect_hv {
     char *name;
-    int (*pack_fn)(pack_ctx *pctx, struct connect_hv *chv);
+    int (*pack_fn)(struct pack_ctx *pctx, struct connect_hv *chv);
     Word_t value; /* can handle each header_var value including pointers */
     size_t bitpos; // for sub-byte values
     bool exists; // for properties
@@ -26,7 +23,21 @@ typedef struct connect_hv {
     size_t len; // for pointer values & VBIs
 } connect_hv;
 
-pack_ctx *initPackContext(size_t bufsize);
+typedef struct pack_ctx {
+    uint8_t *buf;
+    size_t pos;
+    size_t propcnt;
+    size_t len;
+    connect_hv *connect_hvs;
+    size_t hv_count;
+    Pvoid_t PJSLArray;
+} pack_ctx;
+
+pack_ctx *init_pack_context(size_t bufsize);
+
+int set_header_value(pack_ctx *pctx, char *name, Word_t value);
+
+int pack_connect_buffer(pack_ctx *pctx);
 
 int pack_uint8(pack_ctx *pctx, connect_hv *chv);
 
