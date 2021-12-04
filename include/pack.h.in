@@ -51,10 +51,6 @@ int pack_VBI(pack_ctx *pctx, connect_hv *chv);
 
 int pack_buffer(pack_ctx *pctx, connect_hv *chv);
 
-int pack_bool_in_uint8(pack_ctx *pctx, connect_hv *chv);
-
-int pack_uint8_in_uint8(pack_ctx *pctx, connect_hv *chv);
-
 int pack_bits_in_uint8(pack_ctx *pctx, connect_hv *chv);
 
 #ifdef __cpluplus
