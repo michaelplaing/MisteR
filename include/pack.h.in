@@ -37,6 +37,8 @@ pack_ctx *init_pack_context(size_t bufsize);
 
 int set_header_value(pack_ctx *pctx, char *name, Word_t value);
 
+int reset_header_value(pack_ctx *pctx, char *name);
+
 int pack_connect_buffer(pack_ctx *pctx);
 
 int pack_uint8(pack_ctx *pctx, connect_hv *chv);
@@ -44,6 +46,8 @@ int pack_uint8(pack_ctx *pctx, connect_hv *chv);
 int pack_uint16(pack_ctx *pctx, connect_hv *chv);
 
 int pack_uint32(pack_ctx *pctx, connect_hv *chv);
+
+int pack_prop_uint16(pack_ctx *pctx, connect_hv *chv);
 
 int pack_prop_uint32(pack_ctx *pctx, connect_hv *chv);
 

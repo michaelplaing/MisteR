@@ -6,23 +6,24 @@
 
 const uint8_t PROTO_NM[] = {0x00, 0x04, 'M', 'Q', 'T', 'T'};
 
-const connect_hv connect_hvs_template[] = {
+const connect_hv CONNECT_HVS_TEMPLATE[] = {
 //    name                  function            value               bitpos len                  exists  id
-    {"packet_type",         pack_uint8,         CMD_CONNECT,        0,      0,                  0,      0},
-    {"remaining_length",    pack_VBI,           0,                  0,      0,                  0,      0},
-    {"protocol_name",       pack_buffer,        (Word_t)PROTO_NM,   0,      sizeof(PROTO_NM),   0,      0},
-    {"protocol_version",    pack_uint8,         5,                  0,      0,                  0,      0},
-    {"reserved",            pack_bits_in_uint8, 0,                  0,      1,                  0,      0},
-    {"clean_start",         pack_bits_in_uint8, 0,                  1,      1,                  0,      0},
-    {"will_flag",           pack_bits_in_uint8, 0,                  2,      1,                  0,      0},
-    {"will_qos",            pack_bits_in_uint8, 0,                  3,      2,                  0,      0},
-    {"will_retain",         pack_bits_in_uint8, 0,                  5,      1,                  0,      0},
-    {"password_flag",       pack_bits_in_uint8, 0,                  6,      1,                  0,      0},
-    {"username_flag",       pack_bits_in_uint8, 0,                  7,      1,                  0,      0},
-    {"keep_alive",          pack_uint16,        0,                  0,      0,                  0,      0},
-    {"property_length",     pack_VBI,           0,                  0,      0,                  0,      0},
+    {"packet_type",         pack_uint8,         CMD_CONNECT,        0,      0,                  true,   0},
+    {"remaining_length",    pack_VBI,           0,                  0,      0,                  false,  0},
+    {"protocol_name",       pack_buffer,        (Word_t)PROTO_NM,   0,      sizeof(PROTO_NM),   true,   0},
+    {"protocol_version",    pack_uint8,         5,                  0,      0,                  true,   0},
+    {"reserved",            pack_bits_in_uint8, 0,                  0,      1,                  false,  0},
+    {"clean_start",         pack_bits_in_uint8, 0,                  1,      1,                  false,  0},
+    {"will_flag",           pack_bits_in_uint8, 0,                  2,      1,                  false,  0},
+    {"will_qos",            pack_bits_in_uint8, 0,                  3,      2,                  false,  0},
+    {"will_retain",         pack_bits_in_uint8, 0,                  5,      1,                  false,  0},
+    {"password_flag",       pack_bits_in_uint8, 0,                  6,      1,                  false,  0},
+    {"username_flag",       pack_bits_in_uint8, 0,                  7,      1,                  false,  0},
+    {"keep_alive",          pack_uint16,        0,                  0,      0,                  false,  0},
+    {"property_length",     pack_VBI,           0,                  0,      0,                  false,  0},
 //    name                  function            value               bitpos  len                 exists  id
-    {"session_expiry",      pack_prop_uint32,   0,                  0,      0,                  false,  0x11}
+    {"session_expiry",      pack_prop_uint32,   0,                  0,      0,                  false,  0x11},
+    {"receive_maximum",     pack_prop_uint16,   0,                  0,      0,                  false,  0x21}
 };
 /*
     uint8_t receive_maximum_id;
@@ -46,8 +47,18 @@ const connect_hv connect_hvs_template[] = {
 int set_header_value(pack_ctx *pctx, char *name, Word_t value) {
     connect_hv **Pchv;
 
-    JSLG(Pchv, pctx->PJSLArray, name); // get the handle
-    (*Pchv)->value = value; // set the value of the header variable
+    JSLG(Pchv, pctx->PJSLArray, name);
+    (*Pchv)->value = value;
+    (*Pchv)->exists = true;
+    return 0;
+}
+
+int reset_header_value(pack_ctx *pctx, char *name) {
+    connect_hv **Pchv;
+
+    JSLG(Pchv, pctx->PJSLArray, name);
+    (*Pchv)->value = 0;
+    (*Pchv)->exists = false;
     return 0;
 }
 
@@ -69,15 +80,15 @@ pack_ctx *init_pack_context(size_t bufsize){
     pack_ctx *pctx = calloc(sizeof(pack_ctx), 1);
     pctx->buf = calloc(bufsize, 1);
     pctx->PJSLArray = (Pvoid_t)NULL;  // initialize JudySL array
-    pctx->hv_count = sizeof(connect_hvs_template) / sizeof(connect_hv);
+    pctx->hv_count = sizeof(CONNECT_HVS_TEMPLATE) / sizeof(connect_hv);
     connect_hv *connect_hvs = calloc(pctx->hv_count, sizeof(connect_hv));
 
     //  copy template
     for (int i = 0; i < pctx->hv_count; i++) {
-        connect_hvs[i] = connect_hvs_template[i];
+        connect_hvs[i] = CONNECT_HVS_TEMPLATE[i];
     }
 
-    //  map hv name to hv structure
+    //  map hv name to hv structure pointer
     for (int i = 0; i < pctx->hv_count; i++) {
         JSLI(Pchv, pctx->PJSLArray, connect_hvs[i].name);
         *Pchv = &connect_hvs[i];
@@ -111,6 +122,18 @@ int pack_uint32(pack_ctx *pctx, connect_hv *chv){
     return 0;
 }
 
+int pack_prop_uint16(pack_ctx *pctx, connect_hv *chv) {
+    if (chv->exists) {
+        uint16_t tempvalue = chv->value;
+        chv->value = chv->id;
+        pack_uint8(pctx, chv);
+        chv->value = tempvalue;
+        pack_uint16(pctx, chv);
+    }
+
+    return 0;
+}
+
 int pack_prop_uint32(pack_ctx *pctx, connect_hv *chv) {
     if (chv->exists) {
         uint32_t tempvalue = chv->value;
@@ -123,7 +146,8 @@ int pack_prop_uint32(pack_ctx *pctx, connect_hv *chv) {
     return 0;
 }
 
-int pack_VBI(pack_ctx *pctx, connect_hv *chv) { // assume 1 byte for now
+//  assume 1 byte for now
+int pack_VBI(pack_ctx *pctx, connect_hv *chv) {
     pctx->buf[pctx->pos] = chv->value;
     pctx->pos++;
     return 0;
@@ -135,16 +159,19 @@ int pack_buffer(pack_ctx *pctx, connect_hv *chv){
     return 0;
 }
 
-const uint8_t bit_masks[] = {
+const uint8_t BIT_MASKS[] = {
     0x00, 0x01, 0x03, 0x07, 0x0F, 0x1F, 0x3F, 0x7F
 };
 
+//  clear bit(s) then set if value is non-zero
+//  should be invoked in bitpos order for all bits in each byte
 int pack_bits_in_uint8(pack_ctx *pctx, connect_hv *chv){
-    pctx->buf[pctx->pos] = (pctx->buf[pctx->pos] & ~(bit_masks[chv->len] << chv->bitpos));
+    uint8_t *Pbyte = pctx->buf + pctx->pos;
+    *Pbyte = *Pbyte & ~(BIT_MASKS[chv->len] << chv->bitpos);
 
     if (chv->value) {
         uint8_t val = chv->value;
-        pctx->buf[pctx->pos] = (pctx->buf[pctx->pos] | (val << chv->bitpos));
+        *Pbyte = *Pbyte | (val << chv->bitpos);
     }
 
     if (chv->bitpos + chv->len > 7) pctx->pos++;

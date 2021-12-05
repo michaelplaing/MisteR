@@ -104,6 +104,7 @@ void mr_send_connect(redisAsyncContext *rctx) {
     pack_ctx *pctx = init_pack_context(1000);
     set_header_value(pctx, "remaining_length", 42);
     set_header_value(pctx, "will_qos", 3);
+    set_header_value(pctx, "receive_maximum", 1);
     pack_connect_buffer(pctx);
 
     printf("Connect Buf:");
