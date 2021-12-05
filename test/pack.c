@@ -4,23 +4,23 @@
 
 #include "pack.h"
 
-const uint8_t PROTO_NAME[] = {0x00, 0x04, 'M', 'Q', 'T', 'T'};
+const uint8_t PROTO_NM[] = {0x00, 0x04, 'M', 'Q', 'T', 'T'};
 
 const connect_hv connect_hvs_template[] = {
 //    name                  function            value               bitpos len                  exists  id
-    {"packet_type",         pack_uint8,         CMD_CONNECT,        0},
-    {"remaining_length",    pack_VBI,           0},
-    {"protocol_name",       pack_buffer,        (Word_t)PROTO_NAME, 0,      sizeof(PROTO_NAME), 0},
-    {"protocol_version",    pack_uint8,         5,                  0},
-    {"reserved",            pack_bits_in_uint8, 0,                  0,      1,                  0},
-    {"clean_start",         pack_bits_in_uint8, 0,                  1,      1,                  0},
-    {"will_flag",           pack_bits_in_uint8, 0,                  2,      1,                  0},
-    {"will_qos",            pack_bits_in_uint8, 0,                  3,      2,                  0},
-    {"will_retain",         pack_bits_in_uint8, 0,                  5,      1,                  0},
-    {"password_flag",       pack_bits_in_uint8, 0,                  6,      1,                  0},
-    {"username_flag",       pack_bits_in_uint8, 0,                  7,      1,                  0},
-    {"keep_alive",          pack_uint16,        0},
-    {"property_length",     pack_VBI,           0},
+    {"packet_type",         pack_uint8,         CMD_CONNECT,        0,      0,                  0,      0},
+    {"remaining_length",    pack_VBI,           0,                  0,      0,                  0,      0},
+    {"protocol_name",       pack_buffer,        (Word_t)PROTO_NM,   0,      sizeof(PROTO_NM),   0,      0},
+    {"protocol_version",    pack_uint8,         5,                  0,      0,                  0,      0},
+    {"reserved",            pack_bits_in_uint8, 0,                  0,      1,                  0,      0},
+    {"clean_start",         pack_bits_in_uint8, 0,                  1,      1,                  0,      0},
+    {"will_flag",           pack_bits_in_uint8, 0,                  2,      1,                  0,      0},
+    {"will_qos",            pack_bits_in_uint8, 0,                  3,      2,                  0,      0},
+    {"will_retain",         pack_bits_in_uint8, 0,                  5,      1,                  0,      0},
+    {"password_flag",       pack_bits_in_uint8, 0,                  6,      1,                  0,      0},
+    {"username_flag",       pack_bits_in_uint8, 0,                  7,      1,                  0,      0},
+    {"keep_alive",          pack_uint16,        0,                  0,      0,                  0,      0},
+    {"property_length",     pack_VBI,           0,                  0,      0,                  0,      0},
 //    name                  function            value               bitpos  len                 exists  id
     {"session_expiry",      pack_prop_uint32,   0,                  0,      0,                  false,  0x11}
 };
@@ -51,13 +51,13 @@ int set_header_value(pack_ctx *pctx, char *name, Word_t value) {
     return 0;
 }
 
-//  pack each header var into a buffer using its packing function
+//  pack each header var in order into a buffer using its packing function
 int pack_connect_buffer(pack_ctx *pctx) {
-    connect_hv chv;
+    connect_hv *chv;
 
     for (int i = 0; i < pctx->hv_count; i++) {
-        chv = pctx->connect_hvs[i];
-        chv.pack_fn(pctx, &chv);
+        chv = &(pctx->connect_hvs[i]);
+        chv->pack_fn(pctx, chv);
     }
 
     return 0;

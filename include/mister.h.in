@@ -31,11 +31,6 @@
 //extern "C" {
 #endif /* __cplusplus */
 
-/*
-#define PROTOCOL_NAME "MQTT"
-#define PROTOCOL_VERSION_v5 5
-*/
-
 /* Message types */
 #define CMD_CONNECT 0x10U
 #define CMD_CONNACK 0x20U
@@ -69,13 +64,6 @@
 #define MR_PINGRESP      "mr.pingresp"
 #define MR_DISCONNECT    "mr.disconnect"
 #define MR_AUTH          "mr.auth"
-
-
-struct mrpacket{
-    uint8_t *payload;
-    uint32_t len;
-    uint32_t pos;
-};
 
 /* Error values */
 enum mrerr_t {
@@ -116,7 +104,6 @@ enum mrerr_t {
     MRERR_ADMINISTRATIVE_ACTION = 30,
     MRERR_ALREADY_EXISTS = 31,
 };
-
 
 #define PROTOCOL_NAME "MQTT"
 #define PROTOCOL_VERSION_v5 5
