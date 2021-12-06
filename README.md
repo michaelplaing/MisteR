@@ -1,6 +1,6 @@
 # MisteR
 
-MisteR provides a Redis module (mister.so) that implements MQTT over RESP (REdis Serialization Protocol), 
+MisteR provides a Redis module (mister.so) that implements MQTT over RESP (REdis Serialization Protocol),
 hence MR or MisteR. It's very incomplete.
 
 It may provide a thin library over the Redis hiredis library to make it easy to test and use MisteR module.
@@ -27,15 +27,16 @@ Configuration, build, and installation follows the classic pattern:
 ```bash
 # NOTE: this assumes you're in the source root directory.
 
+# prereqs for VSCode Dev Container C++:
+sudo apt-get update
+sudo apt-get install autoconf libtool libhiredis-dev libev-dev uuid-dev libjudy-dev
+
 # Generate the configure script and ancillary build files:
 ./autogen.sh
 
 # Create a build directory and cd into it:
 mkdir -p ./build ; cd ./build
 
-# configure, make, make check, and make install!
-../configure --prefix=/my/installation/prefix \
-    && make \
-    && make check \
-    && make install
+# configure & make
+../configure --prefix=/my/installation/prefix && make
 ```
