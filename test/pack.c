@@ -6,29 +6,28 @@
 
 const uint8_t PNM[] = {0x00, 0x04, 'M', 'Q', 'T', 'T'};
 #define PNMSZ 6
+#define NA 0
 
 const connect_hdr CONNECT_HDRS_TEMPLATE[] = {
-//    name                  function            value           bitpos  vlen    exists  id
-    {"packet_type",         pack_uint8,         CMD_CONNECT,    0,      0,      true,   0},
-    {"remaining_length",    pack_VBI,           0,              0,      0,      false,  0},
-    {"protocol_name",       pack_buffer,        (Word_t)PNM,    0,      PNMSZ,  true,   0},
-    {"protocol_version",    pack_uint8,         5,              0,      0,      true,   0},
-    {"reserved",            pack_bits_in_uint8, 0,              0,      1,      false,  0},
-    {"clean_start",         pack_bits_in_uint8, 0,              1,      1,      false,  0},
-    {"will_flag",           pack_bits_in_uint8, 0,              2,      1,      false,  0},
-    {"will_qos",            pack_bits_in_uint8, 0,              3,      2,      false,  0},
-    {"will_retain",         pack_bits_in_uint8, 0,              5,      1,      false,  0},
-    {"password_flag",       pack_bits_in_uint8, 0,              6,      1,      false,  0},
-    {"username_flag",       pack_bits_in_uint8, 0,              7,      1,      false,  0},
-    {"keep_alive",          pack_uint16,        0,              0,      0,      false,  0},
-    {"property_length",     pack_VBI,           0,              0,      0,      false,  0},
-//    name                  function            value           bitpos  vlen    exists  id
-    {"session_expiry",      pack_prop_uint32,   0,              0,      0,      false,  0x11},
-    {"receive_maximum",     pack_prop_uint16,   0,              0,      0,      false,  0x21}
+//   name                   function            value           bitpos  vlen    exists  id      blen    bval
+    {"packet_type",         pack_uint8,         CMD_CONNECT,    NA,      1,     true,   NA,     0,      0},
+    {"remaining_length",    pack_VBI,           0,              NA,      0,     false,  NA,     0,      0},
+    {"protocol_name",       pack_char_buffer,   (Word_t)PNM,    NA,      PNMSZ, true,   NA,     0,      0},
+    {"protocol_version",    pack_uint8,         5,              NA,      2,     true,   NA,     0,      0},
+    {"reserved",            pack_bits_in_uint8, 0,              0,       1,     true,   NA,     0,      0},
+    {"clean_start",         pack_bits_in_uint8, 0,              1,       1,     true,   NA,     0,      0},
+    {"will_flag",           pack_bits_in_uint8, 0,              2,       1,     true,   NA,     0,      0},
+    {"will_qos",            pack_bits_in_uint8, 0,              3,       2,     true,   NA,     0,      0},
+    {"will_retain",         pack_bits_in_uint8, 0,              5,       1,     true,   NA,     0,      0},
+    {"password_flag",       pack_bits_in_uint8, 0,              6,       1,     true,   NA,     0,      0},
+    {"username_flag",       pack_bits_in_uint8, 0,              7,       1,     true,   NA,     0,      0},
+    {"keep_alive",          pack_uint16,        0,              NA,      2,     true,   NA,     0,      0},
+    {"property_length",     pack_VBI,           0,              NA,      0,     true,   NA,     0,      0},
+//   name                   function            value           bitpos  vlen    exists  id      blen    bval
+    {"session_expiry",      pack_prop_uint32,   0,              NA,      0,     false,  0x11,   0,      0},
+    {"receive_maximum",     pack_prop_uint16,   0,              NA,      0,     false,  0x21,   0,      0}
 };
 /*
-    uint8_t receive_maximum_id;
-    uint16_t receive_maximum;
     uint8_t maximum_packet_size_id;
     uint32_t maximum_packet_size;
     uint8_t topic_alias_maximum_id;
@@ -154,7 +153,7 @@ int pack_VBI(pack_ctx *pctx, connect_hdr *chdr) {
     return 0;
 }
 
-int pack_buffer(pack_ctx *pctx, connect_hdr *chdr){
+int pack_char_buffer(pack_ctx *pctx, connect_hdr *chdr){
     memcpy(pctx->buf + pctx->pos, (uint8_t *)(chdr->value), chdr->vlen);
     pctx->pos += chdr->vlen;
     return 0;

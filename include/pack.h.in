@@ -9,27 +9,29 @@
 //extern "C" {
 #endif /* __cplusplus */
 
-struct connect_hv;
+struct connect_hdr;
 
 struct pack_ctx;
 
-typedef struct connect_hv {
+typedef struct connect_hdr {
     char *name;
-    int (*pack_fn)(struct pack_ctx *pctx, struct connect_hv *chv);
+    int (*pack_fn)(struct pack_ctx *pctx, struct connect_hdr *chv);
     Word_t value; /* can handle each header_var value including pointers */
     size_t bitpos; // for sub-byte values
-    size_t len; // for sub-byte values, pointer values & VBIs
+    size_t vlen; // for sub-byte values, pointer values & VBIs
     bool exists; // for properties
     uint8_t id; // for properties
-} connect_hv;
+    size_t blen;
+    Word_t bval;
+} connect_hdr;
 
 typedef struct pack_ctx {
     uint8_t *buf;
     size_t pos;
     size_t propcnt;
     size_t len;
-    connect_hv *connect_hvs;
-    size_t hv_count;
+    connect_hdr *connect_hdrs;
+    size_t chdr_count;
     Pvoid_t PJSLArray;
 } pack_ctx;
 
@@ -41,21 +43,21 @@ int reset_header_value(pack_ctx *pctx, char *name);
 
 int pack_connect_buffer(pack_ctx *pctx);
 
-int pack_uint8(pack_ctx *pctx, connect_hv *chv);
+int pack_uint8(pack_ctx *pctx, connect_hdr *chv);
 
-int pack_uint16(pack_ctx *pctx, connect_hv *chv);
+int pack_uint16(pack_ctx *pctx, connect_hdr *chv);
 
-int pack_uint32(pack_ctx *pctx, connect_hv *chv);
+int pack_uint32(pack_ctx *pctx, connect_hdr *chv);
 
-int pack_prop_uint16(pack_ctx *pctx, connect_hv *chv);
+int pack_prop_uint16(pack_ctx *pctx, connect_hdr *chv);
 
-int pack_prop_uint32(pack_ctx *pctx, connect_hv *chv);
+int pack_prop_uint32(pack_ctx *pctx, connect_hdr *chv);
 
-int pack_VBI(pack_ctx *pctx, connect_hv *chv);
+int pack_VBI(pack_ctx *pctx, connect_hdr *chv);
 
-int pack_buffer(pack_ctx *pctx, connect_hv *chv);
+int pack_char_buffer(pack_ctx *pctx, connect_hdr *chv);
 
-int pack_bits_in_uint8(pack_ctx *pctx, connect_hv *chv);
+int pack_bits_in_uint8(pack_ctx *pctx, connect_hdr *chv);
 
 #ifdef __cpluplus
 //}
