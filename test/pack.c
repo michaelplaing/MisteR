@@ -8,26 +8,25 @@
 const uint8_t PNM[] = {0x00, 0x04, 'M', 'Q', 'T', 'T'};
 #define PNMSZ 6
 #define NA 0
-// #define Word_tsz = sizeof(Word_t);
 
 const connect_hdr CONNECT_HDRS_TEMPLATE[] = {
-//   name                   function            value           bitpos  vlen    exists  id      buflen  bufval
-    {"packet_type",         pack_uint8,         CMD_CONNECT,    NA,      1,     true,   NA,     0,      {0}},
-    {"remaining_length",    pack_VBI,           0,              NA,      0,     false,  NA,     0,      {0}},
-    {"protocol_name",       pack_char_buffer,   (Word_t)PNM,    NA,      PNMSZ, true,   NA,     0,      {0}},
-    {"protocol_version",    pack_uint8,         5,              NA,      2,     true,   NA,     0,      {0}},
-    {"reserved",            pack_bits_in_uint8, 0,              0,       1,     true,   NA,     0,      {0}},
-    {"clean_start",         pack_bits_in_uint8, 0,              1,       1,     true,   NA,     0,      {0}},
-    {"will_flag",           pack_bits_in_uint8, 0,              2,       1,     true,   NA,     0,      {0}},
-    {"will_qos",            pack_bits_in_uint8, 0,              3,       2,     true,   NA,     0,      {0}},
-    {"will_retain",         pack_bits_in_uint8, 0,              5,       1,     true,   NA,     0,      {0}},
-    {"password_flag",       pack_bits_in_uint8, 0,              6,       1,     true,   NA,     0,      {0}},
-    {"username_flag",       pack_bits_in_uint8, 0,              7,       1,     true,   NA,     0,      {0}},
-    {"keep_alive",          pack_uint16,        0,              NA,      2,     true,   NA,     0,      {0}},
-    {"property_length",     pack_VBI,           0,              NA,      0,     true,   NA,     0,      {0}},
-//   name                   function            value           bitpos  vlen    exists  id      blen    bval
-    {"session_expiry",      pack_prop_uint32,   0,              NA,      0,     false,  0x11,   0,      {0}},
-    {"receive_maximum",     pack_prop_uint16,   0,              NA,      0,     false,  0x21,   0,      {0}}
+//   name                   function            value           bitpos  vlen    exists  id      isalloc buflen  buf
+    {"packet_type",         pack_uint8,         CMD_CONNECT,    NA,      1,     true,   NA,     false,  0,      NULL},
+    {"remaining_length",    pack_VBI,           0,              NA,      0,     false,  NA,     false,  0,      NULL},
+    {"protocol_name",       pack_char_buffer,   (Word_t)PNM,    NA,      PNMSZ, true,   NA,     false,  0,      NULL},
+    {"protocol_version",    pack_uint8,         5,              NA,      2,     true,   NA,     false,  0,      NULL},
+    {"reserved",            pack_bits_in_uint8, 0,              0,       1,     true,   NA,     false,  0,      NULL},
+    {"clean_start",         pack_bits_in_uint8, 0,              1,       1,     true,   NA,     false,  0,      NULL},
+    {"will_flag",           pack_bits_in_uint8, 0,              2,       1,     true,   NA,     false,  0,      NULL},
+    {"will_qos",            pack_bits_in_uint8, 0,              3,       2,     true,   NA,     false,  0,      NULL},
+    {"will_retain",         pack_bits_in_uint8, 0,              5,       1,     true,   NA,     false,  0,      NULL},
+    {"password_flag",       pack_bits_in_uint8, 0,              6,       1,     true,   NA,     false,  0,      NULL},
+    {"username_flag",       pack_bits_in_uint8, 0,              7,       1,     true,   NA,     false,  0,      NULL},
+    {"keep_alive",          pack_uint16,        0,              NA,      2,     true,   NA,     false,  0,      NULL},
+    {"property_length",     pack_VBI,           0,              NA,      0,     true,   NA,     false,  0,      NULL},
+//   name                   function            value           bitpos  vlen    exists  id      isalloc buflen  buf
+    {"session_expiry",      pack_prop_uint32,   0,              NA,      0,     false,  0x11,   false,  0,      NULL},
+    {"receive_maximum",     pack_prop_uint16,   0,              NA,      0,     false,  0x21,   false,  0,      NULL}
 };
 /*
     uint8_t maximum_packet_size_id;
@@ -76,7 +75,7 @@ int pack_connect_buffer(pack_ctx *pctx) {
     return 0;
 }
 
-pack_ctx *init_pack_context(size_t bufsize){
+pack_ctx *init_pack_context(size_t bufsize) {
     connect_hdr **Pchdr;
 
     pack_ctx *pctx = calloc(sizeof(pack_ctx), 1);
@@ -100,41 +99,49 @@ pack_ctx *init_pack_context(size_t bufsize){
     return pctx;
 }
 
-int pack_uint8(pack_ctx *pctx, connect_hdr *chdr){
-    if (chdr->exists) {
-        chdr->bufval[0] = chdr->value;
-        chdr->buflen = 1;
-    }
-    // pctx->buf[pctx->pos] = chdr->value;
-    // pctx->pos++;
+int pack_uint8(pack_ctx *pctx, connect_hdr *chdr) {
+    chdr->buflen = 1;
+    uint8_t *buf = malloc(chdr->buflen); // TODO: err checks on malloc
+    chdr->isalloc = true;
+    buf[0] = chdr->value;
+    chdr->buf = buf;
     return 0;
 }
 
-int pack_uint16(pack_ctx *pctx, connect_hdr *chdr){
+int pack_uint16(pack_ctx *pctx, connect_hdr *chdr) {
+    chdr->buflen = 2;
+    uint8_t *buf = malloc(chdr->buflen); // TODO: err checks on malloc
+    chdr->isalloc = true;
     uint16_t val16 = chdr->value;
-    pctx->buf[pctx->pos] = (val16 >> 8) & 0xFF;
-    pctx->buf[pctx->pos + 1] = val16 & 0xFF;
-    pctx->pos += 2;
+    chdr->buf[0] = (val16 >> 8) & 0xFF;
+    chdr->buf[1] = val16 & 0xFF;
+    chdr->buf = buf;
     return 0;
 }
 
-int pack_uint32(pack_ctx *pctx, connect_hdr *chdr){
+int pack_uint32(pack_ctx *pctx, connect_hdr *chdr) {
+    chdr->buflen = 4;
+    uint8_t *buf = malloc(chdr->buflen); // TODO: err checks on malloc
+    chdr->isalloc = true;
     uint32_t val32 = chdr->value;
-    pctx->buf[pctx->pos] = (val32 >> 24) & 0xFF;
-    pctx->buf[pctx->pos + 1] = (val32 >> 16) & 0xFF;
-    pctx->buf[pctx->pos + 2] = (val32 >> 8) & 0xFF;
-    pctx->buf[pctx->pos + 3] = val32 & 0xFF;
-    pctx->pos += 4;
+    chdr->buf[0] = (val32 >> 24) & 0xFF;
+    chdr->buf[1] = (val32 >> 16) & 0xFF;
+    chdr->buf[2] = (val32 >> 8) & 0xFF;
+    chdr->buf[3] = val32 & 0xFF;
+    chdr->buf = buf;
     return 0;
 }
 
 int pack_prop_uint16(pack_ctx *pctx, connect_hdr *chdr) {
     if (chdr->exists) {
-        uint16_t tempvalue = chdr->value;
-        chdr->value = chdr->id;
-        pack_uint8(pctx, chdr);
-        chdr->value = tempvalue;
-        pack_uint16(pctx, chdr);
+        chdr->buflen = 3;
+        uint8_t *buf = malloc(chdr->buflen); // TODO: err checks on malloc
+        chdr->isalloc = true;
+        buf[0] = chdr->id;
+        uint16_t val16 = chdr->value;
+        chdr->buf[1] = (val16 >> 8) & 0xFF;
+        chdr->buf[2] = val16 & 0xFF;
+        chdr->buf = buf;
     }
 
     return 0;
@@ -142,11 +149,17 @@ int pack_prop_uint16(pack_ctx *pctx, connect_hdr *chdr) {
 
 int pack_prop_uint32(pack_ctx *pctx, connect_hdr *chdr) {
     if (chdr->exists) {
+        chdr->buflen = 5;
+        uint8_t *buf = malloc(chdr->buflen); // TODO: err checks on malloc
+        chdr->isalloc = true;
+        buf[0] = chdr->id;
         uint32_t tempvalue = chdr->value;
-        chdr->value = chdr->id;
-        pack_uint8(pctx, chdr);
-        chdr->value = tempvalue;
-        pack_uint32(pctx, chdr);
+        uint32_t val32 = chdr->value;
+        chdr->buf[1] = (val32 >> 24) & 0xFF;
+        chdr->buf[2] = (val32 >> 16) & 0xFF;
+        chdr->buf[3] = (val32 >> 8) & 0xFF;
+        chdr->buf[4] = val32 & 0xFF;
+        chdr->buf = buf;
     }
 
     return 0;
@@ -160,8 +173,8 @@ int pack_VBI(pack_ctx *pctx, connect_hdr *chdr) {
 }
 
 int pack_char_buffer(pack_ctx *pctx, connect_hdr *chdr){
-    memcpy(pctx->buf + pctx->pos, (uint8_t *)(chdr->value), chdr->vlen);
-    pctx->pos += chdr->vlen;
+    chdr->buflen = chdr->vlen;
+    chdr->buf = (uint8_t *)(chdr->value);
     return 0;
 }
 
