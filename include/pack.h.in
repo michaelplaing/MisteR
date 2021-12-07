@@ -9,6 +9,8 @@
 //extern "C" {
 #endif /* __cplusplus */
 
+#define Word_tsz = sizeof(Word_t)
+
 struct connect_hdr;
 
 struct pack_ctx;
@@ -21,8 +23,8 @@ typedef struct connect_hdr {
     size_t vlen; // for sub-byte values, pointer values & VBIs
     bool exists; // for properties
     uint8_t id; // for properties
-    size_t blen;
-    Word_t bval;
+    size_t buflen;
+    uint8_t bufval[sizeof(Word_t)];
 } connect_hdr;
 
 typedef struct pack_ctx {

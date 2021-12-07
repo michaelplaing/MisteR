@@ -4,28 +4,30 @@
 
 #include "pack.h"
 
+
 const uint8_t PNM[] = {0x00, 0x04, 'M', 'Q', 'T', 'T'};
 #define PNMSZ 6
 #define NA 0
+// #define Word_tsz = sizeof(Word_t);
 
 const connect_hdr CONNECT_HDRS_TEMPLATE[] = {
+//   name                   function            value           bitpos  vlen    exists  id      buflen  bufval
+    {"packet_type",         pack_uint8,         CMD_CONNECT,    NA,      1,     true,   NA,     0,      {0}},
+    {"remaining_length",    pack_VBI,           0,              NA,      0,     false,  NA,     0,      {0}},
+    {"protocol_name",       pack_char_buffer,   (Word_t)PNM,    NA,      PNMSZ, true,   NA,     0,      {0}},
+    {"protocol_version",    pack_uint8,         5,              NA,      2,     true,   NA,     0,      {0}},
+    {"reserved",            pack_bits_in_uint8, 0,              0,       1,     true,   NA,     0,      {0}},
+    {"clean_start",         pack_bits_in_uint8, 0,              1,       1,     true,   NA,     0,      {0}},
+    {"will_flag",           pack_bits_in_uint8, 0,              2,       1,     true,   NA,     0,      {0}},
+    {"will_qos",            pack_bits_in_uint8, 0,              3,       2,     true,   NA,     0,      {0}},
+    {"will_retain",         pack_bits_in_uint8, 0,              5,       1,     true,   NA,     0,      {0}},
+    {"password_flag",       pack_bits_in_uint8, 0,              6,       1,     true,   NA,     0,      {0}},
+    {"username_flag",       pack_bits_in_uint8, 0,              7,       1,     true,   NA,     0,      {0}},
+    {"keep_alive",          pack_uint16,        0,              NA,      2,     true,   NA,     0,      {0}},
+    {"property_length",     pack_VBI,           0,              NA,      0,     true,   NA,     0,      {0}},
 //   name                   function            value           bitpos  vlen    exists  id      blen    bval
-    {"packet_type",         pack_uint8,         CMD_CONNECT,    NA,      1,     true,   NA,     0,      0},
-    {"remaining_length",    pack_VBI,           0,              NA,      0,     false,  NA,     0,      0},
-    {"protocol_name",       pack_char_buffer,   (Word_t)PNM,    NA,      PNMSZ, true,   NA,     0,      0},
-    {"protocol_version",    pack_uint8,         5,              NA,      2,     true,   NA,     0,      0},
-    {"reserved",            pack_bits_in_uint8, 0,              0,       1,     true,   NA,     0,      0},
-    {"clean_start",         pack_bits_in_uint8, 0,              1,       1,     true,   NA,     0,      0},
-    {"will_flag",           pack_bits_in_uint8, 0,              2,       1,     true,   NA,     0,      0},
-    {"will_qos",            pack_bits_in_uint8, 0,              3,       2,     true,   NA,     0,      0},
-    {"will_retain",         pack_bits_in_uint8, 0,              5,       1,     true,   NA,     0,      0},
-    {"password_flag",       pack_bits_in_uint8, 0,              6,       1,     true,   NA,     0,      0},
-    {"username_flag",       pack_bits_in_uint8, 0,              7,       1,     true,   NA,     0,      0},
-    {"keep_alive",          pack_uint16,        0,              NA,      2,     true,   NA,     0,      0},
-    {"property_length",     pack_VBI,           0,              NA,      0,     true,   NA,     0,      0},
-//   name                   function            value           bitpos  vlen    exists  id      blen    bval
-    {"session_expiry",      pack_prop_uint32,   0,              NA,      0,     false,  0x11,   0,      0},
-    {"receive_maximum",     pack_prop_uint16,   0,              NA,      0,     false,  0x21,   0,      0}
+    {"session_expiry",      pack_prop_uint32,   0,              NA,      0,     false,  0x11,   0,      {0}},
+    {"receive_maximum",     pack_prop_uint16,   0,              NA,      0,     false,  0x21,   0,      {0}}
 };
 /*
     uint8_t maximum_packet_size_id;
@@ -99,8 +101,12 @@ pack_ctx *init_pack_context(size_t bufsize){
 }
 
 int pack_uint8(pack_ctx *pctx, connect_hdr *chdr){
-    pctx->buf[pctx->pos] = chdr->value;
-    pctx->pos++;
+    if (chdr->exists) {
+        chdr->bufval[0] = chdr->value;
+        chdr->buflen = 1;
+    }
+    // pctx->buf[pctx->pos] = chdr->value;
+    // pctx->pos++;
     return 0;
 }
 
