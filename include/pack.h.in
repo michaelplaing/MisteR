@@ -15,6 +15,7 @@ struct pack_ctx;
 
 typedef struct connect_hdr {
     char *name;
+    char *parent;
     int (*pack_fn)(struct pack_ctx *pctx, struct connect_hdr *chv);
     Word_t value; /* can handle each header_var value including pointers */
     size_t bitpos; // for sub-byte values
@@ -59,7 +60,9 @@ int pack_VBI(pack_ctx *pctx, connect_hdr *chv);
 
 int pack_char_buffer(pack_ctx *pctx, connect_hdr *chv);
 
-int pack_bits_in_uint8(pack_ctx *pctx, connect_hdr *chv);
+int pack_flags_alloc(pack_ctx *pctx, connect_hdr *chdr);
+
+int pack_bits_in_parent(pack_ctx *pctx, connect_hdr *chv);
 
 #ifdef __cpluplus
 //}

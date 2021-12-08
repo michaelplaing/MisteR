@@ -10,23 +10,24 @@ const uint8_t PNM[] = {0x00, 0x04, 'M', 'Q', 'T', 'T'};
 #define NA 0
 
 const connect_hdr CONNECT_HDRS_TEMPLATE[] = {
-//   name                   function            value           bitpos  vlen    exists  id      isalloc buflen  buf
-    {"packet_type",         pack_uint8,         CMD_CONNECT,    NA,      1,     true,   NA,     false,  0,      NULL},
-    {"remaining_length",    pack_VBI,           0,              NA,      0,     false,  NA,     false,  0,      NULL},
-    {"protocol_name",       pack_char_buffer,   (Word_t)PNM,    NA,      PNMSZ, true,   NA,     false,  0,      NULL},
-    {"protocol_version",    pack_uint8,         5,              NA,      2,     true,   NA,     false,  0,      NULL},
-    {"reserved",            pack_bits_in_uint8, 0,              0,       1,     true,   NA,     false,  0,      NULL},
-    {"clean_start",         pack_bits_in_uint8, 0,              1,       1,     true,   NA,     false,  0,      NULL},
-    {"will_flag",           pack_bits_in_uint8, 0,              2,       1,     true,   NA,     false,  0,      NULL},
-    {"will_qos",            pack_bits_in_uint8, 0,              3,       2,     true,   NA,     false,  0,      NULL},
-    {"will_retain",         pack_bits_in_uint8, 0,              5,       1,     true,   NA,     false,  0,      NULL},
-    {"password_flag",       pack_bits_in_uint8, 0,              6,       1,     true,   NA,     false,  0,      NULL},
-    {"username_flag",       pack_bits_in_uint8, 0,              7,       1,     true,   NA,     false,  0,      NULL},
-    {"keep_alive",          pack_uint16,        0,              NA,      2,     true,   NA,     false,  0,      NULL},
-    {"property_length",     pack_VBI,           0,              NA,      0,     true,   NA,     false,  0,      NULL},
-//   name                   function            value           bitpos  vlen    exists  id      isalloc buflen  buf
-    {"session_expiry",      pack_prop_uint32,   0,              NA,      0,     false,  0x11,   false,  0,      NULL},
-    {"receive_maximum",     pack_prop_uint16,   0,              NA,      0,     false,  0x21,   false,  0,      NULL}
+//   name                   parent  function            value           bitpos  vlen    exists  id      isalloc buflen  buf
+    {"packet_type",         "",      pack_uint8,         CMD_CONNECT,    NA,     1,      true,   NA,     false,  0,      NULL},
+    {"remaining_length",    "",      pack_VBI,           0,              NA,     0,      false,  NA,     false,  0,      NULL},
+    {"protocol_name",       "",      pack_char_buffer,   (Word_t)PNM,    NA,     PNMSZ,  true,   NA,     false,  0,      NULL},
+    {"protocol_version",    "",      pack_uint8,         5,              NA,     2,      true,   NA,     false,  0,      NULL},
+    {"flags",               "",      pack_flags_alloc,   NA,             NA,     NA,     true,   NA,     false,  0,      NULL},
+    {"reserved",            "flags", pack_bits_in_parent, 0,              0,      1,      true,   NA,     false,  0,      NULL},
+    {"clean_start",         "flags", pack_bits_in_parent, 0,              1,      1,      true,   NA,     false,  0,      NULL},
+    {"will_flag",           "flags", pack_bits_in_parent, 0,              2,      1,      true,   NA,     false,  0,      NULL},
+    {"will_qos",            "flags", pack_bits_in_parent, 0,              3,      2,      true,   NA,     false,  0,      NULL},
+    {"will_retain",         "flags", pack_bits_in_parent, 0,              5,      1,      true,   NA,     false,  0,      NULL},
+    {"password_flag",       "flags", pack_bits_in_parent, 0,              6,      1,      true,   NA,     false,  0,      NULL},
+    {"username_flag",       "flags", pack_bits_in_parent, 0,              7,      1,      true,   NA,     false,  0,      NULL},
+    {"keep_alive",          "flags", pack_uint16,        0,              NA,     2,      true,   NA,     false,  0,      NULL},
+    {"property_length",     "flags", pack_VBI,           0,              NA,     0,      true,   NA,     false,  0,      NULL},
+//   name                   "",      function            value           bitpos  vlen    exists  id      isalloc buflen  buf
+    {"session_expiry",      "",      pack_prop_uint32,   0,              NA,     0,      false,  0x11,   false,  0,      NULL},
+    {"receive_maximum",     "",      pack_prop_uint16,   0,              NA,     0,      false,  0x21,   false,  0,      NULL}
 };
 /*
     uint8_t maximum_packet_size_id;
@@ -172,30 +173,35 @@ int pack_VBI(pack_ctx *pctx, connect_hdr *chdr) {
     return 0;
 }
 
-int pack_char_buffer(pack_ctx *pctx, connect_hdr *chdr){
+int pack_char_buffer(pack_ctx *pctx, connect_hdr *chdr) {
     chdr->buflen = chdr->vlen;
     chdr->buf = (uint8_t *)(chdr->value);
     return 0;
 }
 
+int pack_flags_alloc(pack_ctx *pctx, connect_hdr *chdr) {
+    chdr->buflen = 1;
+    uint8_t *buf = calloc(1, chdr->buflen); // TODO: err checks on malloc
+    chdr->isalloc = true;
+    chdr->buf = buf;
+    return 0;
+};
+
+//  index is vlen: # of bits to be (re)set
 const uint8_t BIT_MASKS[] = {
     0x00, 0x01, 0x03, 0x07, 0x0F, 0x1F, 0x3F, 0x7F
 };
 
-//  clear bit(s) then set if value is non-zero
-//  bitpos 0 must always be invoked for allocation
-int pack_bits_in_uint8(pack_ctx *pctx, connect_hdr *chdr){
-    if (chdr->bitpos == 0) {
-        chdr->buflen = 1;
-        uint8_t *buf = malloc(chdr->buflen); // TODO: err checks on malloc
-        chdr->isalloc = true;
-    }
-
-    chdr->buf[0] = chdr->buf[0] & ~(BIT_MASKS[chdr->vlen] << chdr->bitpos);
+//  get the parent (flags) chdr, reset bit(s) and set if value is non-zero
+int pack_bits_in_parent(pack_ctx *pctx, connect_hdr *chdr) {
+    connect_hdr **Pchdr;
+    JSLG(Pchdr, pctx->PJSLArray, chdr->parent);
+    connect_hdr *flags_chdr = *Pchdr;
+    flags_chdr->buf[0] = flags_chdr->buf[0] & ~(BIT_MASKS[chdr->vlen] << chdr->bitpos);
 
     if (chdr->value) {
         uint8_t val = chdr->value;
-        chdr->buf[0] = chdr->buf[0] | (val << chdr->bitpos);
+        flags_chdr->buf[0] = flags_chdr->buf[0] | (val << chdr->bitpos);
     }
 
     return 0;
