@@ -11,23 +11,23 @@ const uint8_t PNM[] = {0x00, 0x04, 'M', 'Q', 'T', 'T'};
 
 const connect_hdr CONNECT_HDRS_TEMPLATE[] = {
 //   name                   parent  function            value           bitpos  vlen    exists  id      isalloc buflen  buf
-    {"packet_type",         "",      pack_uint8,         CMD_CONNECT,    NA,     1,      true,   NA,     false,  0,      NULL},
-    {"remaining_length",    "",      pack_VBI,           0,              NA,     0,      false,  NA,     false,  0,      NULL},
-    {"protocol_name",       "",      pack_char_buffer,   (Word_t)PNM,    NA,     PNMSZ,  true,   NA,     false,  0,      NULL},
-    {"protocol_version",    "",      pack_uint8,         5,              NA,     2,      true,   NA,     false,  0,      NULL},
-    {"flags",               "",      pack_flags_alloc,   NA,             NA,     NA,     true,   NA,     false,  0,      NULL},
-    {"reserved",            "flags", pack_bits_in_parent, 0,              0,      1,      true,   NA,     false,  0,      NULL},
-    {"clean_start",         "flags", pack_bits_in_parent, 0,              1,      1,      true,   NA,     false,  0,      NULL},
-    {"will_flag",           "flags", pack_bits_in_parent, 0,              2,      1,      true,   NA,     false,  0,      NULL},
-    {"will_qos",            "flags", pack_bits_in_parent, 0,              3,      2,      true,   NA,     false,  0,      NULL},
-    {"will_retain",         "flags", pack_bits_in_parent, 0,              5,      1,      true,   NA,     false,  0,      NULL},
-    {"password_flag",       "flags", pack_bits_in_parent, 0,              6,      1,      true,   NA,     false,  0,      NULL},
-    {"username_flag",       "flags", pack_bits_in_parent, 0,              7,      1,      true,   NA,     false,  0,      NULL},
-    {"keep_alive",          "flags", pack_uint16,        0,              NA,     2,      true,   NA,     false,  0,      NULL},
-    {"property_length",     "flags", pack_VBI,           0,              NA,     0,      true,   NA,     false,  0,      NULL},
-//   name                   "",      function            value           bitpos  vlen    exists  id      isalloc buflen  buf
-    {"session_expiry",      "",      pack_prop_uint32,   0,              NA,     0,      false,  0x11,   false,  0,      NULL},
-    {"receive_maximum",     "",      pack_prop_uint16,   0,              NA,     0,      false,  0x21,   false,  0,      NULL}
+    {"packet_type",         "",      pack_uint8,        CMD_CONNECT,    NA,     1,      true,   NA,     false,  0,      NULL},
+    {"remaining_length",    "",      pack_VBI,          0,              NA,     0,      false,  NA,     false,  0,      NULL},
+    {"protocol_name",       "",      pack_char_buffer,  (Word_t)PNM,    NA,     PNMSZ,  true,   NA,     false,  0,      NULL},
+    {"protocol_version",    "",      pack_uint8,        5,              NA,     2,      true,   NA,     false,  0,      NULL},
+    {"flags",               "",      pack_flags_alloc,  NA,             NA,     NA,     true,   NA,     false,  0,      NULL},
+    {"reserved",            "flags", pack_in_parent,    0,              0,      1,      true,   NA,     false,  0,      NULL},
+    {"clean_start",         "flags", pack_in_parent,    0,              1,      1,      true,   NA,     false,  0,      NULL},
+    {"will_flag",           "flags", pack_in_parent,    0,              2,      1,      true,   NA,     false,  0,      NULL},
+    {"will_qos",            "flags", pack_in_parent,    0,              3,      2,      true,   NA,     false,  0,      NULL},
+    {"will_retain",         "flags", pack_in_parent,    0,              5,      1,      true,   NA,     false,  0,      NULL},
+    {"password_flag",       "flags", pack_in_parent,    0,              6,      1,      true,   NA,     false,  0,      NULL},
+    {"username_flag",       "flags", pack_in_parent,    0,              7,      1,      true,   NA,     false,  0,      NULL},
+    {"keep_alive",          "flags", pack_uint16,       0,              NA,     2,      true,   NA,     false,  0,      NULL},
+    {"property_length",     "flags", pack_VBI,          0,              NA,     0,      true,   NA,     false,  0,      NULL},
+//   name                   "",      function           value           bitpos  vlen    exists  id      isalloc buflen  buf
+    {"session_expiry",      "",      pack_prop_uint32,  0,              NA,     0,      false,  0x11,   false,  0,      NULL},
+    {"receive_maximum",     "",      pack_prop_uint16,  0,              NA,     0,      false,  0x21,   false,  0,      NULL}
 };
 /*
     uint8_t maximum_packet_size_id;
@@ -193,7 +193,7 @@ const uint8_t BIT_MASKS[] = {
 };
 
 //  get the parent (flags) chdr, reset bit(s) and set if value is non-zero
-int pack_bits_in_parent(pack_ctx *pctx, connect_hdr *chdr) {
+int pack_in_parent(pack_ctx *pctx, connect_hdr *chdr) {
     connect_hdr **Pchdr;
     JSLG(Pchdr, pctx->PJSLArray, chdr->parent);
     connect_hdr *flags_chdr = *Pchdr;
