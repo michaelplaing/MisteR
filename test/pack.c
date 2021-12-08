@@ -183,16 +183,20 @@ const uint8_t BIT_MASKS[] = {
 };
 
 //  clear bit(s) then set if value is non-zero
-//  should be invoked in bitpos order for all bits in each byte
+//  bitpos 0 must always be invoked for allocation
 int pack_bits_in_uint8(pack_ctx *pctx, connect_hdr *chdr){
-    uint8_t *Pbyte = pctx->buf + pctx->pos;
-    *Pbyte = *Pbyte & ~(BIT_MASKS[chdr->vlen] << chdr->bitpos);
+    if (chdr->bitpos == 0) {
+        chdr->buflen = 1;
+        uint8_t *buf = malloc(chdr->buflen); // TODO: err checks on malloc
+        chdr->isalloc = true;
+    }
+
+    chdr->buf[0] = chdr->buf[0] & ~(BIT_MASKS[chdr->vlen] << chdr->bitpos);
 
     if (chdr->value) {
         uint8_t val = chdr->value;
-        *Pbyte = *Pbyte | (val << chdr->bitpos);
+        chdr->buf[0] = chdr->buf[0] | (val << chdr->bitpos);
     }
 
-    if (chdr->bitpos + chdr->vlen > 7) pctx->pos++;
     return 0;
 }
