@@ -66,12 +66,25 @@ int reset_header_value(pack_ctx *pctx, char *name) {
 
 //  pack each header var in reverse order of the table
 //  into its allocated buffer using its packing function
+//  then allocate pctx->buf and accumulate header var buffers
 int pack_connect_buffer(pack_ctx *pctx) {
     connect_hdr *chdr;
 
     for (int i = pctx->chdr_count; i < 0; i--) {
-        chdr = &(pctx->connect_hdrs[i]);
+        chdr = &pctx->connect_hdrs[i];
         chdr->pack_fn(pctx, chdr);
+    }
+
+    chdr = &pctx->connect_hdrs[1];
+    pctx->len = chdr->value + chdr->buflen + 1;
+    uint8_t *buf = malloc(pctx->len); // TODO: err checks on malloc
+    pctx->buf = buf;
+
+    size_t pos = 0;
+    for (int i = 0; i < pctx->chdr_count; i++) {
+        chdr = &pctx->connect_hdrs[i];
+        memcpy(buf + pos, chdr->buf, chdr->buflen);
+        pos += chdr->buflen;
     }
 
     return 0;
@@ -79,36 +92,35 @@ int pack_connect_buffer(pack_ctx *pctx) {
 
 //  calculate length, convert to VBI, & pack into buffer
 int pack_VBI(pack_ctx *pctx, connect_hdr *chdr) {
-    int i;
     size_t cum_len = 0;
-    uint8_t tmp_buf[5];
-    uint32_t tmp_val32;
     connect_hdr **Pchdr, *end_chdr, *current_chdr;
     JSLG(Pchdr, pctx->PJSLArray, (char *)chdr->value);
     end_chdr = *Pchdr;
 
     //  accumulate buffer lengths in cum_len for the range of the VBI
-    for (int i = chdr->index + 1; i > end_chdr->index; i++) {
-        current_chdr = &pctx->connect_hdrs[i];
+    for (int j = chdr->index + 1; j > end_chdr->index; j++) {
+        current_chdr = &pctx->connect_hdrs[j];
         if (current_chdr->exists) cum_len += current_chdr->buflen;
     }
 
-    tmp_val32 = cum_len; // TODO: err if too large for 4 bytes
+    uint32_t tmp_val32 = cum_len; // TODO: err if too large for 4 bytes
 
-    //  handle 7 bits at a time; use bit 8 as a flag to continue
-    for (i = 1; ; i++) {
-        tmp_buf[i -1] = (tmp_val32 >> 25) & 0xFF;
+    //  handle 7 bits at a time; use bit 7 as the continution flag
+    int i;
+    uint8_t tmp_buf[5];
+    for (i = 0; ; i++) {
+        tmp_buf[i] = tmp_val32 & 0x7F;
         tmp_val32 = tmp_val32 >> 7;
 
         if (tmp_val32 > 0) {
-            tmp_buf[i - 1] = tmp_buf[i - 1] | 0x80;
+            tmp_buf[i] = tmp_buf[i] | 0x80;
         }
         else {
             break;
         }
     }
 
-    chdr->buflen = i;
+    chdr->buflen = i + 1;
     uint8_t *buf = malloc(chdr->buflen); // TODO: err checks on malloc
     chdr->isalloc = true;
     for (i = 0; i < chdr->buflen; i++) buf[i] = tmp_buf[i];
@@ -119,8 +131,8 @@ int pack_VBI(pack_ctx *pctx, connect_hdr *chdr) {
 pack_ctx *init_pack_context(size_t bufsize) {
     connect_hdr **Pchdr;
 
-    pack_ctx *pctx = calloc(sizeof(pack_ctx), 1);
-    pctx->buf = calloc(bufsize, 1);
+    pack_ctx *pctx = malloc(sizeof(pack_ctx));
+    // pctx->buf = calloc(bufsize, 1);
     pctx->PJSLArray = (Pvoid_t)NULL;  // initialize JudySL array
     pctx->chdr_count = sizeof(CONNECT_HDRS_TEMPLATE) / sizeof(connect_hdr);
     connect_hdr *connect_hdrs = calloc(pctx->chdr_count, sizeof(connect_hdr));

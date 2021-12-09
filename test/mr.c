@@ -108,7 +108,7 @@ void mr_send_connect(redisAsyncContext *rctx) {
     pack_connect_buffer(pctx);
 
     printf("Connect Buf:");
-    for (int i = 0; i < pctx->pos; i++) printf(" %02hhX", pctx->buf[i]);
+    for (int i = 0; i < pctx->len; i++) printf(" %02hhX", pctx->buf[i]);
     printf("\n");
 }
 

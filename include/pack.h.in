@@ -13,11 +13,6 @@ struct connect_hdr;
 
 struct pack_ctx;
 
-typedef struct var_byte_int {
-    size_t len;
-    uint8_t buf[4];
-} var_byte_int;
-
 typedef struct connect_hdr {
     char *name;
     int index;
@@ -36,8 +31,6 @@ typedef struct connect_hdr {
 
 typedef struct pack_ctx {
     uint8_t *buf;
-    size_t pos;
-    size_t propcnt;
     size_t len;
     connect_hdr *connect_hdrs;
     size_t chdr_count;
