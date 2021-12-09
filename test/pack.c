@@ -76,17 +76,17 @@ int pack_connect_buffer(pack_ctx *pctx) {
         chdr = &pctx->connect_hdrs[i];
         chdr->pack_fn(pctx, chdr);
     }
-    printf("malloc pctx-buf: buflen: %u; value: %u\n", chdr->buflen, chdr->value);
     chdr = &pctx->connect_hdrs[1];
+    printf("malloc pctx->buf using from remaining_length: buflen: %u + value: %u + 1\n", chdr->buflen, chdr->value);
     pctx->len = chdr->value + chdr->buflen + 1;
     uint8_t *buf = malloc(pctx->len); // TODO: err checks on malloc
     pctx->buf = buf;
-    printf("copy chdr bufs into pctx->buf\n");
-    size_t pos = 0;
+    printf("memcpy chdr bufs into pctx->buf\n");
+    uint8_t *bufpos = buf;
     for (int i = 0; i < pctx->chdr_count; i++) {
         chdr = &pctx->connect_hdrs[i];
-        memcpy(buf + pos, chdr->buf, chdr->buflen);
-        pos += chdr->buflen;
+        memcpy(bufpos, chdr->buf, chdr->buflen);
+        bufpos += chdr->buflen;
     }
 
     return 0;
@@ -111,7 +111,7 @@ int pack_VBI(pack_ctx *pctx, connect_hdr *chdr) {
         current_chdr = &pctx->connect_hdrs[j];
         if (current_chdr->exists) cum_len += current_chdr->buflen;
     }
-
+    printf("  cum_len: %u\n", cum_len);
     chdr->value = cum_len;
     uint32_t tmp_val32 = chdr->value; // TODO: err if too large for 4 bytes
 
