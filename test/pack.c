@@ -10,7 +10,7 @@ const uint8_t PNM[] = {0x00, 0x04, 'M', 'Q', 'T', 'T'};
 #define NA 0
 
 const connect_hdr CONNECT_HDRS_TEMPLATE[] = {
-//   name                   index   parent      function            value           bitpos  vlen    exists  id      isalloc buflen  buf
+//   name                   index   link        function            value           bitpos  vlen    exists  id      isalloc buflen  buf
     {"packet_type",         0,      "",         pack_uint8,         CMD_CONNECT,    NA,     1,      true,   NA,     false,  0,      NULL},
     {"remaining_length",    0,      "last",     pack_VBI,           0,              NA,     0,      true,   NA,     false,  0,      NULL},
     {"protocol_name",       0,      "",         pack_char_buffer,   (Word_t)PNM,    NA,     PNMSZ,  true,   NA,     false,  0,      NULL},
@@ -26,7 +26,7 @@ const connect_hdr CONNECT_HDRS_TEMPLATE[] = {
     {"keep_alive",          0,      "flags",    pack_uint16,        0,              NA,     2,      true,   NA,     false,  0,      NULL},
     {"property_length",     0,      "receive_maximum",
                                                 pack_VBI,           0,              NA,     0,      true,   NA,     false,  0,      NULL},
-//   name                   index   parent     function             value           bitpos  vlen    exists  id      isalloc buflen  buf
+//   name                   index   link        function            value           bitpos  vlen    exists  id      isalloc buflen  buf
     {"session_expiry",      0,      "",         pack_sprop_uint32,  0,              NA,     0,      false,  0x11,   false,  0,      NULL},
     {"receive_maximum",     0,      "",         pack_sprop_uint16,  0,              NA,     0,      false,  0x21,   false,  0,      NULL}
 };
@@ -98,8 +98,8 @@ int pack_VBI(pack_ctx *pctx, connect_hdr *chdr) {
     size_t cum_len = 0;
     connect_hdr **Pchdr, *end_chdr, *current_chdr;
 
-    if (strcmp(chdr->parent, "last")) {
-        JSLG(Pchdr, pctx->PJSLArray, chdr->parent);
+    if (strcmp(chdr->link, "last")) {
+        JSLG(Pchdr, pctx->PJSLArray, chdr->link);
         end_chdr = *Pchdr;
     }
     else {
@@ -253,10 +253,10 @@ const uint8_t BIT_MASKS[] = {
     0x00, 0x01, 0x03, 0x07, 0x0F, 0x1F, 0x3F, 0x7F
 };
 
-//  get the parent (flags) chdr, reset bit(s) and set if value is non-zero
+//  get the link (flags) chdr, reset bit(s) and set if value is non-zero
 int pack_in_parent(pack_ctx *pctx, connect_hdr *chdr) {
     connect_hdr **Pchdr;
-    JSLG(Pchdr, pctx->PJSLArray, chdr->parent);
+    JSLG(Pchdr, pctx->PJSLArray, chdr->link);
     connect_hdr *flags_chdr = *Pchdr;
     flags_chdr->buf[0] = flags_chdr->buf[0] & ~(BIT_MASKS[chdr->vlen] << chdr->bitpos);
 
