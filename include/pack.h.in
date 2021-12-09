@@ -13,8 +13,14 @@ struct connect_hdr;
 
 struct pack_ctx;
 
+typedef struct var_byte_int {
+    size_t len;
+    uint8_t buf[4];
+} var_byte_int;
+
 typedef struct connect_hdr {
     char *name;
+    int index;
     char *parent;
     int (*pack_fn)(struct pack_ctx *pctx, struct connect_hdr *chv);
     Word_t value; /* can handle each header_var value including pointers */
@@ -52,9 +58,9 @@ int pack_uint16(pack_ctx *pctx, connect_hdr *chv);
 
 int pack_uint32(pack_ctx *pctx, connect_hdr *chv);
 
-int pack_prop_uint16(pack_ctx *pctx, connect_hdr *chv);
+int pack_sprop_uint16(pack_ctx *pctx, connect_hdr *chv);
 
-int pack_prop_uint32(pack_ctx *pctx, connect_hdr *chv);
+int pack_sprop_uint32(pack_ctx *pctx, connect_hdr *chv);
 
 int pack_VBI(pack_ctx *pctx, connect_hdr *chv);
 
