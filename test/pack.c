@@ -12,23 +12,23 @@ const uint8_t PNM[] = {0x00, 0x04, 'M', 'Q', 'T', 'T'};
 const connect_hdr CONNECT_HDRS_TEMPLATE[] = {
 //   name                   index   parent      function            value           bitpos  vlen    exists  id      isalloc buflen  buf
     {"packet_type",         0,      "",         pack_uint8,         CMD_CONNECT,    NA,     1,      true,   NA,     false,  0,      NULL},
-    {"remaining_length",    0,      "",         pack_VBI,           (Word_t)"all",  NA,     0,      true,   NA,     false,  0,      NULL},
+    {"remaining_length",    0,      "last",     pack_VBI,           0,              NA,     0,      true,   NA,     false,  0,      NULL},
     {"protocol_name",       0,      "",         pack_char_buffer,   (Word_t)PNM,    NA,     PNMSZ,  true,   NA,     false,  0,      NULL},
     {"protocol_version",    0,      "",         pack_uint8,         5,              NA,     2,      true,   NA,     false,  0,      NULL},
-    {"flags",               0,      "",         pack_flags_alloc,   NA,             NA,     NA,     true,   NA,     false,  0,      NULL},
     {"reserved",            0,      "flags",    pack_in_parent,     0,              0,      1,      true,   NA,     false,  0,      NULL},
     {"clean_start",         0,      "flags",    pack_in_parent,     0,              1,      1,      true,   NA,     false,  0,      NULL},
     {"will_flag",           0,      "flags",    pack_in_parent,     0,              2,      1,      true,   NA,     false,  0,      NULL},
     {"will_qos",            0,      "flags",    pack_in_parent,     0,              3,      2,      true,   NA,     false,  0,      NULL},
     {"will_retain",         0,      "flags",    pack_in_parent,     0,              5,      1,      true,   NA,     false,  0,      NULL},
-    {"password_flag",       0,     "flags",    pack_in_parent,     0,              6,      1,      true,   NA,     false,  0,      NULL},
-    {"username_flag",       0,     "flags",    pack_in_parent,     0,              7,      1,      true,   NA,     false,  0,      NULL},
-    {"keep_alive",          0,     "flags",    pack_uint16,        0,              NA,     2,      true,   NA,     false,  0,      NULL},
-    {"property_length",     0,     "",         pack_VBI,           (Word_t)"receive_maximum",
-                                                                                   NA,     0,      true,   NA,     false,  0,      NULL},
-//   name                   0,     "",         function            value           bitpos  vlen    exists  id      isalloc buflen  buf
-    {"session_expiry",      0,     "",         pack_sprop_uint32,  0,              NA,     0,      false,  0x11,   false,  0,      NULL},
-    {"receive_maximum",     0,     "",         pack_sprop_uint16,  0,              NA,     0,      false,  0x21,   false,  0,      NULL}
+    {"password_flag",       0,      "flags",    pack_in_parent,     0,              6,      1,      true,   NA,     false,  0,      NULL},
+    {"username_flag",       0,      "flags",    pack_in_parent,     0,              7,      1,      true,   NA,     false,  0,      NULL},
+    {"flags",               0,      "",         pack_flags_alloc,   NA,             NA,     NA,     true,   NA,     false,  0,      NULL},
+    {"keep_alive",          0,      "flags",    pack_uint16,        0,              NA,     2,      true,   NA,     false,  0,      NULL},
+    {"property_length",     0,      "receive_maximum",
+                                                pack_VBI,           0,              NA,     0,      true,   NA,     false,  0,      NULL},
+//   name                   index   parent     function             value           bitpos  vlen    exists  id      isalloc buflen  buf
+    {"session_expiry",      0,      "",         pack_sprop_uint32,  0,              NA,     0,      false,  0x11,   false,  0,      NULL},
+    {"receive_maximum",     0,      "",         pack_sprop_uint16,  0,              NA,     0,      false,  0x21,   false,  0,      NULL}
 };
 /*
     uint8_t maximum_packet_size_id;
@@ -68,18 +68,20 @@ int reset_header_value(pack_ctx *pctx, char *name) {
 //  into its allocated buffer using its packing function
 //  then allocate pctx->buf and accumulate header var buffers
 int pack_connect_buffer(pack_ctx *pctx) {
+    printf("pack_connect_buffer\n");
     connect_hdr *chdr;
-
-    for (int i = pctx->chdr_count; i < 0; i--) {
+    printf("pack each chdr: chdr_count: %u\n", pctx->chdr_count);
+    for (int i = pctx->chdr_count - 1; i > -1; i--) {
+        printf("  chdr index: %u\n", i);
         chdr = &pctx->connect_hdrs[i];
         chdr->pack_fn(pctx, chdr);
     }
-
+    printf("malloc pctx-buf: buflen: %u; value: %u\n", chdr->buflen, chdr->value);
     chdr = &pctx->connect_hdrs[1];
     pctx->len = chdr->value + chdr->buflen + 1;
     uint8_t *buf = malloc(pctx->len); // TODO: err checks on malloc
     pctx->buf = buf;
-
+    printf("copy chdr bufs into pctx->buf\n");
     size_t pos = 0;
     for (int i = 0; i < pctx->chdr_count; i++) {
         chdr = &pctx->connect_hdrs[i];
@@ -92,18 +94,26 @@ int pack_connect_buffer(pack_ctx *pctx) {
 
 //  calculate length, convert to VBI, & pack into buffer
 int pack_VBI(pack_ctx *pctx, connect_hdr *chdr) {
+    printf("pack_VBI: %s\n", chdr->name);
     size_t cum_len = 0;
     connect_hdr **Pchdr, *end_chdr, *current_chdr;
-    JSLG(Pchdr, pctx->PJSLArray, (char *)chdr->value);
-    end_chdr = *Pchdr;
 
+    if (strcmp(chdr->parent, "last")) {
+        JSLG(Pchdr, pctx->PJSLArray, chdr->parent);
+        end_chdr = *Pchdr;
+    }
+    else {
+        end_chdr = &pctx->connect_hdrs[pctx->chdr_count - 1];
+    }
+    printf("accumulate buffer lengths: %u to %u\n", chdr->index + 1, end_chdr->index);
     //  accumulate buffer lengths in cum_len for the range of the VBI
-    for (int j = chdr->index + 1; j > end_chdr->index; j++) {
+    for (int j = chdr->index + 1; j <= end_chdr->index; j++) {
         current_chdr = &pctx->connect_hdrs[j];
         if (current_chdr->exists) cum_len += current_chdr->buflen;
     }
 
-    uint32_t tmp_val32 = cum_len; // TODO: err if too large for 4 bytes
+    chdr->value = cum_len;
+    uint32_t tmp_val32 = chdr->value; // TODO: err if too large for 4 bytes
 
     //  handle 7 bits at a time; use bit 7 as the continution flag
     int i;
@@ -129,6 +139,7 @@ int pack_VBI(pack_ctx *pctx, connect_hdr *chdr) {
 }
 
 pack_ctx *init_pack_context(size_t bufsize) {
+    printf("init_pack_context\n");
     connect_hdr **Pchdr;
 
     pack_ctx *pctx = malloc(sizeof(pack_ctx));
@@ -136,13 +147,13 @@ pack_ctx *init_pack_context(size_t bufsize) {
     pctx->PJSLArray = (Pvoid_t)NULL;  // initialize JudySL array
     pctx->chdr_count = sizeof(CONNECT_HDRS_TEMPLATE) / sizeof(connect_hdr);
     connect_hdr *connect_hdrs = calloc(pctx->chdr_count, sizeof(connect_hdr));
-
+    printf("copy template\n");
     //  copy template
     for (int i = 0; i < pctx->chdr_count; i++) {
         connect_hdrs[i] = CONNECT_HDRS_TEMPLATE[i];
         connect_hdrs[i].index = i;
     }
-
+    printf("map hv name\n");
     //  map hv name to hv structure pointer
     for (int i = 0; i < pctx->chdr_count; i++) {
         JSLI(Pchdr, pctx->PJSLArray, connect_hdrs[i].name);
