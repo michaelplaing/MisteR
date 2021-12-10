@@ -49,7 +49,6 @@ const connect_hdr CONNECT_HDRS_TEMPLATE[] = {
 
 int set_header_value(pack_ctx *pctx, char *name, Word_t value) {
     connect_hdr **Pchdr;
-
     JSLG(Pchdr, pctx->PJSLArray, name);
     (*Pchdr)->value = value;
     (*Pchdr)->exists = true;
@@ -277,16 +276,16 @@ const uint8_t BIT_MASKS[] = {
     0x00, 0x01, 0x03, 0x07, 0x0F, 0x1F, 0x3F, 0x7F
 };
 
-//  get the link (flags) chdr, reset bit(s) and set if value is non-zero
+//  get the link (parent) chdr, reset bit(s) and set if value is non-zero
 int pack_in_parent(pack_ctx *pctx, connect_hdr *chdr) {
     connect_hdr **Pchdr;
     JSLG(Pchdr, pctx->PJSLArray, chdr->link);
-    connect_hdr *flags_chdr = *Pchdr;
-    flags_chdr->buf[0] = flags_chdr->buf[0] & ~(BIT_MASKS[chdr->vlen] << chdr->bitpos);
+    connect_hdr *link_chdr = *Pchdr;
+    link_chdr->buf[0] = link_chdr->buf[0] & ~(BIT_MASKS[chdr->vlen] << chdr->bitpos);
 
     if (chdr->value) {
         uint8_t val = chdr->value;
-        flags_chdr->buf[0] = flags_chdr->buf[0] | (val << chdr->bitpos);
+        link_chdr->buf[0] = link_chdr->buf[0] | (val << chdr->bitpos);
     }
 
     return 0;
