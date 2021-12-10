@@ -146,15 +146,19 @@ int pack_VBI(pack_ctx *pctx, connect_hdr *chdr) {
 int free_pack_context(pack_ctx *pctx) {
     printf("free_ack_context\n");
     connect_hdr *chdr;
+    Word_t bytes_freed;
 
-    // free connect hdr buffers
+    //  free connect hdr buffers
     for (int i = 0; i < pctx->chdr_count; i++) {
         chdr = &pctx->connect_hdrs[i];
         if (chdr->isalloc) free(chdr->buf);
     }
 
-    // free packet buffer
+    //  free packet buffer
     free(pctx->buf);
+
+    //  free Judy array
+    JSLFA(bytes_freed, pctx->PJSLArray);
 
     // free pack context
     free(pctx);
