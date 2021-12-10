@@ -110,6 +110,7 @@ void mr_send_connect(redisAsyncContext *rctx) {
     set_vector_value(pctx, "user_properties", (Word_t)sps, 2);
     uint8_t bambaz[] = {0x01, 0x02};
     set_vector_value(pctx, "authentication_data", (Word_t)bambaz, 2);
+    set_scalar_value(pctx, "client_identifier", (Word_t)"Snoopy");
     pack_connect_buffer(pctx);
 
     printf("Connect Buf:");
