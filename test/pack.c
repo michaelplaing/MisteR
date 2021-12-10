@@ -37,12 +37,9 @@ const connect_hdr CONNECT_HDRS_TEMPLATE[] = {
                             0,      "",         pack_sprop_uint8,   0,              NA,     0,      false,  0x17,   false,  0,      NULL},
     {"user_properties",     0,      "",         pack_mprop_strpair, (Word_t)NULL,   NA,     0,      false,  0x26,   false,  0,      NULL},
     {"authentication_method",
-                            0,      "",         pack_sprop_str,     (Word_t)NULL,   NA,     0,      false,   0x15,  false,  0,      NULL}
+                            0,      "",         pack_sprop_str,     (Word_t)NULL,   NA,     0,      false,   0x15,  false,  0,      NULL},
+    {"authentication_data", 0,      "",         pack_sprop_char_buf,(Word_t)NULL,   NA,     0,      false,   0x16,  false,  0,      NULL}
 };
-/*
-    uint8_t *authentication_method;
-    uint8_t *authentication_data;
-*/
 
 int set_scalar_value(pack_ctx *pctx, char *name, Word_t value) {
     connect_hdr **Pchdr;
@@ -289,6 +286,24 @@ int pack_sprop_str(pack_ctx *pctx, connect_hdr *chdr) {
     *bufpos = (val16 >> 8) & 0xFF; bufpos++;
     *bufpos = val16 & 0xFF; bufpos++;
     memcpy(bufpos, strval, val16);
+
+    return 0;
+}
+
+int pack_sprop_char_buf(pack_ctx *pctx, connect_hdr *chdr) {
+    if (!chdr->exists) return 0;
+
+    size_t buflen = 1 + chdr->vlen;
+
+    uint8_t *buf = malloc(buflen); // TODO: err checks on malloc
+
+    chdr->isalloc = true;
+    chdr->buf = buf;
+    chdr->buflen = buflen;
+
+    uint8_t *bufpos = buf;
+    *bufpos = chdr->id; bufpos++;
+    memcpy(bufpos, (uint8_t *)chdr->value, chdr->vlen);
 
     return 0;
 }

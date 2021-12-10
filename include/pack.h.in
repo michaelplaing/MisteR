@@ -66,6 +66,8 @@ int pack_sprop_uint16(pack_ctx *pctx, connect_hdr *chv);
 
 int pack_sprop_uint32(pack_ctx *pctx, connect_hdr *chv);
 
+int pack_sprop_char_buf(pack_ctx *pctx, connect_hdr *chdr);
+
 int pack_mprop_strpair(pack_ctx *pctx, connect_hdr *chdr);
 
 int pack_sprop_str(pack_ctx *pctx, connect_hdr *chdr);

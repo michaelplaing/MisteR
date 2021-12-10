@@ -108,6 +108,8 @@ void mr_send_connect(redisAsyncContext *rctx) {
     string_pair foobar = {"foo", "bar"};
     string_pair sps[] = {foobar, foobar};
     set_vector_value(pctx, "user_properties", (Word_t)sps, 2);
+    uint8_t bambaz[] = {0x01, 0x02};
+    set_vector_value(pctx, "authentication_data", (Word_t)bambaz, 2);
     pack_connect_buffer(pctx);
 
     printf("Connect Buf:");
