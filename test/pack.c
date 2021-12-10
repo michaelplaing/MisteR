@@ -35,7 +35,9 @@ const connect_hdr CONNECT_HDRS_TEMPLATE[] = {
                             0,      "",         pack_sprop_uint8,   0,              NA,     0,      false,  0x19,   false,  0,      NULL},
     {"request_problem_information",
                             0,      "",         pack_sprop_uint8,   0,              NA,     0,      false,  0x17,   false,  0,      NULL},
-    {"user_properties",     0,      "",         pack_mprop_strpair, (Word_t)NULL,   NA,     0,      false,  0x26,   false,  0,      NULL}
+    {"user_properties",     0,      "",         pack_mprop_strpair, (Word_t)NULL,   NA,     0,      false,  0x26,   false,  0,      NULL},
+    {"authentication_method",
+                            0,      "",         pack_sprop_str,     (Word_t)NULL,   NA,     0,      false,   0x15,  false,  0,      NULL}
 };
 /*
     uint8_t *authentication_method;
@@ -269,6 +271,28 @@ int pack_sprop_uint32(pack_ctx *pctx, connect_hdr *chdr) {
     return 0;
 }
 
+int pack_sprop_str(pack_ctx *pctx, connect_hdr *chdr) {
+    if (!chdr->exists) return 0;
+
+    char *strval = (char *)chdr->value;
+    uint16_t val16 = strlen(strval);
+    size_t buflen = 1 + 2 + val16;
+
+    uint8_t *buf = malloc(buflen); // TODO: err checks on malloc
+
+    chdr->isalloc = true;
+    chdr->buf = buf;
+    chdr->buflen = buflen;
+
+    uint8_t *bufpos = buf;
+    *bufpos = chdr->id; bufpos++;
+    *bufpos = (val16 >> 8) & 0xFF; bufpos++;
+    *bufpos = val16 & 0xFF; bufpos++;
+    memcpy(bufpos, strval, val16);
+
+    return 0;
+}
+
 //  for property vectors, e.g. connect_payload:will_properties:user_properties
 //  chdr->value should be a *string_pair
 int pack_mprop_strpair(pack_ctx *pctx, connect_hdr *chdr) {
@@ -281,7 +305,7 @@ int pack_mprop_strpair(pack_ctx *pctx, connect_hdr *chdr) {
         buflen += 1 + 2 + strlen(strpair[i].name) + 2 + strlen(strpair[i].value);
     }
 
-    uint8_t *buf = malloc(buflen);
+    uint8_t *buf = malloc(buflen); // TODO: err checks on malloc
     chdr->isalloc = true;
     chdr->buf = buf;
     chdr->buflen = buflen;
