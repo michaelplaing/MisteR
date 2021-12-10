@@ -37,6 +37,11 @@ typedef struct pack_ctx {
     Pvoid_t PJSLArray;
 } pack_ctx;
 
+typedef struct user_prop {
+    char *name;
+    char *value;
+} user_prop;
+
 pack_ctx *init_pack_context(void);
 
 int free_pack_context(pack_ctx *pctx);
@@ -53,9 +58,13 @@ int pack_uint16(pack_ctx *pctx, connect_hdr *chv);
 
 int pack_uint32(pack_ctx *pctx, connect_hdr *chv);
 
+int pack_sprop_uint8(pack_ctx *pctx, connect_hdr *chdr);
+
 int pack_sprop_uint16(pack_ctx *pctx, connect_hdr *chv);
 
 int pack_sprop_uint32(pack_ctx *pctx, connect_hdr *chv);
+
+int pack_mprop_strpair(pack_ctx *pctx, connect_hdr *chdr);
 
 int make_VBI(uint32_t val32, uint8_t *buf);
 

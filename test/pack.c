@@ -28,22 +28,18 @@ const connect_hdr CONNECT_HDRS_TEMPLATE[] = {
                                                 pack_VBI,           0,              NA,     0,      true,   NA,     false,  0,      NULL},
 //   name                   index   link        function            value           bitpos  vlen    exists  id      isalloc buflen  buf
     {"session_expiry",      0,      "",         pack_sprop_uint32,  0,              NA,     0,      false,  0x11,   false,  0,      NULL},
-    {"receive_maximum",     0,      "",         pack_sprop_uint16,  0,              NA,     0,      false,  0x21,   false,  0,      NULL}
+    {"receive_maximum",     0,      "",         pack_sprop_uint16,  0,              NA,     0,      false,  0x21,   false,  0,      NULL},
+    {"maximum_packet_size", 0,      "",         pack_sprop_uint32,  0,              NA,     0,      false,  0x27,   false,  0,      NULL},
+    {"topic_alias_maximum", 0,      "",         pack_sprop_uint16,  0,              NA,     0,      false,  0x22,   false,  0,      NULL},
+    {"request_response_information",
+                            0,      "",         pack_sprop_uint8,   0,              NA,     0,      false,  0x19,   false,  0,      NULL},
+    {"request_problem_information",
+                            0,      "",         pack_sprop_uint8,   0,              NA,     0,      false,  0x17,   false,  0,      NULL},
+    {"user_properties",     0,      "",         pack_mprop_strpair, (Word_t)NULL,   NA,     0,      false,  0x26,   false,  0,      NULL}
 };
 /*
-    uint8_t maximum_packet_size_id;
-    uint32_t maximum_packet_size;
-    uint8_t topic_alias_maximum_id;
-    uint16_t topic_alias_maximum;
-    uint8_t request_response_information_id;
-    uint8_t request_response_information;
-    uint8_t request_problem_information_id;
-    uint8_t request_problem_information;
-    uint8_t user_property_id;
     uint8_t *user_properties;
-    uint8_t authentication_method_id;
     uint8_t *authentication_method;
-    uint8_t authentication_data_id;
     uint8_t *authentication_data;
 */
 
@@ -217,6 +213,19 @@ int pack_uint32(pack_ctx *pctx, connect_hdr *chdr) {
     buf[2] = (val32 >> 8) & 0xFF;
     buf[3] = val32 & 0xFF;
     chdr->buf = buf;
+    return 0;
+}
+
+int pack_sprop_uint8(pack_ctx *pctx, connect_hdr *chdr) {
+    if (chdr->exists) {
+        chdr->buflen = 2;
+        uint8_t *buf = malloc(chdr->buflen); // TODO: err checks on malloc
+        chdr->isalloc = true;
+        buf[0] = chdr->id;
+        buf[1] = chdr->value;
+        chdr->buf = buf;
+    }
+
     return 0;
 }
 
