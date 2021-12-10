@@ -102,9 +102,12 @@ void mrConnectCallback(redisAsyncContext *rctx, void *reply_void, void *private_
 
 void mr_send_connect(redisAsyncContext *rctx) {
     pack_ctx *pctx = init_pack_context();
-    set_header_value(pctx, "clean_start", true);
-    // set_header_value(pctx, "will_qos", 3);
-    set_header_value(pctx, "session_expiry", 42);
+    set_scalar_value(pctx, "clean_start", true);
+    // set_scalar_value(pctx, "will_qos", 3);
+    set_scalar_value(pctx, "session_expiry", 42);
+    string_pair foobar = {"foo", "bar"};
+    string_pair sps[] = {foobar, foobar};
+    set_vector_value(pctx, "user_properties", (Word_t)sps, 2);
     pack_connect_buffer(pctx);
 
     printf("Connect Buf:");

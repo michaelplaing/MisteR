@@ -38,16 +38,24 @@ const connect_hdr CONNECT_HDRS_TEMPLATE[] = {
     {"user_properties",     0,      "",         pack_mprop_strpair, (Word_t)NULL,   NA,     0,      false,  0x26,   false,  0,      NULL}
 };
 /*
-    uint8_t *user_properties;
     uint8_t *authentication_method;
     uint8_t *authentication_data;
 */
 
-int set_header_value(pack_ctx *pctx, char *name, Word_t value) {
+int set_scalar_value(pack_ctx *pctx, char *name, Word_t value) {
     connect_hdr **Pchdr;
     JSLG(Pchdr, pctx->PJSLArray, name);
     (*Pchdr)->value = value;
     (*Pchdr)->exists = true;
+    return 0;
+}
+
+int set_vector_value(pack_ctx *pctx, char *name, Word_t value, size_t len) {
+    connect_hdr **Pchdr;
+    JSLG(Pchdr, pctx->PJSLArray, name);
+    (*Pchdr)->value = value;
+    (*Pchdr)->exists = true;
+    (*Pchdr)->vlen = len;
     return 0;
 }
 
@@ -262,8 +270,39 @@ int pack_sprop_uint32(pack_ctx *pctx, connect_hdr *chdr) {
 }
 
 //  for property vectors, e.g. connect_payload:will_properties:user_properties
+//  chdr->value should be a *string_pair
 int pack_mprop_strpair(pack_ctx *pctx, connect_hdr *chdr) {
-    ;
+    if (!chdr->exists) return 0;
+
+    string_pair *strpair = (string_pair *)chdr->value;
+    size_t buflen = 0;
+
+    for (int i = 0; i < chdr->vlen; i++) {
+        buflen += 1 + 2 + strlen(strpair[i].name) + 2 + strlen(strpair[i].value);
+    }
+
+    uint8_t *buf = malloc(buflen);
+    chdr->isalloc = true;
+    chdr->buf = buf;
+    chdr->buflen = buflen;
+    uint8_t *bufpos = buf;
+    uint16_t val16;
+
+    for (int i = 0; i < chdr->vlen; i++) {
+        *bufpos = chdr->id; bufpos++;
+        // name
+        val16 = strlen(strpair[i].name);
+        *bufpos = (val16 >> 8) & 0xFF; bufpos++;
+        *bufpos = val16 & 0xFF; bufpos++;
+        memcpy(bufpos, strpair[i].name, val16); bufpos += val16;
+        // value
+        val16 = strlen(strpair[i].value);
+        *bufpos = (val16 >> 8) & 0xFF; bufpos++;
+        *bufpos = val16 & 0xFF; bufpos++;
+        memcpy(bufpos, strpair[i].value, val16); bufpos += val16;
+    }
+
+    return 0;
 }
 
 int pack_char_buffer(pack_ctx *pctx, connect_hdr *chdr) {

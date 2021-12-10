@@ -37,16 +37,18 @@ typedef struct pack_ctx {
     Pvoid_t PJSLArray;
 } pack_ctx;
 
-typedef struct user_prop {
+typedef struct string_pair {
     char *name;
     char *value;
-} user_prop;
+} string_pair;
 
 pack_ctx *init_pack_context(void);
 
 int free_pack_context(pack_ctx *pctx);
 
-int set_header_value(pack_ctx *pctx, char *name, Word_t value);
+int set_scalar_value(pack_ctx *pctx, char *name, Word_t value);
+
+int set_vector_value(pack_ctx *pctx, char *name, Word_t value, size_t len);
 
 int reset_header_value(pack_ctx *pctx, char *name);
 
