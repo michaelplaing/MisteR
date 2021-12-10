@@ -93,21 +93,18 @@ int pack_connect_buffer(pack_ctx *pctx) {
 }
 
 //  handle 7 bits (0-6) at a time; use bit 7 as the continution flag
-size_t make_VBI(uint32_t val32, uint8_t *buf) {
-    int i;
-    for (i = 0; ; i++) {
+int make_VBI(uint32_t val32, uint8_t *buf) {
+    // Note: buf should point to at least 5 allocated bytes
+    int i = 0;
+    do {
         buf[i] = val32 & 0x7F;
         val32 = val32 >> 7;
-
-        if (val32 > 0) {
-            buf[i] = buf[i] | 0x80;
-        }
-        else {
-            break;
-        }
+        if (val32 > 0) buf[i] = buf[i] | 0x80;
+        i++;
     }
+    while (val32 > 0);
 
-    return i + 1;
+    return i;
 }
 
 //  calculate length, convert to VBI, & pack into buffer

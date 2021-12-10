@@ -57,6 +57,8 @@ int pack_sprop_uint16(pack_ctx *pctx, connect_hdr *chv);
 
 int pack_sprop_uint32(pack_ctx *pctx, connect_hdr *chv);
 
+int make_VBI(uint32_t val32, uint8_t *buf);
+
 int pack_VBI(pack_ctx *pctx, connect_hdr *chv);
 
 int pack_char_buffer(pack_ctx *pctx, connect_hdr *chv);
