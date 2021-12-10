@@ -101,15 +101,16 @@ void mrConnectCallback(redisAsyncContext *rctx, void *reply_void, void *private_
 }
 
 void mr_send_connect(redisAsyncContext *rctx) {
-    pack_ctx *pctx = init_pack_context(1000);
+    pack_ctx *pctx = init_pack_context();
     set_header_value(pctx, "clean_start", true);
     // set_header_value(pctx, "will_qos", 3);
-    // set_header_value(pctx, "receive_maximum", 1);
+    set_header_value(pctx, "session_expiry", 42);
     pack_connect_buffer(pctx);
 
     printf("Connect Buf:");
     for (int i = 0; i < pctx->len; i++) printf(" %02hhX", pctx->buf[i]);
     printf("\n");
+    // free_pack_context(pctx);
 }
 
 int main (void) {

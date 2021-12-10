@@ -92,6 +92,24 @@ int pack_connect_buffer(pack_ctx *pctx) {
     return 0;
 }
 
+//  handle 7 bits (0-6) at a time; use bit 7 as the continution flag
+size_t make_VBI(uint32_t val32, uint8_t *buf) {
+    int i;
+    for (i = 0; ; i++) {
+        buf[i] = val32 & 0x7F;
+        val32 = val32 >> 7;
+
+        if (val32 > 0) {
+            buf[i] = buf[i] | 0x80;
+        }
+        else {
+            break;
+        }
+    }
+
+    return i + 1;
+}
+
 //  calculate length, convert to VBI, & pack into buffer
 int pack_VBI(pack_ctx *pctx, connect_hdr *chdr) {
     printf("pack_VBI: %s\n", chdr->name);
@@ -114,36 +132,41 @@ int pack_VBI(pack_ctx *pctx, connect_hdr *chdr) {
     printf("  cum_len: %u\n", cum_len);
     chdr->value = cum_len;
     uint32_t tmp_val32 = chdr->value; // TODO: err if too large for 4 bytes
+    uint8_t tmp_buf[5]; // enough for uint32_t even if too big
 
-    //  handle 7 bits at a time; use bit 7 as the continution flag
-    int i;
-    uint8_t tmp_buf[5];
-    for (i = 0; ; i++) {
-        tmp_buf[i] = tmp_val32 & 0x7F;
-        tmp_val32 = tmp_val32 >> 7;
+    chdr->buflen = make_VBI(tmp_val32, tmp_buf);
 
-        if (tmp_val32 > 0) {
-            tmp_buf[i] = tmp_buf[i] | 0x80;
-        }
-        else {
-            break;
-        }
-    }
-
-    chdr->buflen = i + 1;
     uint8_t *buf = malloc(chdr->buflen); // TODO: err checks on malloc
     chdr->isalloc = true;
-    for (i = 0; i < chdr->buflen; i++) buf[i] = tmp_buf[i];
     chdr->buf = buf;
+    memcpy(chdr->buf, tmp_buf, chdr->buflen);
     return 0;
 }
 
-pack_ctx *init_pack_context(size_t bufsize) {
+int free_pack_context(pack_ctx *pctx) {
+    printf("free_ack_context\n");
+    connect_hdr *chdr;
+
+    // free connect hdr buffers
+    for (int i = 0; i < pctx->chdr_count; i++) {
+        chdr = &pctx->connect_hdrs[i];
+        if (chdr->isalloc) free(chdr->buf);
+    }
+
+    // free packet buffer
+    free(pctx->buf);
+
+    // free pack context
+    free(pctx);
+
+    return 0;
+}
+
+pack_ctx *init_pack_context(void) {
     printf("init_pack_context\n");
     connect_hdr **Pchdr;
 
     pack_ctx *pctx = malloc(sizeof(pack_ctx));
-    // pctx->buf = calloc(bufsize, 1);
     pctx->PJSLArray = (Pvoid_t)NULL;  // initialize JudySL array
     pctx->chdr_count = sizeof(CONNECT_HDRS_TEMPLATE) / sizeof(connect_hdr);
     connect_hdr *connect_hdrs = calloc(pctx->chdr_count, sizeof(connect_hdr));

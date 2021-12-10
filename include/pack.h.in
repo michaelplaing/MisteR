@@ -37,7 +37,9 @@ typedef struct pack_ctx {
     Pvoid_t PJSLArray;
 } pack_ctx;
 
-pack_ctx *init_pack_context(size_t bufsize);
+pack_ctx *init_pack_context(void);
+
+int free_pack_context(pack_ctx *pctx);
 
 int set_header_value(pack_ctx *pctx, char *name, Word_t value);
 
