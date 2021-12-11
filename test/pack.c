@@ -108,6 +108,7 @@ int pack_connect_buffer(pack_ctx *pctx) {
     pctx->len = chdr->value + chdr->buflen + 1;
     uint8_t *buf = malloc(pctx->len); // TODO: err checks on malloc
     pctx->buf = buf;
+    pctx->isalloc = true;
     printf("memcpy chdr bufs into pctx->buf\n");
     uint8_t *bufpos = buf;
     for (int i = 0; i < pctx->chdr_count; i++) {
@@ -180,8 +181,8 @@ int free_pack_context(pack_ctx *pctx) {
         if (chdr->isalloc) free(chdr->buf);
     }
 
-    //  free packet buffer
-    free(pctx->buf);
+    //  free packet buffer - don't rely on NULL pointer...
+    if (pctx->isalloc) free(pctx->buf);
 
     //  free Judy array
     JSLFA(bytes_freed, pctx->PJSLArray);
@@ -196,7 +197,7 @@ pack_ctx *init_pack_context(void) {
     printf("init_pack_context\n");
     connect_hdr **Pchdr;
 
-    pack_ctx *pctx = malloc(sizeof(pack_ctx));
+    pack_ctx *pctx = calloc(1, sizeof(pack_ctx));
     pctx->PJSLArray = (Pvoid_t)NULL;  // initialize JudySL array
     pctx->chdr_count = sizeof(CONNECT_HDRS_TEMPLATE) / sizeof(connect_hdr);
     connect_hdr *connect_hdrs = calloc(pctx->chdr_count, sizeof(connect_hdr));

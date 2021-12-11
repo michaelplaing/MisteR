@@ -31,6 +31,7 @@ typedef struct connect_hdr {
 
 typedef struct pack_ctx {
     uint8_t *buf;
+    bool isalloc;
     size_t len;
     connect_hdr *connect_hdrs;
     size_t chdr_count;
