@@ -78,7 +78,7 @@ int make_VBI(uint32_t val32, uint8_t *buf);
 
 int pack_VBI(pack_ctx *pctx, connect_hdr *chv);
 
-int pack_char_buffer(pack_ctx *pctx, connect_hdr *chv);
+int pack_char_buf(pack_ctx *pctx, connect_hdr *chv);
 
 int pack_flags_alloc(pack_ctx *pctx, connect_hdr *chdr);
 
