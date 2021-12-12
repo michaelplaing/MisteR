@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
-#include <uuid/uuid.h>
 
 #include <hiredis/hiredis.h>
 #include <hiredis/async.h>
@@ -15,34 +14,33 @@
 void mrPingreqCallback(redisAsyncContext *rctx, void *reply_void, void *private_data_void) {
     REDISMODULE_NOT_USED(rctx);
     redisReply *reply = reply_void;
-    uuid_t *corrid = private_data_void;
     size_t i;
-    char corrid_str[UUID_STR_LEN];
-    uuid_unparse(*corrid, corrid_str);
-    free(corrid);
 
     if (reply == NULL) return;
     printf("Callback - expecting PINGRESP (%s)\n", MR_PINGRESP);
-    printf("  private data rcvd (corrid): %s\n", corrid_str);
     printf("  %lu elements in reply array\n", reply->elements);
-    redisReply *ele0 = reply->element[0];
-    printf("    %s - MR_PINGRESP ", ele0->str);
+    redisReply *reply0 = reply->element[0];
+    printf("    %s - MR_PINGRESP ", reply0->str);
 
-    if (strcmp(ele0->str, MR_PINGRESP)) {
+    if (strcmp(reply0->str, MR_PINGRESP)) {
         printf("does not match\n");
     }
     else {
         printf("matches\n");
     }
 
-    redisReply *ele1 = reply->element[1];
-    printf("    %lu chars received in buffer: ", ele1->len);
+    redisReply *reply1 = reply->element[1];
+    printf("    %lu chars received in buffer: ", reply1->len);
 
-    for (i = 0; i < ele1->len; i++) {
-        printf("%hhX ", ele1->str[i]);
+    for (i = 0; i < reply1->len; i++) {
+        printf("%hhX ", reply1->str[i]);
     }
 
-    if (ele1->str[0] == CMD_PINGRESP && ele1->str[1] == 0 && ele1->len == 2) {
+    if (
+        (uint8_t)reply1->str[0] == CMD_PINGRESP 
+        && (uint8_t)reply1->str[1] == 0 
+        && reply1->len == 2
+    ) {
         printf("\n    Confirmed that buffer is a valid PINGRESP\n");
     }
     else {
@@ -72,21 +70,15 @@ void redisAsyncDisconnectCallback(const redisAsyncContext *rctx, int status) {
 }
 
 void mrSendPingreq(redisAsyncContext *rctx) {
-    const char PINGREQ_BUF[2] = {CMD_PINGREQ, 0x00};
+    uint8_t PINGREQ_BUF[2] = {CMD_PINGREQ, 0x00};
     size_t i;
 
-    uuid_t *corrid = malloc(sizeof(uuid_t));
-    uuid_generate_random(*corrid);
-    char corrid_str[UUID_STR_LEN];
-    uuid_unparse(*corrid, corrid_str);
-
     redisAsyncCommand(
-        rctx, mrPingreqCallback, corrid,
+        rctx, mrPingreqCallback, NULL,
         "%s %b", MR_PINGREQ, PINGREQ_BUF, sizeof(PINGREQ_BUF)
     );
 
     printf("Async Command sent PINGREQ (%s)\n", MR_PINGREQ);
-    printf("  private data sent (corrid): %s\n", corrid_str);
     printf("  %lu chars sent in buffer: ", sizeof(PINGREQ_BUF));
 
     for (i = 0; i < sizeof(PINGREQ_BUF); i++) {

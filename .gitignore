@@ -5,7 +5,7 @@ autom4te.cache
 compile
 config.guess
 config.h.in
-bsat_config.h.in
+mister_config.h.in
 config.sub
 configure
 install-sh
@@ -33,3 +33,5 @@ scratch/*
 
 #ignore Redis databases
 dump.rdb
+
+.DS_Store

@@ -9,7 +9,7 @@
 #include "mister.h"
 
 int misterPingReq_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) {
-    const char PINGRESP_BUF[2] = {CMD_PINGRESP, 0};
+    const uint8_t PINGRESP_BUF[2] = {CMD_PINGRESP, 0};
     
     REDISMODULE_NOT_USED(argv);
     if (argc != 2) return RedisModule_WrongArity(ctx);
@@ -20,7 +20,7 @@ int misterPingReq_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv, in
 }
 
 int misterConnect_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) {
-    const char CONNACK_BUF[2] = {CMD_CONNACK, 0};
+    const uint8_t CONNACK_BUF[2] = {CMD_CONNACK, 0};
     
     REDISMODULE_NOT_USED(argv);
     if (argc != 2) return RedisModule_WrongArity(ctx);

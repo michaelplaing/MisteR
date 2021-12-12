@@ -4,8 +4,7 @@
 
 #include "pack.h"
 
-
-const uint8_t PNM[] = {0x00, 0x04, 'M', 'Q', 'T', 'T'};
+const uint8_t PNM[] = {0x00, 0x04, 'M', 'Q', 'T', 'T'};  // protocol name
 #define PNMSZ 6
 #define NA 0
 
@@ -67,7 +66,7 @@ const connect_hdr CONNECT_HDRS_TEMPLATE[] = {
 
 int set_scalar_value(pack_ctx *pctx, char *name, Word_t value) {
     connect_hdr **Pchdr;
-    JSLG(Pchdr, pctx->PJSLArray, name);
+    JSLG(Pchdr, pctx->PJSLArray, (uint8_t *)name);
     (*Pchdr)->value = value;
     (*Pchdr)->exists = true;
     return 0;
@@ -75,7 +74,7 @@ int set_scalar_value(pack_ctx *pctx, char *name, Word_t value) {
 
 int set_vector_value(pack_ctx *pctx, char *name, Word_t value, size_t len) {
     connect_hdr **Pchdr;
-    JSLG(Pchdr, pctx->PJSLArray, name);
+    JSLG(Pchdr, pctx->PJSLArray, (uint8_t *)name);
     (*Pchdr)->value = value;
     (*Pchdr)->exists = true;
     (*Pchdr)->vlen = len;
@@ -84,7 +83,7 @@ int set_vector_value(pack_ctx *pctx, char *name, Word_t value, size_t len) {
 
 int reset_header_value(pack_ctx *pctx, char *name) {
     connect_hdr **Pchdr;
-    JSLG(Pchdr, pctx->PJSLArray, name);
+    JSLG(Pchdr, pctx->PJSLArray, (uint8_t *)name);
     (*Pchdr)->value = 0;
     (*Pchdr)->exists = false;
     (*Pchdr)->vlen = 0;
@@ -97,14 +96,14 @@ int reset_header_value(pack_ctx *pctx, char *name) {
 int pack_connect_buffer(pack_ctx *pctx) {
     printf("pack_connect_buffer\n");
     connect_hdr *chdr;
-    printf("pack each chdr: chdr_count: %u\n", pctx->chdr_count);
+    printf("pack each chdr: chdr_count: %lu\n", pctx->chdr_count);
     for (int i = pctx->chdr_count - 1; i > -1; i--) {
         printf("  chdr index: %u\n", i);
         chdr = &pctx->connect_hdrs[i];
         chdr->pack_fn(pctx, chdr);
     }
     chdr = &pctx->connect_hdrs[1];
-    printf("malloc pctx->buf using from remaining_length: buflen: %u + value: %u + 1\n", chdr->buflen, chdr->value);
+    printf("malloc pctx->buf using from remaining_length: buflen: %lu + value: %lu + 1\n", chdr->buflen, chdr->value);
     pctx->len = chdr->value + chdr->buflen + 1;
     uint8_t *buf = malloc(pctx->len); // TODO: err checks on malloc
     pctx->buf = buf;
@@ -144,7 +143,7 @@ int pack_VBI(pack_ctx *pctx, connect_hdr *chdr) {
     connect_hdr **Pchdr, *end_chdr, *current_chdr;
 
     if (strcmp(chdr->link, "last")) {
-        JSLG(Pchdr, pctx->PJSLArray, chdr->link);
+        JSLG(Pchdr, pctx->PJSLArray, (uint8_t *)chdr->link);
         end_chdr = *Pchdr;
     }
     else {
@@ -156,7 +155,7 @@ int pack_VBI(pack_ctx *pctx, connect_hdr *chdr) {
         current_chdr = &pctx->connect_hdrs[j];
         if (current_chdr->exists) cum_len += current_chdr->buflen;
     }
-    printf("  cum_len: %u\n", cum_len);
+    printf("  cum_len: %lu\n", cum_len);
     chdr->value = cum_len;
     uint32_t tmp_val32 = chdr->value; // TODO: err if too large for 4 bytes
     uint8_t tmp_buf[5]; // enough for uint32_t even if too big
@@ -210,7 +209,7 @@ pack_ctx *init_pack_context(void) {
     printf("map hv name\n");
     //  map hv name to hv structure pointer
     for (int i = 0; i < pctx->chdr_count; i++) {
-        JSLI(Pchdr, pctx->PJSLArray, connect_hdrs[i].name);
+        JSLI(Pchdr, pctx->PJSLArray, (uint8_t *)connect_hdrs[i].name);
         *Pchdr = &connect_hdrs[i];
     }
 
@@ -418,7 +417,7 @@ const uint8_t BIT_MASKS[] = {
 //  get the link (parent) chdr, reset bit(s) and set if value is non-zero
 int pack_in_parent(pack_ctx *pctx, connect_hdr *chdr) {
     connect_hdr **Pchdr;
-    JSLG(Pchdr, pctx->PJSLArray, chdr->link);
+    JSLG(Pchdr, pctx->PJSLArray, (uint8_t *)chdr->link);
     connect_hdr *link_chdr = *Pchdr;
     link_chdr->buf[0] = link_chdr->buf[0] & ~(BIT_MASKS[chdr->vlen] << chdr->bitpos);
 
