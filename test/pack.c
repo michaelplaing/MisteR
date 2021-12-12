@@ -99,10 +99,10 @@ int pack_connect_buffer(pack_ctx *pctx) {
     printf("pack each chdr: chdr_count: %lu\n", pctx->chdr_count);
     for (int i = pctx->chdr_count - 1; i > -1; i--) {
         printf("  chdr index: %u\n", i);
-        chdr = &pctx->connect_hdrs[i];
+        chdr = pctx->connect_hdrs + i;
         chdr->pack_fn(pctx, chdr);
     }
-    chdr = &pctx->connect_hdrs[1];
+    chdr = pctx->connect_hdrs + 1; // remaining_length
     printf("malloc pctx->buf using from remaining_length: buflen: %lu + value: %lu + 1\n", chdr->buflen, chdr->value);
     pctx->len = chdr->value + chdr->buflen + 1;
     uint8_t *buf = malloc(pctx->len); // TODO: err checks on malloc
@@ -111,7 +111,7 @@ int pack_connect_buffer(pack_ctx *pctx) {
     printf("memcpy chdr bufs into pctx->buf\n");
     uint8_t *bufpos = buf;
     for (int i = 0; i < pctx->chdr_count; i++) {
-        chdr = &pctx->connect_hdrs[i];
+        chdr = pctx->connect_hdrs + i;
         memcpy(bufpos, chdr->buf, chdr->buflen);
         bufpos += chdr->buflen;
     }
@@ -147,12 +147,12 @@ int pack_VBI(pack_ctx *pctx, connect_hdr *chdr) {
         end_chdr = *Pchdr;
     }
     else {
-        end_chdr = &pctx->connect_hdrs[pctx->chdr_count - 1];
+        end_chdr = pctx->connect_hdrs + pctx->chdr_count - 1;
     }
     printf("accumulate buffer lengths: %u to %u\n", chdr->index + 1, end_chdr->index);
     //  accumulate buffer lengths in cum_len for the range of the VBI
     for (int j = chdr->index + 1; j <= end_chdr->index; j++) {
-        current_chdr = &pctx->connect_hdrs[j];
+        current_chdr = pctx->connect_hdrs + j;
         if (current_chdr->exists) cum_len += current_chdr->buflen;
     }
     printf("  cum_len: %lu\n", cum_len);
@@ -176,7 +176,7 @@ int free_pack_context(pack_ctx *pctx) {
 
     //  free connect hdr buffers
     for (int i = 0; i < pctx->chdr_count; i++) {
-        chdr = &pctx->connect_hdrs[i];
+        chdr = pctx->connect_hdrs + i;
         if (chdr->isalloc) free(chdr->buf);
     }
 
@@ -210,7 +210,7 @@ pack_ctx *init_pack_context(void) {
     //  map hv name to hv structure pointer
     for (int i = 0; i < pctx->chdr_count; i++) {
         JSLI(Pchdr, pctx->PJSLArray, (uint8_t *)connect_hdrs[i].name);
-        *Pchdr = &connect_hdrs[i];
+        *Pchdr = connect_hdrs + i;
     }
 
     pctx->connect_hdrs = connect_hdrs;
@@ -221,8 +221,8 @@ int pack_uint8(pack_ctx *pctx, connect_hdr *chdr) {
     chdr->buflen = 1;
     uint8_t *buf = malloc(chdr->buflen); // TODO: err checks on malloc
     chdr->isalloc = true;
-    buf[0] = chdr->value;
     chdr->buf = buf;
+    *buf = chdr->value;
     return 0;
 }
 
@@ -230,10 +230,11 @@ int pack_uint16(pack_ctx *pctx, connect_hdr *chdr) {
     chdr->buflen = 2;
     uint8_t *buf = malloc(chdr->buflen); // TODO: err checks on malloc
     chdr->isalloc = true;
-    uint16_t val16 = chdr->value;
-    buf[0] = (val16 >> 8) & 0xFF;
-    buf[1] = val16 & 0xFF;
     chdr->buf = buf;
+    uint16_t val16 = chdr->value;
+    uint8_t *bufpos = buf;
+    *bufpos++ = (val16 >> 8) & 0xFF;
+    *bufpos = val16 & 0xFF;
     return 0;
 }
 
@@ -241,12 +242,13 @@ int pack_uint32(pack_ctx *pctx, connect_hdr *chdr) {
     chdr->buflen = 4;
     uint8_t *buf = malloc(chdr->buflen); // TODO: err checks on malloc
     chdr->isalloc = true;
-    uint32_t val32 = chdr->value;
-    buf[0] = (val32 >> 24) & 0xFF;
-    buf[1] = (val32 >> 16) & 0xFF;
-    buf[2] = (val32 >> 8) & 0xFF;
-    buf[3] = val32 & 0xFF;
     chdr->buf = buf;
+    uint32_t val32 = chdr->value;
+    uint8_t *bufpos = buf;
+    *bufpos++ = (val32 >> 24) & 0xFF;
+    *bufpos++ = (val32 >> 16) & 0xFF;
+    *bufpos++ = (val32 >> 8) & 0xFF;
+    *bufpos = val32 & 0xFF;
     return 0;
 }
 
@@ -255,9 +257,10 @@ int pack_sprop_uint8(pack_ctx *pctx, connect_hdr *chdr) {
         chdr->buflen = 2;
         uint8_t *buf = malloc(chdr->buflen); // TODO: err checks on malloc
         chdr->isalloc = true;
-        buf[0] = chdr->id;
-        buf[1] = chdr->value;
         chdr->buf = buf;
+        uint8_t *bufpos = buf;
+        *bufpos++ = chdr->id;
+        *bufpos = chdr->value;
     }
 
     return 0;
@@ -268,11 +271,12 @@ int pack_sprop_uint16(pack_ctx *pctx, connect_hdr *chdr) {
         chdr->buflen = 3;
         uint8_t *buf = malloc(chdr->buflen); // TODO: err checks on malloc
         chdr->isalloc = true;
-        buf[0] = chdr->id;
-        uint16_t val16 = chdr->value;
-        buf[1] = (val16 >> 8) & 0xFF;
-        buf[2] = val16 & 0xFF;
         chdr->buf = buf;
+        uint16_t val16 = chdr->value;
+        uint8_t *bufpos = buf;
+        *bufpos++ = chdr->id;
+        *bufpos++ = (val16 >> 8) & 0xFF;
+        *bufpos = val16 & 0xFF;
     }
 
     return 0;
@@ -283,13 +287,14 @@ int pack_sprop_uint32(pack_ctx *pctx, connect_hdr *chdr) {
         chdr->buflen = 5;
         uint8_t *buf = malloc(chdr->buflen); // TODO: err checks on malloc
         chdr->isalloc = true;
-        buf[0] = chdr->id;
-        uint32_t val32 = chdr->value;
-        buf[1] = (val32 >> 24) & 0xFF;
-        buf[2] = (val32 >> 16) & 0xFF;
-        buf[3] = (val32 >> 8) & 0xFF;
-        buf[4] = val32 & 0xFF;
         chdr->buf = buf;
+        uint32_t val32 = chdr->value;
+        uint8_t *bufpos = buf;
+        *bufpos++ = chdr->id;
+        *bufpos++ = (val32 >> 24) & 0xFF;
+        *bufpos++ = (val32 >> 16) & 0xFF;
+        *bufpos++ = (val32 >> 8) & 0xFF;
+        *bufpos = val32 & 0xFF;
     }
 
     return 0;
@@ -309,8 +314,8 @@ int pack_str(pack_ctx *pctx, connect_hdr *chdr) {
     chdr->buflen = buflen;
 
     uint8_t *bufpos = buf;
-    *bufpos = (val16 >> 8) & 0xFF; bufpos++;
-    *bufpos = val16 & 0xFF; bufpos++;
+    *bufpos++ = (val16 >> 8) & 0xFF;
+    *bufpos++ = val16 & 0xFF;
     memcpy(bufpos, strval, val16);
 
     return 0;
@@ -330,9 +335,9 @@ int pack_sprop_str(pack_ctx *pctx, connect_hdr *chdr) {
     chdr->buflen = buflen;
 
     uint8_t *bufpos = buf;
-    *bufpos = chdr->id; bufpos++;
-    *bufpos = (val16 >> 8) & 0xFF; bufpos++;
-    *bufpos = val16 & 0xFF; bufpos++;
+    *bufpos++ = chdr->id;
+    *bufpos++ = (val16 >> 8) & 0xFF;
+    *bufpos++ = val16 & 0xFF;
     memcpy(bufpos, strval, val16);
 
     return 0;
@@ -350,7 +355,7 @@ int pack_sprop_char_buf(pack_ctx *pctx, connect_hdr *chdr) {
     chdr->buflen = buflen;
 
     uint8_t *bufpos = buf;
-    *bufpos = chdr->id; bufpos++;
+    *bufpos++ = chdr->id;
     memcpy(bufpos, (uint8_t *)chdr->value, chdr->vlen);
 
     return 0;
@@ -376,16 +381,16 @@ int pack_mprop_strpair(pack_ctx *pctx, connect_hdr *chdr) {
     uint16_t val16;
 
     for (int i = 0; i < chdr->vlen; i++) {
-        *bufpos = chdr->id; bufpos++;
+        *bufpos++ = chdr->id;
         // name
         val16 = strlen(strpair[i].name);
-        *bufpos = (val16 >> 8) & 0xFF; bufpos++;
-        *bufpos = val16 & 0xFF; bufpos++;
+        *bufpos++ = (val16 >> 8) & 0xFF;
+        *bufpos++ = val16 & 0xFF;
         memcpy(bufpos, strpair[i].name, val16); bufpos += val16;
         // value
         val16 = strlen(strpair[i].value);
-        *bufpos = (val16 >> 8) & 0xFF; bufpos++;
-        *bufpos = val16 & 0xFF; bufpos++;
+        *bufpos++ = (val16 >> 8) & 0xFF;
+        *bufpos++ = val16 & 0xFF;
         memcpy(bufpos, strpair[i].value, val16); bufpos += val16;
     }
 
@@ -419,11 +424,11 @@ int pack_in_parent(pack_ctx *pctx, connect_hdr *chdr) {
     connect_hdr **Pchdr;
     JSLG(Pchdr, pctx->PJSLArray, (uint8_t *)chdr->link);
     connect_hdr *link_chdr = *Pchdr;
-    link_chdr->buf[0] = link_chdr->buf[0] & ~(BIT_MASKS[chdr->vlen] << chdr->bitpos);
+    *link_chdr->buf = *link_chdr->buf & ~(BIT_MASKS[chdr->vlen] << chdr->bitpos);
 
     if (chdr->value) {
         uint8_t val = chdr->value;
-        link_chdr->buf[0] = link_chdr->buf[0] | (val << chdr->bitpos);
+        *link_chdr->buf = *link_chdr->buf | (val << chdr->bitpos);
     }
 
     return 0;
