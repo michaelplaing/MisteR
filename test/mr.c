@@ -9,7 +9,7 @@
 
 #include "redismodule.h"
 #include "mister.h"
-#include "pack.h"
+#include "connect.h"
 
 void mrPingreqCallback(redisAsyncContext *rctx, void *reply_void, void *private_data_void) {
     REDISMODULE_NOT_USED(rctx);
@@ -93,7 +93,7 @@ void mrConnectCallback(redisAsyncContext *rctx, void *reply_void, void *private_
 }
 
 void mr_send_connect(redisAsyncContext *rctx) {
-    pack_ctx *pctx = init_pack_context();
+    pack_ctx *pctx = init_connect_pctx();
     set_scalar_value(pctx, "clean_start", true);
     // set_scalar_value(pctx, "will_qos", 3);
     set_scalar_value(pctx, "session_expiry", 42);
@@ -103,7 +103,7 @@ void mr_send_connect(redisAsyncContext *rctx) {
     uint8_t bambaz[] = {0x01, 0x02};
     set_vector_value(pctx, "authentication_data", (Word_t)bambaz, 2);
     set_scalar_value(pctx, "client_identifier", (Word_t)"Snoopy");
-    pack_connect_buffer(pctx);
+    pack_mdata_buffer(pctx);
 
     printf("Connect Buf:");
     for (int i = 0; i < pctx->len; i++) printf(" %02hhX", pctx->buf[i]);

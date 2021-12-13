@@ -9,15 +9,15 @@
 //extern "C" {
 #endif /* __cplusplus */
 
-struct connect_hdr;
+struct mr_mdata;
 
 struct pack_ctx;
 
-typedef struct connect_hdr {
+typedef struct mr_mdata {
     char *name;
     int index;
     char *link;
-    int (*pack_fn)(struct pack_ctx *pctx, struct connect_hdr *chv);
+    int (*pack_fn)(struct pack_ctx *pctx, struct mr_mdata *mdata);
     Word_t value; /* can handle each header_var value including pointers */
     size_t bitpos; // for sub-byte values
     size_t vlen; // for sub-byte values, pointer values & VBIs
@@ -27,14 +27,14 @@ typedef struct connect_hdr {
     size_t buflen;
     uint8_t *buf;
     bool isptr;
-} connect_hdr;
+} mr_mdata;
 
 typedef struct pack_ctx {
     uint8_t *buf;
     bool isalloc;
     size_t len;
-    connect_hdr *connect_hdrs;
-    size_t chdr_count;
+    mr_mdata *mdata0;
+    size_t mdata_count;
     Pvoid_t PJSLArray;
 } pack_ctx;
 
@@ -43,7 +43,7 @@ typedef struct string_pair {
     char *value;
 } string_pair;
 
-pack_ctx *init_pack_context(void);
+pack_ctx *init_pack_context(const mr_mdata *MDATA_TEMPLATE, size_t mdata_count);
 
 int free_pack_context(pack_ctx *pctx);
 
@@ -53,37 +53,37 @@ int set_vector_value(pack_ctx *pctx, char *name, Word_t value, size_t len);
 
 int reset_header_value(pack_ctx *pctx, char *name);
 
-int pack_connect_buffer(pack_ctx *pctx);
+int pack_mdata_buffer(pack_ctx *pctx);
 
-int pack_uint8(pack_ctx *pctx, connect_hdr *chv);
+int pack_uint8(pack_ctx *pctx, mr_mdata *mdata);
 
-int pack_uint16(pack_ctx *pctx, connect_hdr *chv);
+int pack_uint16(pack_ctx *pctx, mr_mdata *mdata);
 
-int pack_uint32(pack_ctx *pctx, connect_hdr *chv);
+int pack_uint32(pack_ctx *pctx, mr_mdata *mdata);
 
-int pack_sprop_uint8(pack_ctx *pctx, connect_hdr *chdr);
+int pack_sprop_uint8(pack_ctx *pctx, mr_mdata *mdata);
 
-int pack_sprop_uint16(pack_ctx *pctx, connect_hdr *chv);
+int pack_sprop_uint16(pack_ctx *pctx, mr_mdata *mdata);
 
-int pack_sprop_uint32(pack_ctx *pctx, connect_hdr *chv);
+int pack_sprop_uint32(pack_ctx *pctx, mr_mdata *mdata);
 
-int pack_sprop_char_buf(pack_ctx *pctx, connect_hdr *chdr);
+int pack_sprop_char_buf(pack_ctx *pctx, mr_mdata *mdata);
 
-int pack_mprop_strpair(pack_ctx *pctx, connect_hdr *chdr);
+int pack_mprop_strpair(pack_ctx *pctx, mr_mdata *mdata);
 
-int pack_str(pack_ctx *pctx, connect_hdr *chdr);
+int pack_str(pack_ctx *pctx, mr_mdata *mdata);
 
-int pack_sprop_str(pack_ctx *pctx, connect_hdr *chdr);
+int pack_sprop_str(pack_ctx *pctx, mr_mdata *mdata);
 
 int make_VBI(uint32_t val32, uint8_t *buf);
 
-int pack_VBI(pack_ctx *pctx, connect_hdr *chv);
+int pack_VBI(pack_ctx *pctx, mr_mdata *mdata);
 
-int pack_char_buf(pack_ctx *pctx, connect_hdr *chv);
+int pack_char_buf(pack_ctx *pctx, mr_mdata *mdata);
 
-int pack_flags_alloc(pack_ctx *pctx, connect_hdr *chdr);
+int pack_flags_alloc(pack_ctx *pctx, mr_mdata *mdata);
 
-int pack_in_parent(pack_ctx *pctx, connect_hdr *chv);
+int pack_in_parent(pack_ctx *pctx, mr_mdata *mdata);
 
 #ifdef __cpluplus
 //}

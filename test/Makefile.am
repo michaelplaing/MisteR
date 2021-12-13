@@ -6,7 +6,7 @@
 
 bin_PROGRAMS = mr
 
-mr_SOURCES = mr.c pack.c
+mr_SOURCES = mr.c pack.c connect.c
 
 AM_CFLAGS= -I@top_builddir@/include -g
 

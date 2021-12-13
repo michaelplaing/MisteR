@@ -1,0 +1,16 @@
+#ifndef CONNECT_H
+#define CONNECT_H
+
+#ifdef __cplusplus
+//extern "C" {
+#endif /* __cplusplus */
+
+#include "pack.h"
+
+pack_ctx *init_connect_pctx(void);
+
+#ifdef __cpluplus
+//}
+#endif /* __cplusplus */
+
+#endif /* PACK_H */

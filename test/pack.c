@@ -4,116 +4,56 @@
 
 #include "pack.h"
 
-const uint8_t PNM[] = {0x00, 0x04, 'M', 'Q', 'T', 'T'};  // protocol name
-#define PNMSZ 6
-#define NA 0
-
-const connect_hdr CONNECT_HDRS_TEMPLATE[] = {
-//  Fixed Header
-//   name                   index   link        function            value           bitpos  vlen    exists  id      isalloc buflen  buf
-    {"packet_type",         0,      "",         pack_uint8,         CMD_CONNECT,    NA,     1,      true,   NA,     false,  0,      NULL},
-    {"remaining_length",    0,      "last",     pack_VBI,           0,              NA,     0,      true,   NA,     false,  0,      NULL},
-//  Variable Header
-//   name                   index   link        function            value           bitpos  vlen    exists  id      isalloc buflen  buf
-    {"protocol_name",       0,      "",         pack_char_buf,      (Word_t)PNM,    NA,     PNMSZ,  true,   NA,     false,  0,      NULL},
-    {"protocol_version",    0,      "",         pack_uint8,         5,              NA,     2,      true,   NA,     false,  0,      NULL},
-    {"reserved",            0,      "flags",    pack_in_parent,     0,              0,      1,      true,   NA,     false,  0,      NULL},
-    {"clean_start",         0,      "flags",    pack_in_parent,     0,              1,      1,      true,   NA,     false,  0,      NULL},
-    {"will_flag",           0,      "flags",    pack_in_parent,     0,              2,      1,      true,   NA,     false,  0,      NULL},
-    {"will_qos",            0,      "flags",    pack_in_parent,     0,              3,      2,      true,   NA,     false,  0,      NULL},
-    {"will_retain",         0,      "flags",    pack_in_parent,     0,              5,      1,      true,   NA,     false,  0,      NULL},
-    {"password_flag",       0,      "flags",    pack_in_parent,     0,              6,      1,      true,   NA,     false,  0,      NULL},
-    {"username_flag",       0,      "flags",    pack_in_parent,     0,              7,      1,      true,   NA,     false,  0,      NULL},
-    {"flags",               0,      "",         pack_flags_alloc,   NA,             NA,     1,      true,   NA,     false,  0,      NULL},
-    {"keep_alive",          0,      "",         pack_uint16,        0,              NA,     2,      true,   NA,     false,  0,      NULL},
-//  Variable Header Properties
-//   name                   index   link        function            value           bitpos  vlen    exists  id      isalloc buflen  buf
-    {"property_length",     0,      "authentication_data",
-                                                pack_VBI,           0,              NA,     0,      true,   NA,     false,  0,      NULL},
-    {"session_expiry",      0,      "",         pack_sprop_uint32,  0,              NA,     0,      false,  0x11,   false,  0,      NULL},
-    {"receive_maximum",     0,      "",         pack_sprop_uint16,  0,              NA,     0,      false,  0x21,   false,  0,      NULL},
-    {"maximum_packet_size", 0,      "",         pack_sprop_uint32,  0,              NA,     0,      false,  0x27,   false,  0,      NULL},
-    {"topic_alias_maximum", 0,      "",         pack_sprop_uint16,  0,              NA,     0,      false,  0x22,   false,  0,      NULL},
-    {"request_response_information",
-                            0,      "",         pack_sprop_uint8,   0,              NA,     0,      false,  0x19,   false,  0,      NULL},
-    {"request_problem_information",
-                            0,      "",         pack_sprop_uint8,   0,              NA,     0,      false,  0x17,   false,  0,      NULL},
-    {"user_properties",     0,      "",         pack_mprop_strpair, (Word_t)NULL,   NA,     0,      false,  0x26,   false,  0,      NULL},
-    {"authentication_method",
-                            0,      "",         pack_sprop_str,     (Word_t)NULL,   NA,     0,      false,  0x15,   false,  0,      NULL},
-    {"authentication_data", 0,      "",         pack_sprop_char_buf,(Word_t)NULL,   NA,     0,      false,  0x16,   false,  0,      NULL},
-// Payload
-//   name                   index   link        function            value           bitpos  vlen    exists  id      isalloc buflen  buf
-    {"client_identifier",   0,      "",         pack_str,           (Word_t)NULL,   NA,     0,      false,  NA,     false,  0,      NULL},
-// Payload Will Properties
-    {"will_property_length",0,      "will_user_properties",
-                                                pack_VBI,           0,              NA,     0,      false,  NA,     false,  0,      NULL},
-    {"will_delay_interval", 0,      "",         pack_sprop_uint32,  0,              NA,     0,      false,  0x18,   false,  0,      NULL},
-    {"payload_format_indicator",
-                            0,      "",         pack_sprop_uint8,   0,              NA,     0,      false,  0x01,   false,  0,      NULL},
-    {"message_expiry_interval",
-                            0,      "",         pack_sprop_uint32,  0,              NA,     0,      false,  0x02,   false,  0,      NULL},
-    {"content_type",        0,      "",         pack_sprop_str,     (Word_t)NULL,   NA,     0,      false,  0x03,   false,  0,      NULL},
-    {"response_topic",      0,      "",         pack_sprop_str,     (Word_t)NULL,   NA,     0,      false,  0x08,   false,  0,      NULL},
-    {"correlation_data",    0,      "",         pack_sprop_char_buf,(Word_t)NULL,   NA,     0,      false,  0x09,   false,  0,      NULL},
-    {"will_user_properties",0,      "",         pack_mprop_strpair, (Word_t)NULL,   NA,     0,      false,  0x26,   false,  0,      NULL},
-// Payload (remainder)
-    {"will_topic",          0,      "",         pack_str,           (Word_t)NULL,   NA,     0,      false,  NA,     false,  0,      NULL},
-    {"will_payload",        0,      "",         pack_char_buf,      (Word_t)NULL,   NA,     0,      false,  NA,     false,  0,      NULL},
-    {"user_name",           0,      "",         pack_str,           (Word_t)NULL,   NA,     0,      false,  NA,     false,  0,      NULL},
-    {"password",            0,      "",         pack_char_buf,      (Word_t)NULL,   NA,     0,      false,  NA,     false,  0,      NULL}
-};
-
 int set_scalar_value(pack_ctx *pctx, char *name, Word_t value) {
-    connect_hdr **Pchdr;
-    JSLG(Pchdr, pctx->PJSLArray, (uint8_t *)name);
-    (*Pchdr)->value = value;
-    (*Pchdr)->exists = true;
+    mr_mdata **Pmdata;
+    JSLG(Pmdata, pctx->PJSLArray, (uint8_t *)name);
+    (*Pmdata)->value = value;
+    (*Pmdata)->exists = true;
     return 0;
 }
 
 int set_vector_value(pack_ctx *pctx, char *name, Word_t value, size_t len) {
-    connect_hdr **Pchdr;
-    JSLG(Pchdr, pctx->PJSLArray, (uint8_t *)name);
-    (*Pchdr)->value = value;
-    (*Pchdr)->exists = true;
-    (*Pchdr)->vlen = len;
+    mr_mdata **Pmdata;
+    JSLG(Pmdata, pctx->PJSLArray, (uint8_t *)name);
+    (*Pmdata)->value = value;
+    (*Pmdata)->exists = true;
+    (*Pmdata)->vlen = len;
     return 0;
 }
 
 int reset_header_value(pack_ctx *pctx, char *name) {
-    connect_hdr **Pchdr;
-    JSLG(Pchdr, pctx->PJSLArray, (uint8_t *)name);
-    (*Pchdr)->value = 0;
-    (*Pchdr)->exists = false;
-    (*Pchdr)->vlen = 0;
+    mr_mdata **Pmdata;
+    JSLG(Pmdata, pctx->PJSLArray, (uint8_t *)name);
+    (*Pmdata)->value = 0;
+    (*Pmdata)->exists = false;
+    (*Pmdata)->vlen = 0;
     return 0;
 }
 
 //  pack each header var in reverse order of the table
 //  into its allocated buffer using its packing function
 //  then allocate pctx->buf and accumulate header var buffers
-int pack_connect_buffer(pack_ctx *pctx) {
-    printf("pack_connect_buffer\n");
-    connect_hdr *chdr;
-    printf("pack each chdr: chdr_count: %lu\n", pctx->chdr_count);
-    for (int i = pctx->chdr_count - 1; i > -1; i--) {
-        printf("  chdr index: %u\n", i);
-        chdr = pctx->connect_hdrs + i;
-        chdr->pack_fn(pctx, chdr);
+int pack_mdata_buffer(pack_ctx *pctx) {
+    printf("pack_mdata_buffer\n");
+    mr_mdata *mdata;
+    printf("pack each mdata: mdata_count: %lu\n", pctx->mdata_count);
+    for (int i = pctx->mdata_count - 1; i > -1; i--) {
+        printf("  mdata index: %u\n", i);
+        mdata = pctx->mdata0 + i;
+        mdata->pack_fn(pctx, mdata);
     }
-    chdr = pctx->connect_hdrs + 1; // remaining_length
-    printf("malloc pctx->buf using from remaining_length: buflen: %lu + value: %lu + 1\n", chdr->buflen, chdr->value);
-    pctx->len = chdr->value + chdr->buflen + 1;
+    mdata = pctx->mdata0 + 1; // remaining_length
+    printf("malloc pctx->buf using from remaining_length: buflen: %lu + value: %lu + 1\n", mdata->buflen, mdata->value);
+    pctx->len = mdata->value + mdata->buflen + 1;
     uint8_t *buf = malloc(pctx->len); // TODO: err checks on malloc
     pctx->buf = buf;
     pctx->isalloc = true;
-    printf("memcpy chdr bufs into pctx->buf\n");
+    printf("memcpy mdata bufs into pctx->buf\n");
     uint8_t *bufpos = buf;
-    for (int i = 0; i < pctx->chdr_count; i++) {
-        chdr = pctx->connect_hdrs + i;
-        memcpy(bufpos, chdr->buf, chdr->buflen);
-        bufpos += chdr->buflen;
+    for (int i = 0; i < pctx->mdata_count; i++) {
+        mdata = pctx->mdata0 + i;
+        memcpy(bufpos, mdata->buf, mdata->buflen);
+        bufpos += mdata->buflen;
     }
 
     return 0;
@@ -135,49 +75,49 @@ int make_VBI(uint32_t val32, uint8_t *buf) {
 }
 
 //  calculate length, convert to VBI, & pack into buffer
-int pack_VBI(pack_ctx *pctx, connect_hdr *chdr) {
-    if (!chdr->exists) return 0;
+int pack_VBI(pack_ctx *pctx, mr_mdata *mdata) {
+    if (!mdata->exists) return 0;
 
-    printf("pack_VBI: %s\n", chdr->name);
+    printf("pack_VBI: %s\n", mdata->name);
     size_t cum_len = 0;
-    connect_hdr **Pchdr, *end_chdr, *current_chdr;
+    mr_mdata **Pmdata, *end_mdata, *current_mdata;
 
-    if (strcmp(chdr->link, "last")) {
-        JSLG(Pchdr, pctx->PJSLArray, (uint8_t *)chdr->link);
-        end_chdr = *Pchdr;
+    if (strcmp(mdata->link, "last")) {
+        JSLG(Pmdata, pctx->PJSLArray, (uint8_t *)mdata->link);
+        end_mdata = *Pmdata;
     }
     else {
-        end_chdr = pctx->connect_hdrs + pctx->chdr_count - 1;
+        end_mdata = pctx->mdata0 + pctx->mdata_count - 1;
     }
-    printf("accumulate buffer lengths: %u to %u\n", chdr->index + 1, end_chdr->index);
+    printf("accumulate buffer lengths: %u to %u\n", mdata->index + 1, end_mdata->index);
     //  accumulate buffer lengths in cum_len for the range of the VBI
-    for (int j = chdr->index + 1; j <= end_chdr->index; j++) {
-        current_chdr = pctx->connect_hdrs + j;
-        if (current_chdr->exists) cum_len += current_chdr->buflen;
+    for (int j = mdata->index + 1; j <= end_mdata->index; j++) {
+        current_mdata = pctx->mdata0 + j;
+        if (current_mdata->exists) cum_len += current_mdata->buflen;
     }
     printf("  cum_len: %lu\n", cum_len);
-    chdr->value = cum_len;
-    uint32_t tmp_val32 = chdr->value; // TODO: err if too large for 4 bytes
+    mdata->value = cum_len;
+    uint32_t tmp_val32 = mdata->value; // TODO: err if too large for 4 bytes
     uint8_t tmp_buf[5]; // enough for uint32_t even if too big
 
-    chdr->buflen = make_VBI(tmp_val32, tmp_buf);
+    mdata->buflen = make_VBI(tmp_val32, tmp_buf);
 
-    uint8_t *buf = malloc(chdr->buflen); // TODO: err checks on malloc
-    chdr->isalloc = true;
-    chdr->buf = buf;
-    memcpy(chdr->buf, tmp_buf, chdr->buflen);
+    uint8_t *buf = malloc(mdata->buflen); // TODO: err checks on malloc
+    mdata->isalloc = true;
+    mdata->buf = buf;
+    memcpy(mdata->buf, tmp_buf, mdata->buflen);
     return 0;
 }
 
 int free_pack_context(pack_ctx *pctx) {
     printf("free_ack_context\n");
-    connect_hdr *chdr;
+    mr_mdata *mdata;
     Word_t bytes_freed;
 
     //  free connect hdr buffers
-    for (int i = 0; i < pctx->chdr_count; i++) {
-        chdr = pctx->connect_hdrs + i;
-        if (chdr->isalloc) free(chdr->buf);
+    for (int i = 0; i < pctx->mdata_count; i++) {
+        mdata = pctx->mdata0 + i;
+        if (mdata->isalloc) free(mdata->buf);
     }
 
     //  free packet buffer - don't rely on NULL pointer...
@@ -192,58 +132,58 @@ int free_pack_context(pack_ctx *pctx) {
     return 0;
 }
 
-pack_ctx *init_pack_context(void) {
+pack_ctx *init_pack_context(const mr_mdata *MDATA_TEMPLATE, size_t mdata_count) {
     printf("init_pack_context\n");
-    connect_hdr **Pchdr;
+    mr_mdata **Pmdata;
 
     pack_ctx *pctx = calloc(1, sizeof(pack_ctx));
     pctx->PJSLArray = (Pvoid_t)NULL;  // initialize JudySL array
-    pctx->chdr_count = sizeof(CONNECT_HDRS_TEMPLATE) / sizeof(connect_hdr);
-    connect_hdr *connect_hdrs = calloc(pctx->chdr_count, sizeof(connect_hdr));
+    pctx->mdata_count = mdata_count; //sizeof(MDATA_TEMPLATE) / sizeof(mr_mdata);
+    mr_mdata *mdata0 = calloc(pctx->mdata_count, sizeof(mr_mdata));
     printf("copy template\n");
     //  copy template
-    for (int i = 0; i < pctx->chdr_count; i++) {
-        connect_hdrs[i] = CONNECT_HDRS_TEMPLATE[i];
-        connect_hdrs[i].index = i;
+    for (int i = 0; i < pctx->mdata_count; i++) {
+        mdata0[i] = MDATA_TEMPLATE[i];
+        mdata0[i].index = i;
     }
-    printf("map hv name\n");
-    //  map hv name to hv structure pointer
-    for (int i = 0; i < pctx->chdr_count; i++) {
-        JSLI(Pchdr, pctx->PJSLArray, (uint8_t *)connect_hdrs[i].name);
-        *Pchdr = connect_hdrs + i;
+    printf("map mdata names\n");
+    //  map mdata names to *mdata
+    for (int i = 0; i < pctx->mdata_count; i++) {
+        JSLI(Pmdata, pctx->PJSLArray, (uint8_t *)mdata0[i].name);
+        *Pmdata = mdata0 + i;
     }
 
-    pctx->connect_hdrs = connect_hdrs;
+    pctx->mdata0 = mdata0;
     return pctx;
 }
 
-int pack_uint8(pack_ctx *pctx, connect_hdr *chdr) {
-    chdr->buflen = 1;
-    uint8_t *buf = malloc(chdr->buflen); // TODO: err checks on malloc
-    chdr->isalloc = true;
-    chdr->buf = buf;
-    *buf = chdr->value;
+int pack_uint8(pack_ctx *pctx, mr_mdata *mdata) {
+    mdata->buflen = 1;
+    uint8_t *buf = malloc(mdata->buflen); // TODO: err checks on malloc
+    mdata->isalloc = true;
+    mdata->buf = buf;
+    *buf = mdata->value;
     return 0;
 }
 
-int pack_uint16(pack_ctx *pctx, connect_hdr *chdr) {
-    chdr->buflen = 2;
-    uint8_t *buf = malloc(chdr->buflen); // TODO: err checks on malloc
-    chdr->isalloc = true;
-    chdr->buf = buf;
-    uint16_t val16 = chdr->value;
+int pack_uint16(pack_ctx *pctx, mr_mdata *mdata) {
+    mdata->buflen = 2;
+    uint8_t *buf = malloc(mdata->buflen); // TODO: err checks on malloc
+    mdata->isalloc = true;
+    mdata->buf = buf;
+    uint16_t val16 = mdata->value;
     uint8_t *bufpos = buf;
     *bufpos++ = (val16 >> 8) & 0xFF;
     *bufpos = val16 & 0xFF;
     return 0;
 }
 
-int pack_uint32(pack_ctx *pctx, connect_hdr *chdr) {
-    chdr->buflen = 4;
-    uint8_t *buf = malloc(chdr->buflen); // TODO: err checks on malloc
-    chdr->isalloc = true;
-    chdr->buf = buf;
-    uint32_t val32 = chdr->value;
+int pack_uint32(pack_ctx *pctx, mr_mdata *mdata) {
+    mdata->buflen = 4;
+    uint8_t *buf = malloc(mdata->buflen); // TODO: err checks on malloc
+    mdata->isalloc = true;
+    mdata->buf = buf;
+    uint32_t val32 = mdata->value;
     uint8_t *bufpos = buf;
     *bufpos++ = (val32 >> 24) & 0xFF;
     *bufpos++ = (val32 >> 16) & 0xFF;
@@ -252,29 +192,29 @@ int pack_uint32(pack_ctx *pctx, connect_hdr *chdr) {
     return 0;
 }
 
-int pack_sprop_uint8(pack_ctx *pctx, connect_hdr *chdr) {
-    if (chdr->exists) {
-        chdr->buflen = 2;
-        uint8_t *buf = malloc(chdr->buflen); // TODO: err checks on malloc
-        chdr->isalloc = true;
-        chdr->buf = buf;
+int pack_sprop_uint8(pack_ctx *pctx, mr_mdata *mdata) {
+    if (mdata->exists) {
+        mdata->buflen = 2;
+        uint8_t *buf = malloc(mdata->buflen); // TODO: err checks on malloc
+        mdata->isalloc = true;
+        mdata->buf = buf;
         uint8_t *bufpos = buf;
-        *bufpos++ = chdr->id;
-        *bufpos = chdr->value;
+        *bufpos++ = mdata->id;
+        *bufpos = mdata->value;
     }
 
     return 0;
 }
 
-int pack_sprop_uint16(pack_ctx *pctx, connect_hdr *chdr) {
-    if (chdr->exists) {
-        chdr->buflen = 3;
-        uint8_t *buf = malloc(chdr->buflen); // TODO: err checks on malloc
-        chdr->isalloc = true;
-        chdr->buf = buf;
-        uint16_t val16 = chdr->value;
+int pack_sprop_uint16(pack_ctx *pctx, mr_mdata *mdata) {
+    if (mdata->exists) {
+        mdata->buflen = 3;
+        uint8_t *buf = malloc(mdata->buflen); // TODO: err checks on malloc
+        mdata->isalloc = true;
+        mdata->buf = buf;
+        uint16_t val16 = mdata->value;
         uint8_t *bufpos = buf;
-        *bufpos++ = chdr->id;
+        *bufpos++ = mdata->id;
         *bufpos++ = (val16 >> 8) & 0xFF;
         *bufpos = val16 & 0xFF;
     }
@@ -282,15 +222,15 @@ int pack_sprop_uint16(pack_ctx *pctx, connect_hdr *chdr) {
     return 0;
 }
 
-int pack_sprop_uint32(pack_ctx *pctx, connect_hdr *chdr) {
-    if (chdr->exists) {
-        chdr->buflen = 5;
-        uint8_t *buf = malloc(chdr->buflen); // TODO: err checks on malloc
-        chdr->isalloc = true;
-        chdr->buf = buf;
-        uint32_t val32 = chdr->value;
+int pack_sprop_uint32(pack_ctx *pctx, mr_mdata *mdata) {
+    if (mdata->exists) {
+        mdata->buflen = 5;
+        uint8_t *buf = malloc(mdata->buflen); // TODO: err checks on malloc
+        mdata->isalloc = true;
+        mdata->buf = buf;
+        uint32_t val32 = mdata->value;
         uint8_t *bufpos = buf;
-        *bufpos++ = chdr->id;
+        *bufpos++ = mdata->id;
         *bufpos++ = (val32 >> 24) & 0xFF;
         *bufpos++ = (val32 >> 16) & 0xFF;
         *bufpos++ = (val32 >> 8) & 0xFF;
@@ -300,18 +240,18 @@ int pack_sprop_uint32(pack_ctx *pctx, connect_hdr *chdr) {
     return 0;
 }
 
-int pack_str(pack_ctx *pctx, connect_hdr *chdr) {
-    if (!chdr->exists) return 0;
+int pack_str(pack_ctx *pctx, mr_mdata *mdata) {
+    if (!mdata->exists) return 0;
 
-    char *strval = (char *)chdr->value;
+    char *strval = (char *)mdata->value;
     uint16_t val16 = strlen(strval);
     size_t buflen = 2 + val16;
 
     uint8_t *buf = malloc(buflen); // TODO: err checks on malloc
 
-    chdr->isalloc = true;
-    chdr->buf = buf;
-    chdr->buflen = buflen;
+    mdata->isalloc = true;
+    mdata->buf = buf;
+    mdata->buflen = buflen;
 
     uint8_t *bufpos = buf;
     *bufpos++ = (val16 >> 8) & 0xFF;
@@ -321,21 +261,21 @@ int pack_str(pack_ctx *pctx, connect_hdr *chdr) {
     return 0;
 }
 
-int pack_sprop_str(pack_ctx *pctx, connect_hdr *chdr) {
-    if (!chdr->exists) return 0;
+int pack_sprop_str(pack_ctx *pctx, mr_mdata *mdata) {
+    if (!mdata->exists) return 0;
 
-    char *strval = (char *)chdr->value;
+    char *strval = (char *)mdata->value;
     uint16_t val16 = strlen(strval);
     size_t buflen = 1 + 2 + val16;
 
     uint8_t *buf = malloc(buflen); // TODO: err checks on malloc
 
-    chdr->isalloc = true;
-    chdr->buf = buf;
-    chdr->buflen = buflen;
+    mdata->isalloc = true;
+    mdata->buf = buf;
+    mdata->buflen = buflen;
 
     uint8_t *bufpos = buf;
-    *bufpos++ = chdr->id;
+    *bufpos++ = mdata->id;
     *bufpos++ = (val16 >> 8) & 0xFF;
     *bufpos++ = val16 & 0xFF;
     memcpy(bufpos, strval, val16);
@@ -343,45 +283,45 @@ int pack_sprop_str(pack_ctx *pctx, connect_hdr *chdr) {
     return 0;
 }
 
-int pack_sprop_char_buf(pack_ctx *pctx, connect_hdr *chdr) {
-    if (!chdr->exists) return 0;
+int pack_sprop_char_buf(pack_ctx *pctx, mr_mdata *mdata) {
+    if (!mdata->exists) return 0;
 
-    size_t buflen = 1 + chdr->vlen;
+    size_t buflen = 1 + mdata->vlen;
 
     uint8_t *buf = malloc(buflen); // TODO: err checks on malloc
 
-    chdr->isalloc = true;
-    chdr->buf = buf;
-    chdr->buflen = buflen;
+    mdata->isalloc = true;
+    mdata->buf = buf;
+    mdata->buflen = buflen;
 
     uint8_t *bufpos = buf;
-    *bufpos++ = chdr->id;
-    memcpy(bufpos, (uint8_t *)chdr->value, chdr->vlen);
+    *bufpos++ = mdata->id;
+    memcpy(bufpos, (uint8_t *)mdata->value, mdata->vlen);
 
     return 0;
 }
 
 //  for property vectors, e.g. connect_payload:will_properties:user_properties
-//  chdr->value should be a *string_pair
-int pack_mprop_strpair(pack_ctx *pctx, connect_hdr *chdr) {
-    if (!chdr->exists) return 0;
+//  mdata->value should be a *string_pair
+int pack_mprop_strpair(pack_ctx *pctx, mr_mdata *mdata) {
+    if (!mdata->exists) return 0;
 
-    string_pair *strpair = (string_pair *)chdr->value;
+    string_pair *strpair = (string_pair *)mdata->value;
     size_t buflen = 0;
 
-    for (int i = 0; i < chdr->vlen; i++) {
+    for (int i = 0; i < mdata->vlen; i++) {
         buflen += 1 + 2 + strlen(strpair[i].name) + 2 + strlen(strpair[i].value);
     }
 
     uint8_t *buf = malloc(buflen); // TODO: err checks on malloc
-    chdr->isalloc = true;
-    chdr->buf = buf;
-    chdr->buflen = buflen;
+    mdata->isalloc = true;
+    mdata->buf = buf;
+    mdata->buflen = buflen;
     uint8_t *bufpos = buf;
     uint16_t val16;
 
-    for (int i = 0; i < chdr->vlen; i++) {
-        *bufpos++ = chdr->id;
+    for (int i = 0; i < mdata->vlen; i++) {
+        *bufpos++ = mdata->id;
         // name
         val16 = strlen(strpair[i].name);
         *bufpos++ = (val16 >> 8) & 0xFF;
@@ -397,20 +337,20 @@ int pack_mprop_strpair(pack_ctx *pctx, connect_hdr *chdr) {
     return 0;
 }
 
-int pack_char_buf(pack_ctx *pctx, connect_hdr *chdr) {
-    if (chdr->exists) {
-        chdr->buflen = chdr->vlen;
-        chdr->buf = (uint8_t *)chdr->value;
+int pack_char_buf(pack_ctx *pctx, mr_mdata *mdata) {
+    if (mdata->exists) {
+        mdata->buflen = mdata->vlen;
+        mdata->buf = (uint8_t *)mdata->value;
     }
 
     return 0;
 }
 
-int pack_flags_alloc(pack_ctx *pctx, connect_hdr *chdr) {
-    chdr->buflen = 1;
-    uint8_t *buf = calloc(1, chdr->buflen); // TODO: err checks on malloc
-    chdr->isalloc = true;
-    chdr->buf = buf;
+int pack_flags_alloc(pack_ctx *pctx, mr_mdata *mdata) {
+    mdata->buflen = 1;
+    uint8_t *buf = calloc(1, mdata->buflen); // TODO: err checks on malloc
+    mdata->isalloc = true;
+    mdata->buf = buf;
     return 0;
 };
 
@@ -419,16 +359,16 @@ const uint8_t BIT_MASKS[] = {
     0x00, 0x01, 0x03, 0x07, 0x0F, 0x1F, 0x3F, 0x7F
 };
 
-//  get the link (parent) chdr, reset bit(s) and set if value is non-zero
-int pack_in_parent(pack_ctx *pctx, connect_hdr *chdr) {
-    connect_hdr **Pchdr;
-    JSLG(Pchdr, pctx->PJSLArray, (uint8_t *)chdr->link);
-    connect_hdr *link_chdr = *Pchdr;
-    *link_chdr->buf = *link_chdr->buf & ~(BIT_MASKS[chdr->vlen] << chdr->bitpos);
+//  get the link (parent) mdata, reset bit(s) and set if value is non-zero
+int pack_in_parent(pack_ctx *pctx, mr_mdata *mdata) {
+    mr_mdata **Pmdata;
+    JSLG(Pmdata, pctx->PJSLArray, (uint8_t *)mdata->link);
+    mr_mdata *link_mdata = *Pmdata;
+    *link_mdata->buf = *link_mdata->buf & ~(BIT_MASKS[mdata->vlen] << mdata->bitpos);
 
-    if (chdr->value) {
-        uint8_t val = chdr->value;
-        *link_chdr->buf = *link_chdr->buf | (val << chdr->bitpos);
+    if (mdata->value) {
+        uint8_t val = mdata->value;
+        *link_mdata->buf = *link_mdata->buf | (val << mdata->bitpos);
     }
 
     return 0;

@@ -81,6 +81,7 @@ AM_CONDITIONAL([MAINTAINER_DEBUG],[test "x$enable_maintainer_debug" = "xyes"])
 #-----------------------------
 AC_CONFIG_HEADERS([mister_config.h])
 AC_CONFIG_FILES(
+  include/connect.h
   include/mister.h
   include/pack.h
   include/redismodule.h
