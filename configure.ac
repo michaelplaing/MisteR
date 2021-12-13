@@ -84,6 +84,7 @@ AC_CONFIG_FILES(
   include/connect.h
   include/mister.h
   include/pack.h
+  include/pack_internal.h
   include/redismodule.h
   Makefile
   module/Makefile

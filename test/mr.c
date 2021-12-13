@@ -94,15 +94,19 @@ void mrConnectCallback(redisAsyncContext *rctx, void *reply_void, void *private_
 
 void mr_send_connect(redisAsyncContext *rctx) {
     pack_ctx *pctx = init_connect_pctx();
-    set_scalar_value(pctx, "clean_start", true);
+    // set_scalar_value(pctx, "clean_start", true);
+    set_connect_clean_start(pctx, true);
     // set_scalar_value(pctx, "will_qos", 3);
-    set_scalar_value(pctx, "session_expiry", 42);
-    string_pair foobar = {(uint8_t *)"foo", (uint8_t *)"bar"};
-    string_pair sps[] = {foobar, foobar};
-    set_vector_value(pctx, "user_properties", (Word_t)sps, 2);
+    // set_scalar_value(pctx, "session_expiry", 42);
+    string_pair foobar = {(uint8_t *)"fool", (uint8_t *)"barr"};
+    string_pair sp0[] = {foobar, foobar};
+    size_t sp_count = sizeof(sp0) / sizeof(string_pair);
+    // set_vector_value(pctx, "user_properties", (Word_t)sps, 2);
+    set_connect_user_properties(pctx, sp0, sp_count);
     uint8_t bambaz[] = {0x01, 0x02};
-    set_vector_value(pctx, "authentication_data", (Word_t)bambaz, 2);
-    set_scalar_value(pctx, "client_identifier", (Word_t)"Snoopy");
+    // set_vector_value(pctx, "authentication_data", (Word_t)bambaz, 2);
+    set_connect_authentication_data(pctx, bambaz, sizeof(bambaz));
+    // set_scalar_value(pctx, "client_identifier", (Word_t)"Snoopy");
     pack_connect_buffer(pctx);
 
     printf("Connect Buf:");

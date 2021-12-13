@@ -6,7 +6,8 @@
 
 misterdir=@includedir@
 mister_HEADERS=\
-  connect.h
+	connect.h
 	mister.h\
 	redismodule.h\
-	pack.h
+	pack.h\
+	pack_internal.h

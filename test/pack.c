@@ -1,8 +1,6 @@
 /* pack.c */
 
-#include <Judy.h>
-
-#include "pack.h"
+#include "pack_internal.h"
 
 int set_scalar_value(pack_ctx *pctx, char *name, Word_t value) {
     mr_mdata **Pmdata;
@@ -38,7 +36,7 @@ int pack_mdata_buffer(pack_ctx *pctx) {
     mr_mdata *mdata;
     printf("pack each mdata: mdata_count: %lu\n", pctx->mdata_count);
     for (int i = pctx->mdata_count - 1; i > -1; i--) {
-        printf("  mdata index: %u\n", i);
+        // printf("  mdata index: %u\n", i);
         mdata = pctx->mdata0 + i;
         mdata->pack_fn(pctx, mdata);
     }

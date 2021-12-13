@@ -1,6 +1,7 @@
 /* connect.c */
 
-#include "pack.h"
+#include "connect.h"
+#include "pack_internal.h"
 
 const uint8_t PNM[] = {0x00, 0x04, 'M', 'Q', 'T', 'T'};  // protocol name
 #define PNMSZ 6
@@ -79,3 +80,17 @@ int free_connect_pctx(pack_ctx *pctx) {
     return free_pack_context(pctx);
 }
 
+int set_connect_clean_start(pack_ctx *pctx, bool value) {
+    printf("set_connect_clean_start\n");
+    return set_scalar_value(pctx, "clean_start", true);
+}
+
+int set_connect_user_properties(pack_ctx *pctx, string_pair *sp0, size_t sp_count) {
+    printf("set_connect_user_properties\n");
+    return set_vector_value(pctx, "user_properties", (Word_t)sp0, sp_count);
+}
+
+int set_connect_authentication_data(pack_ctx *pctx, uint8_t *authdata, size_t len) {
+    printf("set_connect_authentication_data\n");
+    return set_vector_value(pctx, "authentication_data", (Word_t)authdata, len);    
+}
