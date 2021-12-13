@@ -97,18 +97,18 @@ void mr_send_connect(redisAsyncContext *rctx) {
     set_scalar_value(pctx, "clean_start", true);
     // set_scalar_value(pctx, "will_qos", 3);
     set_scalar_value(pctx, "session_expiry", 42);
-    string_pair foobar = {"foo", "bar"};
+    string_pair foobar = {(uint8_t *)"foo", (uint8_t *)"bar"};
     string_pair sps[] = {foobar, foobar};
     set_vector_value(pctx, "user_properties", (Word_t)sps, 2);
     uint8_t bambaz[] = {0x01, 0x02};
     set_vector_value(pctx, "authentication_data", (Word_t)bambaz, 2);
     set_scalar_value(pctx, "client_identifier", (Word_t)"Snoopy");
-    pack_mdata_buffer(pctx);
+    pack_connect_buffer(pctx);
 
     printf("Connect Buf:");
     for (int i = 0; i < pctx->len; i++) printf(" %02hhX", pctx->buf[i]);
     printf("\n");
-    // free_pack_context(pctx);
+    free_connect_pctx(pctx);
 }
 
 int main (void) {

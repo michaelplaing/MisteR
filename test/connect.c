@@ -69,3 +69,13 @@ pack_ctx *init_connect_pctx(void) {
     return init_pack_context(CONNECT_HDRS_TEMPLATE, mdata_count);
 }
 
+int pack_connect_buffer(pack_ctx *pctx) {
+    printf("pack_connect_buffer\n");
+    return pack_mdata_buffer(pctx);
+}
+
+int free_connect_pctx(pack_ctx *pctx) {
+    printf("free_connect_context\n");
+    return free_pack_context(pctx);
+}
+

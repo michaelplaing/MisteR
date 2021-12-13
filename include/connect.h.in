@@ -8,6 +8,8 @@
 #include "pack.h"
 
 pack_ctx *init_connect_pctx(void);
+int pack_connect_buffer(pack_ctx *pctx);
+int free_connect_pctx(pack_ctx *pctx);
 
 #ifdef __cpluplus
 //}

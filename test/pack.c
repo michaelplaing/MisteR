@@ -110,11 +110,11 @@ int pack_VBI(pack_ctx *pctx, mr_mdata *mdata) {
 }
 
 int free_pack_context(pack_ctx *pctx) {
-    printf("free_ack_context\n");
+    printf("free_pack_context\n");
     mr_mdata *mdata;
     Word_t bytes_freed;
 
-    //  free connect hdr buffers
+    //  free mdata buffers
     for (int i = 0; i < pctx->mdata_count; i++) {
         mdata = pctx->mdata0 + i;
         if (mdata->isalloc) free(mdata->buf);
@@ -243,8 +243,8 @@ int pack_sprop_uint32(pack_ctx *pctx, mr_mdata *mdata) {
 int pack_str(pack_ctx *pctx, mr_mdata *mdata) {
     if (!mdata->exists) return 0;
 
-    char *strval = (char *)mdata->value;
-    uint16_t val16 = strlen(strval);
+    uint8_t *strval = (uint8_t *)mdata->value;
+    uint16_t val16 = strlen((char *)strval); // get number of bytes (not chars)
     size_t buflen = 2 + val16;
 
     uint8_t *buf = malloc(buflen); // TODO: err checks on malloc
@@ -264,8 +264,8 @@ int pack_str(pack_ctx *pctx, mr_mdata *mdata) {
 int pack_sprop_str(pack_ctx *pctx, mr_mdata *mdata) {
     if (!mdata->exists) return 0;
 
-    char *strval = (char *)mdata->value;
-    uint16_t val16 = strlen(strval);
+    uint8_t *strval = (uint8_t *)mdata->value;
+    uint16_t val16 = strlen((char *)strval); // get number of bytes (not chars)
     size_t buflen = 1 + 2 + val16;
 
     uint8_t *buf = malloc(buflen); // TODO: err checks on malloc
@@ -310,7 +310,7 @@ int pack_mprop_strpair(pack_ctx *pctx, mr_mdata *mdata) {
     size_t buflen = 0;
 
     for (int i = 0; i < mdata->vlen; i++) {
-        buflen += 1 + 2 + strlen(strpair[i].name) + 2 + strlen(strpair[i].value);
+        buflen += 1 + 2 + strlen((char *)strpair[i].name) + 2 + strlen((char *)strpair[i].value);
     }
 
     uint8_t *buf = malloc(buflen); // TODO: err checks on malloc
@@ -323,12 +323,12 @@ int pack_mprop_strpair(pack_ctx *pctx, mr_mdata *mdata) {
     for (int i = 0; i < mdata->vlen; i++) {
         *bufpos++ = mdata->id;
         // name
-        val16 = strlen(strpair[i].name);
+        val16 = strlen((char *)strpair[i].name);
         *bufpos++ = (val16 >> 8) & 0xFF;
         *bufpos++ = val16 & 0xFF;
         memcpy(bufpos, strpair[i].name, val16); bufpos += val16;
         // value
-        val16 = strlen(strpair[i].value);
+        val16 = strlen((char *)strpair[i].value);
         *bufpos++ = (val16 >> 8) & 0xFF;
         *bufpos++ = val16 & 0xFF;
         memcpy(bufpos, strpair[i].value, val16); bufpos += val16;
