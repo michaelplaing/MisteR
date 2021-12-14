@@ -15,7 +15,7 @@ add_executable(
     include/mister/pack.h
     include/mister/pack_internal.h
 )
-target_include_directories(mr PUBLIC include)
+target_include_directories(mr PRIVATE include)
 
 add_library(
     mister MODULE
@@ -23,4 +23,4 @@ add_library(
     include/mister/mister.h 
     include/mister/redismodule.h
 )
-target_include_directories(mister PUBLIC include)
+target_include_directories(mister PRIVATE include)
