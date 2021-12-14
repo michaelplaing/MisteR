@@ -5,8 +5,8 @@
 #include <ctype.h>
 #include <string.h>
 
-#include "redismodule.h"
-#include "mister.h"
+#include "mister/redismodule.h"
+#include "mister/mister.h"
 
 int misterPingReq_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) {
     const uint8_t PINGRESP_BUF[2] = {CMD_PINGRESP, 0};

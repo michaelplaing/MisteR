@@ -1,7 +1,7 @@
 /* connect.c */
 
-#include "connect.h"
-#include "pack_internal.h"
+#include "mister/connect.h"
+#include "mister/pack_internal.h"
 
 const uint8_t PNM[] = {0x00, 0x04, 'M', 'Q', 'T', 'T'};  // protocol name
 #define PNMSZ 6

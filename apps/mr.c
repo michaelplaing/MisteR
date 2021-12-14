@@ -7,9 +7,9 @@
 #include <hiredis/async.h>
 #include <hiredis/adapters/libev.h>
 
-#include "redismodule.h"
-#include "mister.h"
-#include "connect.h"
+#include "mister/redismodule.h"
+#include "mister/mister.h"
+#include "mister/connect.h"
 
 void mrPingreqCallback(redisAsyncContext *rctx, void *reply_void, void *private_data_void) {
     REDISMODULE_NOT_USED(rctx);
