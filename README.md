@@ -30,6 +30,7 @@ sudo apt-get install libhiredis-dev libev-dev
 ```zsh
 
 brew install hiredis libev
+```
 
 # Create a build directory and cd into it:
 ```zsh
