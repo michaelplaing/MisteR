@@ -1,6 +1,11 @@
 /* pack.c */
 
-#include "mister/pack_internal.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+
+#include "pack_internal.h"
 
 int set_scalar_value(pack_ctx *pctx, char *name, Word_t value) {
     mr_mdata **Pmdata;
