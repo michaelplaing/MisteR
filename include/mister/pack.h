@@ -3,8 +3,6 @@
 
 #include <Judy.h>
 
-#include "mister.h"
-
 struct mr_mdata;
 
 typedef struct pack_ctx {
