@@ -15,28 +15,27 @@ It's licensed under the [MIT License](./COPYING).<sup><b>1</b></sup>
 
 ## Building
 
-This project uses:
- - [autoconf](https://www.gnu.org/software/autoconf/) for configuration
- - [automake](https://www.gnu.org/software/automake/) for makefile generation
- - [libtool](https://www.gnu.org/software/libtool/) to make linking easier
- - Future: [pomd4c](https://github.com/andrew-canaday/pomd4c) for documentation generation
- - [ymo_assert](https://github.com/andrew-canaday/ymo_assert) (included here) for the check targets
+This project uses cmake.
 
-Configuration, build, and installation follows the classic pattern:
+Configuration, build, and installation are standard, e.g. for Debian:
 
 ```bash
-# NOTE: this assumes you're in the source root directory.
 
-# prereqs for VSCode Dev Container C++:
 sudo apt-get update
-sudo apt-get install autoconf libtool libhiredis-dev libev-dev uuid-dev libjudy-dev
+sudo apt-get install libhiredis-dev libev-dev
+```
 
-# Generate the configure script and ancillary build files:
-./autogen.sh
+...or for Mac:
+
+```zsh
+
+brew install hiredis libev
 
 # Create a build directory and cd into it:
-mkdir -p ./build ; cd ./build
+```zsh
 
-# configure & make
-../configure --prefix=/my/installation/prefix && make
+mkdir -p build ; cd build
+
+# cmake & make
+cmake .. && make
 ```
