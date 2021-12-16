@@ -7,29 +7,26 @@
 
 #include "pack_internal.h"
 
-int set_scalar_value(pack_ctx *pctx, char *name, Word_t value) {
-    mr_mdata **Pmdata;
-    JSLG(Pmdata, pctx->PJSLArray, (uint8_t *)name);
-    (*Pmdata)->value = value;
-    (*Pmdata)->exists = true;
+int set_scalar_value(pack_ctx *pctx, int offset, Word_t value) {
+    mr_mdata *mdata = pctx->mdata0 + offset;
+    mdata->value = value;
+    mdata->exists = true;
     return 0;
 }
 
-int set_vector_value(pack_ctx *pctx, char *name, Word_t value, size_t len) {
-    mr_mdata **Pmdata;
-    JSLG(Pmdata, pctx->PJSLArray, (uint8_t *)name);
-    (*Pmdata)->value = value;
-    (*Pmdata)->exists = true;
-    (*Pmdata)->vlen = len;
+int set_vector_value(pack_ctx *pctx, int offset, Word_t value, size_t len) {
+    mr_mdata *mdata = pctx->mdata0 + offset;
+    mdata->value = value;
+    mdata->exists = true;
+    mdata->vlen = len;
     return 0;
 }
 
-int reset_header_value(pack_ctx *pctx, char *name) {
-    mr_mdata **Pmdata;
-    JSLG(Pmdata, pctx->PJSLArray, (uint8_t *)name);
-    (*Pmdata)->value = 0;
-    (*Pmdata)->exists = false;
-    (*Pmdata)->vlen = 0;
+int reset_header_value(pack_ctx *pctx, int offset) {
+    mr_mdata *mdata = pctx->mdata0 + offset;
+    mdata->value = 0;
+    mdata->exists = false;
+    mdata->vlen = 0;
     return 0;
 }
 
@@ -83,15 +80,9 @@ int pack_VBI(pack_ctx *pctx, mr_mdata *mdata) {
 
     printf("pack_VBI: %s\n", mdata->name);
     size_t cum_len = 0;
-    mr_mdata **Pmdata, *end_mdata, *current_mdata;
+    mr_mdata *end_mdata, *current_mdata;
+    end_mdata = pctx->mdata0 + mdata->link;
 
-    if (strcmp(mdata->link, "last")) {
-        JSLG(Pmdata, pctx->PJSLArray, (uint8_t *)mdata->link);
-        end_mdata = *Pmdata;
-    }
-    else {
-        end_mdata = pctx->mdata0 + pctx->mdata_count - 1;
-    }
     printf("accumulate buffer lengths: %u to %u\n", mdata->index + 1, end_mdata->index);
     //  accumulate buffer lengths in cum_len for the range of the VBI
     for (int j = mdata->index + 1; j <= end_mdata->index; j++) {
@@ -126,9 +117,6 @@ int free_pack_context(pack_ctx *pctx) {
     //  free packet buffer - don't rely on NULL pointer...
     if (pctx->isalloc) free(pctx->buf);
 
-    //  free Judy array
-    JSLFA(bytes_freed, pctx->PJSLArray);
-
     // free pack context
     free(pctx);
 
@@ -137,25 +125,12 @@ int free_pack_context(pack_ctx *pctx) {
 
 pack_ctx *init_pack_context(const mr_mdata *MDATA_TEMPLATE, size_t mdata_count) {
     printf("init_pack_context\n");
-    mr_mdata **Pmdata;
-
     pack_ctx *pctx = calloc(1, sizeof(pack_ctx));
-    pctx->PJSLArray = (Pvoid_t)NULL;  // initialize JudySL array
     pctx->mdata_count = mdata_count; //sizeof(MDATA_TEMPLATE) / sizeof(mr_mdata);
     mr_mdata *mdata0 = calloc(pctx->mdata_count, sizeof(mr_mdata));
     printf("copy template\n");
     //  copy template
-    for (int i = 0; i < pctx->mdata_count; i++) {
-        mdata0[i] = MDATA_TEMPLATE[i];
-        mdata0[i].index = i;
-    }
-    printf("map mdata names\n");
-    //  map mdata names to *mdata
-    for (int i = 0; i < pctx->mdata_count; i++) {
-        JSLI(Pmdata, pctx->PJSLArray, (uint8_t *)mdata0[i].name);
-        *Pmdata = mdata0 + i;
-    }
-
+    for (int i = 0; i < pctx->mdata_count; i++) mdata0[i] = MDATA_TEMPLATE[i];
     pctx->mdata0 = mdata0;
     return pctx;
 }
@@ -364,9 +339,7 @@ const uint8_t BIT_MASKS[] = {
 
 //  get the link (parent) mdata, reset bit(s) and set if value is non-zero
 int pack_in_parent(pack_ctx *pctx, mr_mdata *mdata) {
-    mr_mdata **Pmdata;
-    JSLG(Pmdata, pctx->PJSLArray, (uint8_t *)mdata->link);
-    mr_mdata *link_mdata = *Pmdata;
+    mr_mdata *link_mdata = pctx->mdata0 + mdata->link;
     *link_mdata->buf = *link_mdata->buf & ~(BIT_MASKS[mdata->vlen] << mdata->bitpos);
 
     if (mdata->value) {

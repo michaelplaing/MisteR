@@ -1,7 +1,16 @@
 #ifndef PACK_H
 #define PACK_H
 
-#include <Judy.h>
+#ifndef _PVOID_T
+#define _PVOID_T
+typedef void *   Pvoid_t;
+typedef void ** PPvoid_t;
+#endif
+
+#ifndef _WORD_T
+#define _WORD_T
+typedef unsigned long    Word_t, * PWord_t;  // expect 32-bit or 64-bit words.
+#endif
 
 struct mr_mdata;
 

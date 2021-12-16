@@ -6,4 +6,4 @@ add_executable(
     ../include/mister/connect.h
 )
 
-target_link_libraries(mrapp PRIVATE mister ev hiredis Judy)
+target_link_libraries(mrapp PRIVATE mister ev hiredis)

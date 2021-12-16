@@ -6,28 +6,27 @@
 typedef struct mr_mdata {
     char *name;
     int index;
-    char *link;
+    int link;
     int (*pack_fn)(struct pack_ctx *pctx, struct mr_mdata *mdata);
-    Word_t value; /* can handle each header_var value including pointers */
+    Word_t value; /* can handle each mr_mdata value including pointers */
     size_t bitpos; // for sub-byte values
-    size_t vlen; // for sub-byte values, pointer values & VBIs
+    size_t vlen; // for sub-byte values, pointer values, vectors & VBIs
     bool exists; // for properties
     uint8_t id; // for properties
     bool isalloc;
     size_t buflen;
     uint8_t *buf;
-    bool isptr;
 } mr_mdata;
 
 pack_ctx *init_pack_context(const mr_mdata *MDATA_TEMPLATE, size_t mdata_count);
 
 int free_pack_context(pack_ctx *pctx);
 
-int set_scalar_value(pack_ctx *pctx, char *name, Word_t value);
+int set_scalar_value(pack_ctx *pctx, int offset, Word_t value);
 
-int set_vector_value(pack_ctx *pctx, char *name, Word_t value, size_t len);
+int set_vector_value(pack_ctx *pctx, int offset, Word_t value, size_t len);
 
-int reset_header_value(pack_ctx *pctx, char *name);
+int reset_header_value(pack_ctx *pctx, int offset);
 
 int pack_mdata_buffer(pack_ctx *pctx);
 

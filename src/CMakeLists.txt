@@ -6,5 +6,5 @@ add_library(
     pack_internal.h ${HEADER_LIST}
 )
 target_include_directories(mister PUBLIC ../include)
-target_link_libraries(mister PRIVATE ev hiredis Judy)
+target_link_libraries(mister PRIVATE ev hiredis)
 
