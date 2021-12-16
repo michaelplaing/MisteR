@@ -5,28 +5,32 @@
 
 typedef struct mr_mdata {
     char *name;
-    int index;
-    int link;
+    int index;      // integer position in the mdata vector
+    int link;       // end of range for VBI; byte to stuff for bit mdata
     int (*pack_fn)(struct pack_ctx *pctx, struct mr_mdata *mdata);
-    Word_t value;   // can handle each mr_mdata value including pointers
+    Word_t value;   // can handle any mr_mdata value including pointers
     size_t bitpos;  // for sub-byte values
     size_t vlen;    // for sub-byte values, pointer values, vectors & VBIs
     bool exists;    // for properties
     uint8_t id;     // for properties
-    bool isalloc;
+    bool isalloc;   // is buf allocated
     size_t buflen;
-    uint8_t *buf;
+    uint8_t *buf;   // packed value
 } mr_mdata;
 
 pack_ctx *init_pack_context(const mr_mdata *MDATA_TEMPLATE, size_t mdata_count);
 
 int free_pack_context(pack_ctx *pctx);
 
-int set_scalar_value(pack_ctx *pctx, int offset, Word_t value);
+int set_scalar_value(pack_ctx *pctx, int index, Word_t value);
 
-int set_vector_value(pack_ctx *pctx, int offset, Word_t value, size_t len);
+int get_scalar_value(pack_ctx *pctx, int index, Word_t *Pvalue);
 
-int reset_header_value(pack_ctx *pctx, int offset);
+int set_vector_value(pack_ctx *pctx, int index, Word_t value, size_t len);
+
+int get_vector_value(pack_ctx *pctx, int index, Word_t *Pvalue, size_t *Plen);
+    
+int reset_header_value(pack_ctx *pctx, int index);
 
 int pack_mdata_buffer(pack_ctx *pctx);
 
@@ -60,4 +64,4 @@ int pack_flags_alloc(pack_ctx *pctx, mr_mdata *mdata);
 
 int pack_in_parent(pack_ctx *pctx, mr_mdata *mdata);
 
-#endif /* PACK_INTERNAL_H */
+#endif // PACK_INTERNAL_H

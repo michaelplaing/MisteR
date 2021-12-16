@@ -9,7 +9,7 @@
 #include "connect_internal.h"
 #include "pack_internal.h"
 
-const uint8_t PNM[] = {0x00, 0x04, 'M', 'Q', 'T', 'T'};  // protocol name
+const uint8_t PNM[] = {0x00, 0x04, 'M', 'Q', 'T', 'T'};  // protocol signature
 #define PNMSZ 6
 #define PROTO_VERSION 5 // protocol version
 #define NA 0
@@ -133,14 +133,27 @@ int free_connect_pctx(pack_ctx *pctx) {
     return free_pack_context(pctx);
 }
 
-int set_connect_clean_start(pack_ctx *pctx, bool value) {
+int set_connect_clean_start(pack_ctx *pctx, bool flag) {
     printf("set_connect_clean_start\n");
-    return set_scalar_value(pctx, CONNECT_CLEAN_START, true);
+    return set_scalar_value(pctx, CONNECT_CLEAN_START, flag);
 }
 
-int set_connect_user_properties(pack_ctx *pctx, string_pair *sp0, size_t sp_count) {
+int get_connect_clean_start(pack_ctx *pctx, bool *flag) {
+    printf("get_connect_clean_start\n");
+    Word_t value;
+    int rc = get_scalar_value(pctx, CONNECT_CLEAN_START, &value);
+    if (!rc) *flag = (bool)value;
+    return rc;
+}
+
+int set_connect_user_properties(pack_ctx *pctx, string_pair *sp0, size_t len) {
     printf("set_connect_user_properties\n");
-    return set_vector_value(pctx, CONNECT_USER_PROPERTIES, (Word_t)sp0, sp_count);
+    return set_vector_value(pctx, CONNECT_USER_PROPERTIES, (Word_t)sp0, len);
+}
+
+int get_connect_user_properties(pack_ctx *pctx, string_pair **Psp0, size_t *Plen) {
+    printf("set_connect_user_properties\n");
+    return get_vector_value(pctx, CONNECT_USER_PROPERTIES, (Word_t *)Psp0, Plen);
 }
 
 int set_connect_authentication_data(pack_ctx *pctx, uint8_t *authdata, size_t len) {

@@ -1,10 +1,9 @@
 #ifndef PACK_H
 #define PACK_H
 
-#ifndef _WORD_T
-#define _WORD_T
-typedef unsigned long Word_t;  // expect either 32-bit or 64-bit words
-#endif
+// expect either 32-bit or 64-bit words 
+// to be cast as pointer or whatever fits
+typedef unsigned long Word_t;
 
 struct mr_mdata;
 
@@ -21,4 +20,4 @@ typedef struct string_pair {
     uint8_t *value;
 } string_pair;
 
-#endif /* PACK_H */
+#endif // PACK_H

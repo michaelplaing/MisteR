@@ -7,23 +7,54 @@
 
 #include "pack_internal.h"
 
-int set_scalar_value(pack_ctx *pctx, int offset, Word_t value) {
-    mr_mdata *mdata = pctx->mdata0 + offset;
+int set_scalar_value(pack_ctx *pctx, int index, Word_t value) {
+    mr_mdata *mdata = pctx->mdata0 + index;
     mdata->value = value;
     mdata->exists = true;
     return 0;
 }
 
-int set_vector_value(pack_ctx *pctx, int offset, Word_t value, size_t len) {
-    mr_mdata *mdata = pctx->mdata0 + offset;
+int get_scalar_value(pack_ctx *pctx, int index, Word_t *Pvalue) {
+    int rc;
+    mr_mdata *mdata = pctx->mdata0 + index;
+    
+    if (mdata->exists) {
+        *Pvalue = mdata->value;
+        rc = 0;
+    }
+    else {
+        rc = -1;
+    }
+    
+    return rc;
+}
+
+int set_vector_value(pack_ctx *pctx, int index, Word_t value, size_t len) {
+    mr_mdata *mdata = pctx->mdata0 + index;
     mdata->value = value;
     mdata->exists = true;
     mdata->vlen = len;
     return 0;
 }
 
-int reset_header_value(pack_ctx *pctx, int offset) {
-    mr_mdata *mdata = pctx->mdata0 + offset;
+int get_vector_value(pack_ctx *pctx, int index, Word_t *Pvalue, size_t *Plen) {
+    int rc;
+    mr_mdata *mdata = pctx->mdata0 + index;
+    
+    if (mdata->exists) {
+        *Pvalue = mdata->value; // for a vector, value is some sort of pointer
+        *Plen = mdata->vlen;
+        rc = 0;
+    }
+    else {
+        rc = -1;
+    }
+
+    return rc;
+}
+
+int reset_header_value(pack_ctx *pctx, int index) {
+    mr_mdata *mdata = pctx->mdata0 + index;
     mdata->value = 0;
     mdata->exists = false;
     mdata->vlen = 0;
@@ -314,7 +345,7 @@ int pack_mprop_strpair(pack_ctx *pctx, mr_mdata *mdata) {
     return 0;
 }
 
-int pack_char_buf(pack_ctx *pctx, mr_mdata *mdata) {
+int pack_char_buf(pack_ctx *pctx, mr_mdata *mdata) { // do not allocate
     if (mdata->exists) {
         mdata->buflen = mdata->vlen;
         mdata->buf = (uint8_t *)mdata->value;
