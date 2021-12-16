@@ -8,11 +8,11 @@ typedef struct mr_mdata {
     int index;
     int link;
     int (*pack_fn)(struct pack_ctx *pctx, struct mr_mdata *mdata);
-    Word_t value; /* can handle each mr_mdata value including pointers */
-    size_t bitpos; // for sub-byte values
-    size_t vlen; // for sub-byte values, pointer values, vectors & VBIs
-    bool exists; // for properties
-    uint8_t id; // for properties
+    Word_t value;   // can handle each mr_mdata value including pointers
+    size_t bitpos;  // for sub-byte values
+    size_t vlen;    // for sub-byte values, pointer values, vectors & VBIs
+    bool exists;    // for properties
+    uint8_t id;     // for properties
     bool isalloc;
     size_t buflen;
     uint8_t *buf;

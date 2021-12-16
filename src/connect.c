@@ -6,52 +6,13 @@
 #include <stdbool.h>
 
 #include "mister/mister.h"
-#include "mister/connect.h"
+#include "connect_internal.h"
 #include "pack_internal.h"
 
 const uint8_t PNM[] = {0x00, 0x04, 'M', 'Q', 'T', 'T'};  // protocol name
 #define PNMSZ 6
-#define PROTO_VER 5 // protocol version
+#define PROTO_VERSION 5 // protocol version
 #define NA 0
-
-enum CONNECT_MDATA_FIELDS {
-    CONNECT_PACKET_TYPE,
-    CONNECT_REMAINING_LENGTH,
-    CONNECT_PROTOCOL_NAME,
-    CONNECT_PROTOCOL_VERSION,
-    CONNECT_RESERVED,
-    CONNECT_CLEAN_START,
-    CONNECT_WILL_FLAG,
-    CONNECT_WILL_QOS,
-    CONNECT_WILL_RETAIN,
-    CONNECT_PASSWORD_FLAG,
-    CONNECT_USERNAME_FLAG,
-    CONNECT_FLAGS,
-    CONNECT_KEEP_ALIVE,
-    CONNECT_PROPERTY_LENGTH,
-    CONNECT_SESSION_EXPIRY,
-    CONNECT_RECEIVE_MAXIMUM,
-    CONNECT_MAXIMUM_PACKET_SIZE,
-    CONNECT_TOPIC_ALIAS_MAXIMUM,
-    CONNECT_REQUEST_RESPONSE_INFORMATION,
-    CONNECT_REQUEST_PROBLEM_INFORMATION,
-    CONNECT_USER_PROPERTIES,
-    CONNECT_AUTHENTICATION_METHOD,
-    CONNECT_AUTHENTICATION_DATA,
-    CONNECT_CLIENT_IDENTIFIER,
-    CONNECT_WILL_PROPERTY_LENGTH,
-    CONNECT_WILL_DELAY_INTERVAL,
-    CONNECT_PAYLOAD_FORMAT_INDICATOR,
-    CONNECT_MESSAGE_EXPIRY_INTERVAL,
-    CONNECT_CONTENT_TYPE,
-    CONNECT_RESPONSE_TOPIC,
-    CONNECT_CORRELATION_DATA,
-    CONNECT_WILL_USER_PROPERTIES,
-    CONNECT_WILL_TOPIC,
-    CONNECT_WILL_PAYLOAD,
-    CONNECT_USER_NAME,
-    CONNECT_PASSWORD
-};
 
 const mr_mdata CONNECT_MDATA_TEMPLATE[] = {
 //  Fixed Header
@@ -67,7 +28,7 @@ const mr_mdata CONNECT_MDATA_TEMPLATE[] = {
     {"protocol_name",       CONNECT_PROTOCOL_NAME,      0,         
         pack_char_buf,      (Word_t)PNM,    NA,     PNMSZ,  true,   NA,     false,  0,      NULL},
     {"protocol_version",    CONNECT_PROTOCOL_VERSION,   0,         
-        pack_uint8,         PROTO_VER,      NA,     NA,     true,   NA,     false,  0,      NULL},
+        pack_uint8,         PROTO_VERSION,  NA,     NA,     true,   NA,     false,  0,      NULL},
     {"reserved",            CONNECT_RESERVED,           CONNECT_FLAGS,    
         pack_in_parent,     0,              0,      1,      true,   NA,     false,  0,      NULL},
     {"clean_start",         CONNECT_CLEAN_START,        CONNECT_FLAGS,    

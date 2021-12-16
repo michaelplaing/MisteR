@@ -80,12 +80,11 @@ int pack_VBI(pack_ctx *pctx, mr_mdata *mdata) {
 
     printf("pack_VBI: %s\n", mdata->name);
     size_t cum_len = 0;
-    mr_mdata *end_mdata, *current_mdata;
-    end_mdata = pctx->mdata0 + mdata->link;
+    mr_mdata *current_mdata;
 
-    printf("accumulate buffer lengths: %u to %u\n", mdata->index + 1, end_mdata->index);
+    printf("accumulate buffer lengths: %u to %u\n", mdata->index + 1, mdata->link);
     //  accumulate buffer lengths in cum_len for the range of the VBI
-    for (int j = mdata->index + 1; j <= end_mdata->index; j++) {
+    for (int j = mdata->index + 1; j <= mdata->link; j++) {
         current_mdata = pctx->mdata0 + j;
         if (current_mdata->exists) cum_len += current_mdata->buflen;
     }

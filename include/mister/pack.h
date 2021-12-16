@@ -3,7 +3,7 @@
 
 #ifndef _WORD_T
 #define _WORD_T
-typedef unsigned long Word_t;  // expect 32-bit or 64-bit words.
+typedef unsigned long Word_t;  // expect either 32-bit or 64-bit words
 #endif
 
 struct mr_mdata;
