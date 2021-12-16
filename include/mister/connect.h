@@ -14,5 +14,6 @@ int set_connect_user_properties(pack_ctx *pctx, string_pair *sp0, size_t len);
 int get_connect_user_properties(pack_ctx *pctx, string_pair **Psp0, size_t *Plen);
 
 int set_connect_authentication_data(pack_ctx *pctx, uint8_t *authdata, size_t len);
+int get_connect_authentication_data(pack_ctx *pctx, uint8_t **Pauthdata, size_t *Plen);
 
 #endif /* CONNECT_H */

@@ -152,11 +152,16 @@ int set_connect_user_properties(pack_ctx *pctx, string_pair *sp0, size_t len) {
 }
 
 int get_connect_user_properties(pack_ctx *pctx, string_pair **Psp0, size_t *Plen) {
-    printf("set_connect_user_properties\n");
+    printf("get_connect_user_properties\n");
     return get_vector_value(pctx, CONNECT_USER_PROPERTIES, (Word_t *)Psp0, Plen);
 }
 
 int set_connect_authentication_data(pack_ctx *pctx, uint8_t *authdata, size_t len) {
     printf("set_connect_authentication_data\n");
     return set_vector_value(pctx, CONNECT_AUTHENTICATION_DATA, (Word_t)authdata, len);    
+}
+
+int get_connect_authentication_data(pack_ctx *pctx, uint8_t **Pauthdata, size_t *Plen) {
+    printf("get_connect_authentication_data\n");
+    return get_vector_value(pctx, CONNECT_AUTHENTICATION_DATA, (Word_t *)Pauthdata, Plen);        
 }
