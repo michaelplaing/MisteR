@@ -1,7 +1,10 @@
+file(GLOB HEADER_LIST CONFIGURE_DEPENDS "${mister_SOURCE_DIR}/include/mister/*.h")
+
 add_library(
     mrmo MODULE
     mrmo.c
-    ../include/mister/mister.h 
-    ../include/mister/redismodule.h
+    ${HEADER_LIST}
 )
+
 target_include_directories(mrmo PRIVATE ../include)
+target_link_libraries(mrapp PRIVATE mister)

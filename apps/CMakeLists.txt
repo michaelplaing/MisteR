@@ -1,5 +1,5 @@
 find_package(PkgConfig REQUIRED)
-pkg_check_modules (MYLIBS REQUIRED libuv hiredis)
+pkg_check_modules (MYLIBS REQUIRED hiredis libuv)
 
 file(GLOB HEADER_LIST CONFIGURE_DEPENDS "${mister_SOURCE_DIR}/include/mister/*.h")
 
