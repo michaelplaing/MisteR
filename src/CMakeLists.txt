@@ -1,3 +1,6 @@
+find_package(PkgConfig REQUIRED)
+pkg_check_modules (MYLIBS REQUIRED jemalloc)
+
 file(GLOB HEADER_LIST CONFIGURE_DEPENDS "${mister_SOURCE_DIR}/include/mister/*.h")
 
 add_library(
@@ -5,6 +8,7 @@ add_library(
     connect.c pack.c 
     pack_internal.h connect_internal.h ${HEADER_LIST}
 )
+
 target_include_directories(mister PUBLIC ../include)
-target_link_libraries(mister PRIVATE ev hiredis)
+target_link_libraries(mister PRIVATE ${MYLIBS_LIBRARIES})
 

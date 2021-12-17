@@ -1,9 +1,12 @@
+find_package(PkgConfig REQUIRED)
+pkg_check_modules (MYLIBS REQUIRED libuv hiredis)
+
+file(GLOB HEADER_LIST CONFIGURE_DEPENDS "${mister_SOURCE_DIR}/include/mister/*.h")
+
 add_executable(
     mrapp 
     mrapp.c 
-    ../include/mister/redismodule.h 
-    ../include/mister/mister.h 
-    ../include/mister/connect.h
+    ${HEADER_LIST}
 )
 
-target_link_libraries(mrapp PRIVATE mister ev hiredis)
+target_link_libraries(mrapp PRIVATE mister ${MYLIBS_LIBRARIES})

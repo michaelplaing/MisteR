@@ -61,30 +61,40 @@ int reset_header_value(pack_ctx *pctx, int index) {
     return 0;
 }
 
-//  pack each header var in reverse order of the table
+//  pack each mdata in reverse order of the table
 //  into its allocated buffer using its packing function
-//  then allocate pctx->buf and accumulate header var buffers
+//  then allocate pctx->buf and catenate mdata buffers in it
+//  free each mdata buffer if allocated
 int pack_mdata_buffer(pack_ctx *pctx) {
     printf("pack_mdata_buffer\n");
     mr_mdata *mdata;
     printf("pack each mdata: mdata_count: %lu\n", pctx->mdata_count);
+    
     for (int i = pctx->mdata_count - 1; i > -1; i--) {
-        // printf("  mdata index: %u\n", i);
         mdata = pctx->mdata0 + i;
         mdata->pack_fn(pctx, mdata);
     }
+    
     mdata = pctx->mdata0 + 1; // remaining_length
     printf("malloc pctx->buf using from remaining_length: buflen: %lu + value: %lu + 1\n", mdata->buflen, mdata->value);
     pctx->len = mdata->value + mdata->buflen + 1;
+    
     uint8_t *buf = malloc(pctx->len); // TODO: err checks on malloc
+    
     pctx->buf = buf;
     pctx->isalloc = true;
-    printf("memcpy mdata bufs into pctx->buf\n");
+    
+    printf("memcpy each mdata buf into pctx->buf, then free it\n");
     uint8_t *bufpos = buf;
     for (int i = 0; i < pctx->mdata_count; i++) {
         mdata = pctx->mdata0 + i;
         memcpy(bufpos, mdata->buf, mdata->buflen);
         bufpos += mdata->buflen;
+        
+        if (mdata->isalloc) {
+            free(mdata->buf);
+            mdata->isalloc = false;
+        }
     }
 
     return 0;
@@ -127,6 +137,7 @@ int pack_VBI(pack_ctx *pctx, mr_mdata *mdata) {
     mdata->buflen = make_VBI(tmp_val32, tmp_buf);
 
     uint8_t *buf = malloc(mdata->buflen); // TODO: err checks on malloc
+    
     mdata->isalloc = true;
     mdata->buf = buf;
     memcpy(mdata->buf, tmp_buf, mdata->buflen);

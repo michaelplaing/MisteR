@@ -24,7 +24,7 @@ test-driver
 *~
 
 # Ignore build/dist dir contents when present:
-build/*
+build*/*
 dist/*
 
 #ignore archive & scratch
