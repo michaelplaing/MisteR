@@ -1,7 +1,7 @@
 #ifndef PACK_INTERNAL_H
 #define PACK_INTERNAL_H
 
-#include "mister/pack.h"
+#include "mister/packet.h"
 
 typedef struct mr_mdata {
     char *name;

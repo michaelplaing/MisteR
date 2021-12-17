@@ -1,7 +1,7 @@
 #ifndef CONNECT_H
 #define CONNECT_H
 
-#include "mister/pack.h"
+#include "mister/packet.h"
 
 pack_ctx *init_connect_pctx(void);
 int pack_connect_buffer(pack_ctx *pctx);

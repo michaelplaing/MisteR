@@ -1,11 +1,11 @@
-/* pack.c */
+/* packet.c */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 
-#include "pack_internal.h"
+#include "packet_internal.h"
 
 int set_scalar_value(pack_ctx *pctx, int index, Word_t value) {
     mr_mdata *mdata = pctx->mdata0 + index;

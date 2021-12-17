@@ -7,7 +7,7 @@
 
 #include "mister/mister.h"
 #include "connect_internal.h"
-#include "pack_internal.h"
+#include "packet_internal.h"
 
 const uint8_t PNM[] = {0x00, 0x04, 'M', 'Q', 'T', 'T'};  // protocol signature
 #define PNMSZ 6
