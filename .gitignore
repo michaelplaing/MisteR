@@ -27,9 +27,8 @@ test-driver
 build*/*
 dist/*
 
-#ignore archive & scratch
+#ignore archive
 archive/*
-scratch/*
 
 #ignore Redis databases
 dump.rdb

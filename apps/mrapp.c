@@ -94,7 +94,7 @@ void mrConnectCallback(redisAsyncContext *rctx, void *reply_void, void *private_
 
 void mr_send_connect(redisAsyncContext *rctx) {
     int rc;
-    pack_ctx *pctx = init_connect_pctx();
+    packet_ctx *pctx = init_connect_pctx();
     // set_scalar_value(pctx, "clean_start", true);
     set_connect_clean_start(pctx, true);
     bool clean_start;
@@ -137,10 +137,13 @@ void mr_send_connect(redisAsyncContext *rctx) {
     printf("Connect Buf:");
     for (int i = 0; i < pctx->len; i++) printf(" %02hhX", pctx->buf[i]);
     printf("\n");
+    
+    unpack_connect_buffer(pctx);
+    
     free_connect_pctx(pctx);
 }
 
-int main (void) {
+int main(void) {
     uv_loop_t* loop = uv_default_loop();
 
     redisAsyncContext *rctx = redisAsyncConnect("127.0.0.1", 6379);
