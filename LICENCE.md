@@ -1,6 +1,6 @@
-Copyright (c) 2021 Andrew T. Canaday
+Copyright (c) 2021 Michael P. Laing
 
-This file is part of libbsat, which is licensed under the MIT license.
+This file is part of MisteR, which is licensed under the MIT license.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in

@@ -17,7 +17,7 @@ int set_scalar_value(packet_ctx *pctx, int index, Word_t value) {
 int get_scalar_value(packet_ctx *pctx, int index, Word_t *Pvalue) {
     int rc;
     mr_mdata *mdata = pctx->mdata0 + index;
-    
+
     if (mdata->exists) {
         *Pvalue = mdata->value;
         rc = 0;
@@ -25,7 +25,7 @@ int get_scalar_value(packet_ctx *pctx, int index, Word_t *Pvalue) {
     else {
         rc = -1;
     }
-    
+
     return rc;
 }
 
@@ -40,7 +40,7 @@ int set_vector_value(packet_ctx *pctx, int index, Word_t value, size_t len) {
 int get_vector_value(packet_ctx *pctx, int index, Word_t *Pvalue, size_t *Plen) {
     int rc;
     mr_mdata *mdata = pctx->mdata0 + index;
-    
+
     if (mdata->exists) {
         *Pvalue = mdata->value; // for a vector, value is some sort of pointer
         *Plen = mdata->vlen;
@@ -67,30 +67,29 @@ int reset_header_value(packet_ctx *pctx, int index) {
 //  free each mdata buffer if allocated
 int pack_mdata_buffer(packet_ctx *pctx) {
     printf("pack_mdata_buffer\n");
-    mr_mdata *mdata;
+    mr_mdata *mdata = pctx->mdata0 + pctx->mdata_count - 1;
     printf("pack each mdata: mdata_count: %lu\n", pctx->mdata_count);
-    
-    for (int i = pctx->mdata_count - 1; i > -1; i--) {
-        mdata = pctx->mdata0 + i;
+
+    for (int i = pctx->mdata_count - 1; i > -1; mdata--, i--) {
         mdata->pack_fn(pctx, mdata);
     }
-    
-    mdata = pctx->mdata0 + 1; // remaining_length
+
+    mdata = pctx->mdata0 + 1; // <CONTROL_PACKET_NAME>_REMAINING_LENGTH is always index 1
     printf("malloc pctx->buf using from remaining_length: blen: %lu + value: %lu + 1\n", mdata->blen, mdata->value);
     pctx->len = mdata->value + mdata->blen + 1;
-    
+
     uint8_t *buf = malloc(pctx->len); // TODO: err checks on malloc
-    
+
     pctx->buf = buf;
     pctx->isalloc = true;
-    
+
     printf("memcpy each mdata buf into pctx->buf, then free it\n");
+    mdata = pctx->mdata0;
     uint8_t *tbuf = buf;
-    for (int i = 0; i < pctx->mdata_count; i++) {
-        mdata = pctx->mdata0 + i;
+    for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
         memcpy(tbuf, mdata->buf, mdata->blen);
         tbuf += mdata->blen;
-        
+
         if (mdata->isalloc) {
             free(mdata->buf);
             mdata->isalloc = false;
@@ -102,14 +101,12 @@ int pack_mdata_buffer(packet_ctx *pctx) {
 
 int unpack_mdata_buffer(packet_ctx *pctx) {
     printf("unpack_mdata_buffer\n");
-    mr_mdata *mdata;
     printf("unpack each mdata: mdata_count: %lu\n", pctx->mdata_count);
-    
-    for (int i = 0; i < pctx->mdata_count; i++) {
-        mdata = pctx->mdata0 + i;
+    mr_mdata *mdata = pctx->mdata0;
+    for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
         if (mdata->unpack_fn) mdata->unpack_fn(pctx, mdata);
     }
-    
+
     return 0;
 }
 
@@ -117,7 +114,7 @@ int make_VBI(uint32_t val32, uint8_t *buf) {
     if (val32 >> (7 * 4)) { // overflow: too big for 4 bytes
         return -1;
     }
-    
+
     int i = 0;
     do {
         *buf = val32 & 0x7F;
@@ -137,7 +134,7 @@ int get_VBI(uint32_t *Pval32, uint8_t *buf) {
         res32 += (val32 & 0x7F) << (7 * i);
         if (!(*buf & 0x80)) break;
     }
-    
+
     if (i == 4) { // overflow: byte[3] has a continuation bit
         return -1;
     }
@@ -169,12 +166,28 @@ int pack_VBI(packet_ctx *pctx, mr_mdata *mdata) {
     mdata->blen = make_VBI(tmp_val32, tmp_buf);
 
     uint8_t *buf = malloc(mdata->blen); // TODO: err checks on malloc
-    
+
     mdata->isalloc = true;
     mdata->buf = buf;
     memcpy(mdata->buf, tmp_buf, mdata->blen);
     return 0;
 }
+
+int unpack_VBI(packet_ctx *pctx, mr_mdata *mdata) {
+    printf("unpack_VBI\n");
+    uint32_t val32;
+    int rc = get_VBI(&val32, pctx->buf + pctx->pos);
+
+    if (rc > 0) {
+        mdata->value = val32;
+        mdata->vlen = rc;
+        pctx->pos += rc;
+        printf("value: %lu; vlen: %lu; rc: %d; pos: %lu\n", mdata->value, mdata->vlen, rc, pctx->pos);
+        rc = 0;
+    }
+
+    return rc;
+ }
 
 int free_packet_context(packet_ctx *pctx) {
     printf("free_packet_context\n");

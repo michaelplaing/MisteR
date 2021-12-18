@@ -30,7 +30,7 @@ int get_scalar_value(packet_ctx *pctx, int index, Word_t *Pvalue);
 int set_vector_value(packet_ctx *pctx, int index, Word_t value, size_t len);
 
 int get_vector_value(packet_ctx *pctx, int index, Word_t *Pvalue, size_t *Plen);
-    
+
 int reset_header_value(packet_ctx *pctx, int index);
 
 int pack_mdata_buffer(packet_ctx *pctx);
@@ -60,6 +60,7 @@ int pack_sprop_str(packet_ctx *pctx, mr_mdata *mdata);
 int make_VBI(uint32_t val32, uint8_t *buf);
 
 int pack_VBI(packet_ctx *pctx, mr_mdata *mdata);
+int unpack_VBI(packet_ctx *pctx, mr_mdata *mdata);
 
 int pack_char_buf(packet_ctx *pctx, mr_mdata *mdata);
 
