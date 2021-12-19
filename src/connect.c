@@ -138,6 +138,23 @@ int free_connect_pctx(packet_ctx *pctx) {
     return free_packet_context(pctx);
 }
 
+int get_connect_packet_type(packet_ctx *pctx, uint8_t *Pptype) {
+    printf("get_connect_packet_type\n");
+    Word_t value;
+    int rc = get_scalar_value(pctx, CONNECT_PACKET_TYPE, &value);
+    if (!rc) *Pptype = (uint8_t)value;
+    return rc;
+}
+
+int get_connect_remaining_length(packet_ctx *pctx, uint32_t *Premlen) {
+    printf("get_connect_remaining_length\n");
+    Word_t value;
+    int rc = get_scalar_value(pctx, CONNECT_REMAINING_LENGTH, &value);
+    if (!rc) *Premlen = (uint32_t)value;
+    return rc;
+
+}
+
 int set_connect_clean_start(packet_ctx *pctx, bool flag) {
     printf("set_connect_clean_start\n");
     return set_scalar_value(pctx, CONNECT_CLEAN_START, flag);

@@ -37,8 +37,8 @@ void mrPingreqCallback(redisAsyncContext *rctx, void *reply_void, void *private_
     }
 
     if (
-        (uint8_t)reply1->str[0] == CMD_PINGRESP 
-        && (uint8_t)reply1->str[1] == 0 
+        (uint8_t)reply1->str[0] == CMD_PINGRESP
+        && (uint8_t)reply1->str[1] == 0
         && reply1->len == 2
     ) {
         printf("\n    Confirmed that buffer is a valid PINGRESP\n");
@@ -110,36 +110,44 @@ void mr_send_connect(redisAsyncContext *rctx) {
     string_pair *mysp0;
     size_t mysp0len;
     rc = get_connect_user_properties(pctx, &mysp0, &mysp0len);
-    
+
     if (!rc) {
         printf("user_properties:\n");
         for (int i = 0; i < mysp0len; i++, mysp0++) {
             printf("  name: %s; value: %s\n", mysp0->name, mysp0->value);
         }
     }
-    
+
     uint8_t bambaz[] = {0x01, 0x02};
     // set_vector_value(pctx, "authentication_data", (Word_t)bambaz, 2);
     set_connect_authentication_data(pctx, bambaz, sizeof(bambaz));
     uint8_t *myauth;
     size_t myauthlen;
     rc = get_connect_authentication_data(pctx, &myauth, &myauthlen);
-    
+
     if (!rc) {
         printf("authentication_data:");
         for (int i = 0; i < myauthlen; i++, myauth++) printf(" %02hhX", *myauth);
         puts("\n");
     }
-    
+
     // set_scalar_value(pctx, "client_identifier", (Word_t)"Snoopy");
     pack_connect_buffer(pctx);
 
     printf("Connect Buf:");
     for (int i = 0; i < pctx->len; i++) printf(" %02hhX", pctx->buf[i]);
     printf("\n");
-    
+
     unpack_connect_buffer(pctx);
-    
+
+    uint8_t ptype = 0;
+    rc = get_connect_packet_type(pctx, &ptype);
+    printf("packet_type: rc: %d; ptype: %u\n", rc, ptype);
+
+    uint32_t remlen = 0;
+    rc = get_connect_remaining_length(pctx, &remlen);
+    printf("remaining_length: rc: %d; remlen: %u\n", rc, remlen);
+
     free_connect_pctx(pctx);
 }
 
