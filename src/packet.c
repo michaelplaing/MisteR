@@ -66,16 +66,13 @@ int reset_header_value(packet_ctx *pctx, int index) {
 //  then allocate pctx->buf and catenate mdata buffers in it
 //  free each mdata buffer if allocated
 int pack_mdata_buffer(packet_ctx *pctx) {
-    printf("pack_mdata_buffer\n");
     mr_mdata *mdata = pctx->mdata0 + pctx->mdata_count - 1;
-    printf("pack each mdata: mdata_count: %lu\n", pctx->mdata_count);
 
     for (int i = pctx->mdata_count - 1; i > -1; mdata--, i--) {
         mdata->pack_fn(pctx, mdata);
     }
 
     mdata = pctx->mdata0 + 1; // <CONTROL_PACKET_NAME>_REMAINING_LENGTH is always index 1
-    printf("malloc pctx->buf using from remaining_length: blen: %lu + value: %lu + 1\n", mdata->blen, mdata->value);
     pctx->len = mdata->value + mdata->blen + 1;
 
     uint8_t *buf = malloc(pctx->len); // TODO: err checks on malloc
@@ -83,7 +80,6 @@ int pack_mdata_buffer(packet_ctx *pctx) {
     pctx->buf = buf;
     pctx->isalloc = true;
 
-    printf("memcpy each mdata buf into pctx->buf, then free it\n");
     mdata = pctx->mdata0;
     uint8_t *tbuf = buf;
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
@@ -100,8 +96,6 @@ int pack_mdata_buffer(packet_ctx *pctx) {
 }
 
 int unpack_mdata_buffer(packet_ctx *pctx) {
-    printf("unpack_mdata_buffer\n");
-    printf("unpack each mdata: mdata_count: %lu\n", pctx->mdata_count);
     mr_mdata *mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
         if (mdata->unpack_fn) mdata->unpack_fn(pctx, mdata);
@@ -148,21 +142,18 @@ int get_VBI(uint32_t *Pval32, uint8_t *buf) {
 int pack_VBI(packet_ctx *pctx, mr_mdata *mdata) {
     if (!mdata->exists) return 0;
 
-    printf("pack_VBI: %s\n", mdata->name);
     size_t cum_len = 0;
     mr_mdata *current_mdata;
 
-    printf("accumulate buffer lengths: %u to %u\n", mdata->index + 1, mdata->link);
     //  accumulate buffer lengths in cum_len for the range of the VBI
     for (int j = mdata->index + 1; j <= mdata->link; j++) {
         current_mdata = pctx->mdata0 + j;
         if (current_mdata->exists) cum_len += current_mdata->blen;
     }
-    printf("  cum_len: %lu\n", cum_len);
+
     mdata->value = cum_len;
     uint32_t tmp_val32 = mdata->value; // TODO: err if too large for 4 bytes
     uint8_t tmp_buf[5]; // enough for uint32_t even if too big
-
     mdata->blen = make_VBI(tmp_val32, tmp_buf);
 
     uint8_t *buf = malloc(mdata->blen); // TODO: err checks on malloc
@@ -174,7 +165,6 @@ int pack_VBI(packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 int unpack_VBI(packet_ctx *pctx, mr_mdata *mdata) {
-    printf("unpack_VBI\n");
     uint32_t val32;
     int rc = get_VBI(&val32, pctx->buf + pctx->pos);
 
@@ -182,7 +172,6 @@ int unpack_VBI(packet_ctx *pctx, mr_mdata *mdata) {
         mdata->value = val32;
         mdata->vlen = rc;
         pctx->pos += rc;
-        printf("value: %lu; vlen: %lu; rc: %d; pos: %lu\n", mdata->value, mdata->vlen, rc, pctx->pos);
         rc = 0;
     }
 
@@ -190,7 +179,6 @@ int unpack_VBI(packet_ctx *pctx, mr_mdata *mdata) {
  }
 
 int free_packet_context(packet_ctx *pctx) {
-    printf("free_packet_context\n");
     mr_mdata *mdata;
     Word_t bytes_freed;
 
@@ -200,7 +188,7 @@ int free_packet_context(packet_ctx *pctx) {
         if (mdata->isalloc) free(mdata->buf);
     }
 
-    //  free packet buffer - don't rely on NULL pointer...
+    //  free packet buffer
     if (pctx->isalloc) free(pctx->buf);
 
     // free pack context
@@ -209,16 +197,15 @@ int free_packet_context(packet_ctx *pctx) {
     return 0;
 }
 
-packet_ctx *init_packet_context(const mr_mdata *MDATA_TEMPLATE, size_t mdata_count) {
-    printf("init_packet_context\n");
+int init_packet_context(packet_ctx **Ppctx, const mr_mdata *MDATA_TEMPLATE, size_t mdata_count) {
     packet_ctx *pctx = calloc(1, sizeof(packet_ctx));
     pctx->mdata_count = mdata_count; //sizeof(MDATA_TEMPLATE) / sizeof(mr_mdata);
     mr_mdata *mdata0 = calloc(pctx->mdata_count, sizeof(mr_mdata));
-    printf("copy template\n");
     //  copy template
     for (int i = 0; i < pctx->mdata_count; i++) mdata0[i] = MDATA_TEMPLATE[i];
     pctx->mdata0 = mdata0;
-    return pctx;
+    *Ppctx = pctx;
+    return 0;
 }
 
 int pack_uint8(packet_ctx *pctx, mr_mdata *mdata) {

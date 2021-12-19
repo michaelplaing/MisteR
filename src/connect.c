@@ -117,29 +117,25 @@ const mr_mdata CONNECT_MDATA_TEMPLATE[] = {
         pack_char_buf,      NULL,               (Word_t)NULL,   NA,     0,      false,  NA,     false,  0,      NULL}
 };
 
-packet_ctx *init_connect_pctx(void) {
-    printf("init_connect_pctx\n");
+int init_connect_pctx(packet_ctx **Ppctx) {
     size_t mdata_count = sizeof(CONNECT_MDATA_TEMPLATE) / sizeof(mr_mdata);
-    return init_packet_context(CONNECT_MDATA_TEMPLATE, mdata_count);
+    int rc = init_packet_context(Ppctx, CONNECT_MDATA_TEMPLATE, mdata_count);
+    return rc;
 }
 
 int pack_connect_buffer(packet_ctx *pctx) {
-    printf("pack_connect_buffer\n");
     return pack_mdata_buffer(pctx);
 }
 
 int unpack_connect_buffer(packet_ctx *pctx) {
-    printf("unpack_connect_buffer\n");
     return unpack_mdata_buffer(pctx);
 }
 
 int free_connect_pctx(packet_ctx *pctx) {
-    printf("free_connect_context\n");
     return free_packet_context(pctx);
 }
 
 int get_connect_packet_type(packet_ctx *pctx, uint8_t *Pptype) {
-    printf("get_connect_packet_type\n");
     Word_t value;
     int rc = get_scalar_value(pctx, CONNECT_PACKET_TYPE, &value);
     if (!rc) *Pptype = (uint8_t)value;
@@ -147,7 +143,6 @@ int get_connect_packet_type(packet_ctx *pctx, uint8_t *Pptype) {
 }
 
 int get_connect_remaining_length(packet_ctx *pctx, uint32_t *Premlen) {
-    printf("get_connect_remaining_length\n");
     Word_t value;
     int rc = get_scalar_value(pctx, CONNECT_REMAINING_LENGTH, &value);
     if (!rc) *Premlen = (uint32_t)value;
@@ -156,12 +151,10 @@ int get_connect_remaining_length(packet_ctx *pctx, uint32_t *Premlen) {
 }
 
 int set_connect_clean_start(packet_ctx *pctx, bool flag) {
-    printf("set_connect_clean_start\n");
     return set_scalar_value(pctx, CONNECT_CLEAN_START, flag);
 }
 
 int get_connect_clean_start(packet_ctx *pctx, bool *flag) {
-    printf("get_connect_clean_start\n");
     Word_t value;
     int rc = get_scalar_value(pctx, CONNECT_CLEAN_START, &value);
     if (!rc) *flag = (bool)value;
@@ -169,21 +162,17 @@ int get_connect_clean_start(packet_ctx *pctx, bool *flag) {
 }
 
 int set_connect_user_properties(packet_ctx *pctx, string_pair *sp0, size_t len) {
-    printf("set_connect_user_properties\n");
     return set_vector_value(pctx, CONNECT_USER_PROPERTIES, (Word_t)sp0, len);
 }
 
 int get_connect_user_properties(packet_ctx *pctx, string_pair **Psp0, size_t *Plen) {
-    printf("get_connect_user_properties\n");
     return get_vector_value(pctx, CONNECT_USER_PROPERTIES, (Word_t *)Psp0, Plen);
 }
 
 int set_connect_authentication_data(packet_ctx *pctx, uint8_t *authdata, size_t len) {
-    printf("set_connect_authentication_data\n");
     return set_vector_value(pctx, CONNECT_AUTHENTICATION_DATA, (Word_t)authdata, len);
 }
 
 int get_connect_authentication_data(packet_ctx *pctx, uint8_t **Pauthdata, size_t *Plen) {
-    printf("get_connect_authentication_data\n");
     return get_vector_value(pctx, CONNECT_AUTHENTICATION_DATA, (Word_t *)Pauthdata, Plen);
 }

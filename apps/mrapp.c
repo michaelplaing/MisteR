@@ -93,8 +93,8 @@ void mrConnectCallback(redisAsyncContext *rctx, void *reply_void, void *private_
 }
 
 void mr_send_connect(redisAsyncContext *rctx) {
-    int rc;
-    packet_ctx *pctx = init_connect_pctx();
+    packet_ctx *pctx;
+    int rc = init_connect_pctx(&pctx);
     // set_scalar_value(pctx, "clean_start", true);
     set_connect_clean_start(pctx, true);
     bool clean_start;

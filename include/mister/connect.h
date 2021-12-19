@@ -3,12 +3,12 @@
 
 #include "mister/packet.h"
 
-typedef struct connect_packet {
-    uint8_t packet_type;
-    uint32_t remaining_length;
-    uint8_t *protocol_name;
-    uint8_t protocol_version;
-    bool reserved;
+typedef struct connect_values { // may or may not be useful
+    const uint8_t packet_type;
+    const uint32_t remaining_length;
+    const uint8_t *protocol_name;
+    const uint8_t protocol_version;
+    const bool reserved;
     bool clean_start;
     bool will_flag;
     uint8_t will_qos;
@@ -16,7 +16,7 @@ typedef struct connect_packet {
     bool password_flag;
     bool username_flag;
     uint16_t keep_alive;
-    uint32_t property_length;
+    const uint32_t property_length;
     uint32_t session_expiry;
     uint16_t receive_maximum;
     uint32_t maximum_packet_size;
@@ -39,9 +39,9 @@ typedef struct connect_packet {
     uint8_t *will_payload;
     uint8_t *user_name;
     uint8_t *password;
-} connect_packet;
+} connect_values;
 
-packet_ctx *init_connect_pctx(void);
+int init_connect_pctx(packet_ctx **Pctx);
 
 int pack_connect_buffer(packet_ctx *pctx);
 int unpack_connect_buffer(packet_ctx *pctx);

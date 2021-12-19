@@ -19,7 +19,9 @@ typedef struct mr_mdata {
     uint8_t *buf;   // packed value
 } mr_mdata;
 
-packet_ctx *init_packet_context(const mr_mdata *MDATA_TEMPLATE, size_t mdata_count);
+int init_packet_context(
+    packet_ctx **Ppctx, const mr_mdata *MDATA_TEMPLATE, size_t mdata_count
+);
 
 int free_packet_context(packet_ctx *pctx);
 
