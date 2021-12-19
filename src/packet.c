@@ -199,7 +199,7 @@ int free_packet_context(packet_ctx *pctx) {
 
 int init_packet_context(packet_ctx **Ppctx, const mr_mdata *MDATA_TEMPLATE, size_t mdata_count) {
     packet_ctx *pctx = calloc(1, sizeof(packet_ctx));
-    pctx->mdata_count = mdata_count; //sizeof(MDATA_TEMPLATE) / sizeof(mr_mdata);
+    pctx->mdata_count = mdata_count;
     mr_mdata *mdata0 = calloc(pctx->mdata_count, sizeof(mr_mdata));
     //  copy template
     for (int i = 0; i < pctx->mdata_count; i++) mdata0[i] = MDATA_TEMPLATE[i];
@@ -221,7 +221,6 @@ int unpack_uint8(packet_ctx *pctx, mr_mdata *mdata) {
     //if (!pctx->isalloc || pctx->pos >= pctx->len) return 0;
     mdata->vlen = 1;
     mdata->value = pctx->buf[pctx->pos++];
-    printf("value: %lu; vlen: %lu; pos: %lu\n", mdata->value, mdata->vlen, pctx->pos);
     return 0;
 }
 
@@ -244,7 +243,6 @@ int unpack_uint16(packet_ctx *pctx, mr_mdata *mdata) {
     uint16_t val16s[] = {tbuf[0], tbuf[1]};
     mdata->value = (val16s[0] << 8) + val16s[1];
     pctx->pos += 2;
-    printf("value: %lu; vlen: %lu; pos: %lu\n", mdata->value, mdata->vlen, pctx->pos);
     return 0;
 }
 
