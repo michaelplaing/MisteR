@@ -135,6 +135,7 @@ int free_connect_pctx(packet_ctx *pctx) {
     return free_packet_context(pctx);
 }
 
+//    const uint8_t packet_type;
 int get_connect_packet_type(packet_ctx *pctx, uint8_t *Pptype) {
     Word_t value;
     int rc = get_scalar_value(pctx, CONNECT_PACKET_TYPE, &value);
@@ -142,6 +143,7 @@ int get_connect_packet_type(packet_ctx *pctx, uint8_t *Pptype) {
     return rc;
 }
 
+//    uint32_t remaining_length;
 int get_connect_remaining_length(packet_ctx *pctx, uint32_t *Premlen) {
     Word_t value;
     int rc = get_scalar_value(pctx, CONNECT_REMAINING_LENGTH, &value);
@@ -150,17 +152,58 @@ int get_connect_remaining_length(packet_ctx *pctx, uint32_t *Premlen) {
 
 }
 
+//    const uint8_t *protocol_name;
+int get_connect_protocol_name(packet_ctx *pctx, uint8_t **Pbyte0, size_t *Plen) {
+    Word_t value;
+    size_t len;
+    int rc = get_vector_value(pctx, CONNECT_PROTOCOL_NAME, &value, &len);
+    if (!rc) {
+        *Pbyte0 = (uint8_t *)value;
+        *Plen = len;
+    }
+
+    return rc;
+}
+
+//    const uint8_t protocol_version;
+//    const bool reserved;
+//    bool clean_start;
 int set_connect_clean_start(packet_ctx *pctx, bool flag) {
     return set_scalar_value(pctx, CONNECT_CLEAN_START, flag);
 }
 
-int get_connect_clean_start(packet_ctx *pctx, bool *flag) {
+int get_connect_clean_start(packet_ctx *pctx, bool *Pflag) {
     Word_t value;
     int rc = get_scalar_value(pctx, CONNECT_CLEAN_START, &value);
-    if (!rc) *flag = (bool)value;
+    if (!rc) *Pflag = (bool)value;
     return rc;
 }
 
+//    bool will_flag;
+int set_connect_will_flag(packet_ctx *pctx, bool flag) {
+    return set_scalar_value(pctx, CONNECT_WILL_FLAG, flag);
+}
+
+int get_connect_will_flag(packet_ctx *pctx, bool *Pflag) {
+    Word_t value;
+    int rc = get_scalar_value(pctx, CONNECT_WILL_FLAG, &value);
+    if (!rc) *Pflag = (bool)value;
+    return rc;
+}
+
+//    uint8_t will_qos;
+//    bool will_retain;
+//    bool password_flag;
+//    bool username_flag;
+//    uint16_t keep_alive;
+//    uint32_t property_length;
+//    uint32_t session_expiry;
+//    uint16_t receive_maximum;
+//    uint32_t maximum_packet_size;
+//    uint16_t topic_alias_maximum;
+//    uint8_t request_response_information;
+//    uint8_t request_problem_information;
+//    string_pair *user_properties;
 int set_connect_user_properties(packet_ctx *pctx, string_pair *sp0, size_t len) {
     return set_vector_value(pctx, CONNECT_USER_PROPERTIES, (Word_t)sp0, len);
 }
@@ -169,6 +212,8 @@ int get_connect_user_properties(packet_ctx *pctx, string_pair **Psp0, size_t *Pl
     return get_vector_value(pctx, CONNECT_USER_PROPERTIES, (Word_t *)Psp0, Plen);
 }
 
+//    uint8_t *authentication_method;
+//    uint8_t *authentication_data;
 int set_connect_authentication_data(packet_ctx *pctx, uint8_t *authdata, size_t len) {
     return set_vector_value(pctx, CONNECT_AUTHENTICATION_DATA, (Word_t)authdata, len);
 }
@@ -176,3 +221,17 @@ int set_connect_authentication_data(packet_ctx *pctx, uint8_t *authdata, size_t 
 int get_connect_authentication_data(packet_ctx *pctx, uint8_t **Pauthdata, size_t *Plen) {
     return get_vector_value(pctx, CONNECT_AUTHENTICATION_DATA, (Word_t *)Pauthdata, Plen);
 }
+
+//    uint8_t *client_identifier;
+//    uint32_t will_property_length;
+//    uint32_t will_delay_interval;
+//    uint8_t payload_format_indicator;
+//    uint32_t message_expiry_interval;
+//    uint8_t *content_type;
+//    uint8_t *response_topic;
+//    uint8_t *correlation_data;
+//    string_pair *will_user_properties;
+//    uint8_t *will_topic;
+//    uint8_t *will_payload;
+//    uint8_t *user_name;
+//    uint8_t *password;

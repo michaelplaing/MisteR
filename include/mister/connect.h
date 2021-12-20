@@ -5,7 +5,7 @@
 
 typedef struct connect_values { // may or may not be useful
     const uint8_t packet_type;
-    const uint32_t remaining_length;
+    uint32_t remaining_length;
     const uint8_t *protocol_name;
     const uint8_t protocol_version;
     const bool reserved;
@@ -16,7 +16,7 @@ typedef struct connect_values { // may or may not be useful
     bool password_flag;
     bool username_flag;
     uint16_t keep_alive;
-    const uint32_t property_length;
+    uint32_t property_length;
     uint32_t session_expiry;
     uint16_t receive_maximum;
     uint32_t maximum_packet_size;
@@ -51,6 +51,8 @@ int free_connect_pctx(packet_ctx *pctx);
 int get_connect_packet_type(packet_ctx *pctx, uint8_t *Pptype);
 
 int get_connect_remaining_length(packet_ctx *pctx, uint32_t *Premlen);
+
+int get_connect_protocol_name(packet_ctx *pctx, uint8_t **Pbyte0, size_t *Plen);
 
 int set_connect_clean_start(packet_ctx *pctx, bool value);
 int get_connect_clean_start(packet_ctx *pctx, bool *flag);

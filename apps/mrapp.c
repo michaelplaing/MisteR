@@ -148,6 +148,12 @@ void mr_send_connect(redisAsyncContext *rctx) {
     rc = get_connect_remaining_length(pctx, &remlen);
     printf("remaining_length: rc: %d; remlen: %u\n", rc, remlen);
 
+    uint8_t *proto_nm = NULL; size_t protolen = 0;
+    rc = get_connect_protocol_name(pctx, &proto_nm, &protolen);
+    printf("protocol_name: rc: %d; len: %lu; bytes:", rc, protolen);
+    for (int i = 0; i < protolen; i++) printf(" %02hhX", *proto_nm++);
+    printf("\n");
+
     free_connect_pctx(pctx);
 }
 
