@@ -178,6 +178,14 @@ int get_connect_will_flag(packet_ctx *pctx, bool *Pboolean) {
 }
 
 //    uint8_t will_qos;
+int set_connect_will_qos(packet_ctx *pctx, uint8_t uint8) {
+    return set_scalar_value(pctx, CONNECT_WILL_QOS, uint8);
+}
+
+int get_connect_will_qos(packet_ctx *pctx, uint8_t *Puint8) {
+    return get_uint8_value(pctx, CONNECT_WILL_QOS, Puint8);
+}
+
 //    bool will_retain;
 //    bool password_flag;
 //    bool username_flag;
