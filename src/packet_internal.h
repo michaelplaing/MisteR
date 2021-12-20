@@ -27,11 +27,17 @@ int free_packet_context(packet_ctx *pctx);
 
 int set_scalar_value(packet_ctx *pctx, int index, Word_t value);
 
-int get_scalar_value(packet_ctx *pctx, int index, Word_t *Pvalue);
+// int get_scalar_value(packet_ctx *pctx, int index, Word_t *Pvalue);
+int get_boolean_value(packet_ctx *pctx, int index, bool *Pboolean);
+int get_uint8_value(packet_ctx *pctx, int index, uint8_t *Puint8);
+int get_uint16_value(packet_ctx *pctx, int index, uint16_t *Puint16);
+int get_uint32_value(packet_ctx *pctx, int index, uint32_t *Puint32);
 
-int set_vector_value(packet_ctx *pctx, int index, Word_t value, size_t len);
+int set_vector_pointer(packet_ctx *pctx, int index, Word_t value, size_t len);
 
-int get_vector_value(packet_ctx *pctx, int index, Word_t *Pvalue, size_t *Plen);
+// int get_vector_pointer(packet_ctx *pctx, int index, Word_t *Pvalue, size_t *Plen);
+int get_uint8_pointer(packet_ctx *pctx, int index, uint8_t **Puint8P, size_t *Plen);
+int get_string_pair_pointer(packet_ctx *pctx, int index, string_pair **Psp0P, size_t *Plen);
 
 int reset_header_value(packet_ctx *pctx, int index);
 

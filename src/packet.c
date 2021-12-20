@@ -29,7 +29,35 @@ int get_scalar_value(packet_ctx *pctx, int index, Word_t *Pvalue) {
     return rc;
 }
 
-int set_vector_value(packet_ctx *pctx, int index, Word_t value, size_t len) {
+int get_boolean_value(packet_ctx *pctx, int index, bool *Pboolean) {
+    Word_t value;
+    int rc = get_scalar_value(pctx, index, &value);
+    if (!rc) *Pboolean = (bool)value;
+    return rc;
+}
+
+int get_uint8_value(packet_ctx *pctx, int index, uint8_t *Puint8) {
+    Word_t value;
+    int rc = get_scalar_value(pctx, index, &value);
+    if (!rc) *Puint8 = (uint8_t)value;
+    return rc;
+}
+
+int get_uint16_value(packet_ctx *pctx, int index, uint16_t *Puint16) {
+    Word_t value;
+    int rc = get_scalar_value(pctx, index, &value);
+    if (!rc) *Puint16 = (uint16_t)value;
+    return rc;
+}
+
+int get_uint32_value(packet_ctx *pctx, int index, uint32_t *Puint32) {
+    Word_t value;
+    int rc = get_scalar_value(pctx, index, &value);
+    if (!rc) *Puint32 = (uint32_t)value;
+    return rc;
+}
+
+int set_vector_pointer(packet_ctx *pctx, int index, Word_t value, size_t len) {
     mr_mdata *mdata = pctx->mdata0 + index;
     mdata->value = value;
     mdata->exists = true;
@@ -37,17 +65,43 @@ int set_vector_value(packet_ctx *pctx, int index, Word_t value, size_t len) {
     return 0;
 }
 
-int get_vector_value(packet_ctx *pctx, int index, Word_t *Pvalue, size_t *Plen) {
+int get_vector_pointer(packet_ctx *pctx, int index, Word_t *Ppointer, size_t *Plen) {
     int rc;
     mr_mdata *mdata = pctx->mdata0 + index;
 
     if (mdata->exists) {
-        *Pvalue = mdata->value; // for a vector, value is some sort of pointer
+        *Ppointer = mdata->value; // for a vector, value is some sort of pointer
         *Plen = mdata->vlen;
         rc = 0;
     }
     else {
         rc = -1;
+    }
+
+    return rc;
+}
+
+int get_uint8_pointer(packet_ctx *pctx, int index, uint8_t **Puint8P, size_t *Plen) {
+    Word_t pointer;
+    size_t len;
+    int rc = get_vector_pointer(pctx, index, &pointer, &len);
+
+    if (!rc) {
+        *Puint8P = (uint8_t *)pointer;
+        *Plen = len;
+    }
+
+    return rc;
+}
+
+int get_string_pair_pointer(packet_ctx *pctx, int index, string_pair **Psp0P, size_t *Plen) {
+    Word_t pointer;
+    size_t len;
+    int rc = get_vector_pointer(pctx, index, &pointer, &len);
+
+    if (!rc) {
+        *Psp0P = (string_pair *)pointer;
+        *Plen = len;
     }
 
     return rc;

@@ -3,6 +3,21 @@
 
 #include "mister/packet.h"
 
+int init_connect_pctx(packet_ctx **Pctx);
+int pack_connect_buffer(packet_ctx *pctx);
+int unpack_connect_buffer(packet_ctx *pctx);
+int free_connect_pctx(packet_ctx *pctx);
+
+int get_connect_packet_type(packet_ctx *pctx, uint8_t *Puint8);
+int get_connect_remaining_length(packet_ctx *pctx, uint32_t *Puint32);
+int get_connect_protocol_name(packet_ctx *pctx, uint8_t **Puint8P, size_t *Plen);
+int get_connect_reserved(packet_ctx *pctx, bool *Pboolean);
+int set_connect_clean_start(packet_ctx *pctx, bool boolean);
+int get_connect_clean_start(packet_ctx *pctx, bool *Pboolean);
+int set_connect_user_properties(packet_ctx *pctx, string_pair *Psp, size_t len);
+int get_connect_user_properties(packet_ctx *pctx, string_pair **PspP, size_t *Plen);
+int set_connect_authentication_data(packet_ctx *pctx, uint8_t *Puint8, size_t len);
+int get_connect_authentication_data(packet_ctx *pctx, uint8_t **Puint8P, size_t *Plen);
 typedef struct connect_values { // may or may not be useful
     const uint8_t packet_type;
     uint32_t remaining_length;
@@ -40,27 +55,5 @@ typedef struct connect_values { // may or may not be useful
     uint8_t *user_name;
     uint8_t *password;
 } connect_values;
-
-int init_connect_pctx(packet_ctx **Pctx);
-
-int pack_connect_buffer(packet_ctx *pctx);
-int unpack_connect_buffer(packet_ctx *pctx);
-
-int free_connect_pctx(packet_ctx *pctx);
-
-int get_connect_packet_type(packet_ctx *pctx, uint8_t *Pptype);
-
-int get_connect_remaining_length(packet_ctx *pctx, uint32_t *Premlen);
-
-int get_connect_protocol_name(packet_ctx *pctx, uint8_t **Pbyte0, size_t *Plen);
-
-int set_connect_clean_start(packet_ctx *pctx, bool value);
-int get_connect_clean_start(packet_ctx *pctx, bool *flag);
-
-int set_connect_user_properties(packet_ctx *pctx, string_pair *sp0, size_t len);
-int get_connect_user_properties(packet_ctx *pctx, string_pair **Psp0, size_t *Plen);
-
-int set_connect_authentication_data(packet_ctx *pctx, uint8_t *authdata, size_t len);
-int get_connect_authentication_data(packet_ctx *pctx, uint8_t **Pauthdata, size_t *Plen);
 
 #endif /* CONNECT_H */
