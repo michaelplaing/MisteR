@@ -168,6 +168,10 @@ int get_connect_clean_start(packet_ctx *pctx, bool *Pboolean) {
     return get_boolean_scalar(pctx, CONNECT_CLEAN_START, Pboolean);
 }
 
+int reset_connect_clean_start(packet_ctx *pctx) {
+    return reset_value(pctx, CONNECT_CLEAN_START);
+}
+
 //    bool will_flag;
 int set_connect_will_flag(packet_ctx *pctx, bool boolean) {
     return set_scalar(pctx, CONNECT_WILL_FLAG, boolean);
@@ -175,6 +179,10 @@ int set_connect_will_flag(packet_ctx *pctx, bool boolean) {
 
 int get_connect_will_flag(packet_ctx *pctx, bool *Pboolean) {
     return get_boolean_scalar(pctx, CONNECT_WILL_FLAG, Pboolean);
+}
+
+int reset_connect_will_flag(packet_ctx *pctx) {
+    return reset_value(pctx, CONNECT_WILL_FLAG);
 }
 
 //    uint8_t will_qos;
@@ -186,6 +194,10 @@ int get_connect_will_qos(packet_ctx *pctx, uint8_t *Puint8) {
     return get_uint8_scalar(pctx, CONNECT_WILL_QOS, Puint8);
 }
 
+int reset_connect_will_qos(packet_ctx *pctx) {
+    return reset_value(pctx, CONNECT_WILL_QOS);
+}
+
 //    bool will_retain;
 int set_connect_will_retain(packet_ctx *pctx, bool boolean) {
     return set_scalar(pctx, CONNECT_WILL_RETAIN, boolean);
@@ -193,6 +205,10 @@ int set_connect_will_retain(packet_ctx *pctx, bool boolean) {
 
 int get_connect_will_retain(packet_ctx *pctx, bool *Pboolean) {
     return get_boolean_scalar(pctx, CONNECT_WILL_RETAIN, Pboolean);
+}
+
+int reset_connect_will_retain(packet_ctx *pctx) {
+    return reset_value(pctx, CONNECT_WILL_RETAIN);
 }
 
 //    bool password_flag;
@@ -204,6 +220,10 @@ int get_connect_password_flag(packet_ctx *pctx, bool *Pboolean) {
     return get_boolean_scalar(pctx, CONNECT_PASSWORD_FLAG, Pboolean);
 }
 
+int reset_connect_password_flag(packet_ctx *pctx) {
+    return reset_value(pctx, CONNECT_PASSWORD_FLAG);
+}
+
 //    bool username_flag;
 int set_connect_username_flag(packet_ctx *pctx, bool boolean) {
     return set_scalar(pctx, CONNECT_USERNAME_FLAG, boolean);
@@ -213,6 +233,10 @@ int get_connect_username_flag(packet_ctx *pctx, bool *Pboolean) {
     return get_boolean_scalar(pctx, CONNECT_USERNAME_FLAG, Pboolean);
 }
 
+int reset_connect_username_flag(packet_ctx *pctx) {
+    return reset_value(pctx, CONNECT_USERNAME_FLAG);
+}
+
 //    uint16_t keep_alive;
 int set_connect_keep_alive(packet_ctx *pctx, uint16_t uint16) {
     return set_scalar(pctx, CONNECT_KEEP_ALIVE, uint16);
@@ -220,6 +244,10 @@ int set_connect_keep_alive(packet_ctx *pctx, uint16_t uint16) {
 
 int get_connect_keep_alive(packet_ctx *pctx, uint16_t *Puint16) {
     return get_uint16_scalar(pctx, CONNECT_KEEP_ALIVE, Puint16);
+}
+
+int reset_connect_keep_alive(packet_ctx *pctx) {
+    return reset_value(pctx, CONNECT_KEEP_ALIVE);
 }
 
 //    uint32_t property_length;
@@ -236,6 +264,10 @@ int get_connect_session_expiry(packet_ctx *pctx, uint32_t *Puint32) {
     return get_uint32_scalar(pctx, CONNECT_SESSION_EXPIRY, Puint32);
 }
 
+int reset_connect_session_expiry(packet_ctx *pctx) {
+    return reset_value(pctx, CONNECT_SESSION_EXPIRY);
+}
+
 //    uint16_t receive_maximum;
 int set_connect_receive_maximum(packet_ctx *pctx, uint16_t uint16) {
     return set_scalar(pctx, CONNECT_RECEIVE_MAXIMUM, uint16);
@@ -243,6 +275,10 @@ int set_connect_receive_maximum(packet_ctx *pctx, uint16_t uint16) {
 
 int get_connect_receive_maximum(packet_ctx *pctx, uint16_t *Puint16) {
     return get_uint16_scalar(pctx, CONNECT_RECEIVE_MAXIMUM, Puint16);
+}
+
+int reset_connect_receive_maximum(packet_ctx *pctx) {
+    return reset_value(pctx, CONNECT_RECEIVE_MAXIMUM);
 }
 
 //    uint32_t maximum_packet_size;
@@ -254,6 +290,10 @@ int get_connect_maximum_packet_size(packet_ctx *pctx, uint32_t *Puint32) {
     return get_uint32_scalar(pctx, CONNECT_MAXIMUM_PACKET_SIZE, Puint32);
 }
 
+int reset_connect_maximum_packet_size(packet_ctx *pctx) {
+    return reset_value(pctx, CONNECT_MAXIMUM_PACKET_SIZE);
+}
+
 //    uint16_t topic_alias_maximum;
 int set_connect_topic_alias_maximum(packet_ctx *pctx, uint16_t uint16) {
     return set_scalar(pctx, CONNECT_TOPIC_ALIAS_MAXIMUM, uint16);
@@ -261,6 +301,10 @@ int set_connect_topic_alias_maximum(packet_ctx *pctx, uint16_t uint16) {
 
 int get_connect_topic_alias_maximum(packet_ctx *pctx, uint16_t *Puint16) {
     return get_uint16_scalar(pctx, CONNECT_TOPIC_ALIAS_MAXIMUM, Puint16);
+}
+
+int reset_connect_topic_alias_maximum(packet_ctx *pctx) {
+    return reset_value(pctx, CONNECT_TOPIC_ALIAS_MAXIMUM);
 }
 
 //    uint8_t request_response_information;
@@ -272,6 +316,10 @@ int get_connect_request_response_information(packet_ctx *pctx, uint8_t *Puint8) 
     return get_uint8_scalar(pctx, CONNECT_REQUEST_RESPONSE_INFORMATION, Puint8);
 }
 
+int reset_connect_request_response_information(packet_ctx *pctx) {
+    return reset_value(pctx, CONNECT_REQUEST_RESPONSE_INFORMATION);
+}
+
 //    uint8_t request_problem_information;
 int set_connect_request_problem_information(packet_ctx *pctx, uint8_t uint8) {
     return set_scalar(pctx, CONNECT_REQUEST_PROBLEM_INFORMATION, uint8);
@@ -279,6 +327,10 @@ int set_connect_request_problem_information(packet_ctx *pctx, uint8_t uint8) {
 
 int get_connect_request_problem_information(packet_ctx *pctx, uint8_t *Puint8) {
     return get_uint8_scalar(pctx, CONNECT_REQUEST_PROBLEM_INFORMATION, Puint8);
+}
+
+int reset_connect_request_problem_information(packet_ctx *pctx) {
+    return reset_value(pctx, CONNECT_REQUEST_PROBLEM_INFORMATION);
 }
 
 //    string_pair *user_properties;
@@ -290,6 +342,10 @@ int get_connect_user_properties(packet_ctx *pctx, string_pair **Psp0, size_t *Pl
     return get_string_pair_vector(pctx, CONNECT_USER_PROPERTIES, Psp0, Plen);
 }
 
+int reset_connect_user_properties(packet_ctx *pctx) {
+    return reset_value(pctx, CONNECT_USER_PROPERTIES);
+}
+
 //    uint8_t *authentication_method;
 int set_connect_authentication_method(packet_ctx *pctx, uint8_t *uint80, size_t len) {
     return set_vector(pctx, CONNECT_AUTHENTICATION_METHOD, uint80, len);
@@ -297,6 +353,10 @@ int set_connect_authentication_method(packet_ctx *pctx, uint8_t *uint80, size_t 
 
 int get_connect_authentication_method(packet_ctx *pctx, uint8_t **Puint80, size_t *Plen) {
     return get_uint8_vector(pctx, CONNECT_AUTHENTICATION_METHOD, Puint80, Plen);
+}
+
+int reset_connect_authentication_method(packet_ctx *pctx) {
+    return reset_value(pctx, CONNECT_AUTHENTICATION_METHOD);
 }
 
 //    uint8_t *authentication_data;
@@ -308,6 +368,10 @@ int get_connect_authentication_data(packet_ctx *pctx, uint8_t **Puint80, size_t 
     return get_uint8_vector(pctx, CONNECT_AUTHENTICATION_DATA, Puint80, Plen);
 }
 
+int reset_connect_authentication_data(packet_ctx *pctx) {
+    return reset_value(pctx, CONNECT_AUTHENTICATION_DATA);
+}
+
 //    uint8_t *client_identifier;
 int set_connect_client_identifier(packet_ctx *pctx, uint8_t *uint80, size_t len) {
     return set_vector(pctx, CONNECT_CLIENT_IDENTIFIER, uint80, len);
@@ -315,6 +379,10 @@ int set_connect_client_identifier(packet_ctx *pctx, uint8_t *uint80, size_t len)
 
 int get_connect_client_identifier(packet_ctx *pctx, uint8_t **Puint80, size_t *Plen) {
     return get_uint8_vector(pctx, CONNECT_CLIENT_IDENTIFIER, Puint80, Plen);
+}
+
+int reset_connect_client_identifier(packet_ctx *pctx) {
+    return reset_value(pctx, CONNECT_CLIENT_IDENTIFIER);
 }
 
 //    uint32_t will_property_length;
@@ -331,6 +399,10 @@ int get_connect_will_delay_interval(packet_ctx *pctx, uint32_t *Puint32) {
     return get_uint32_scalar(pctx, CONNECT_WILL_DELAY_INTERVAL, Puint32);
 }
 
+int reset_connect_will_delay_interval(packet_ctx *pctx) {
+    return reset_value(pctx, CONNECT_WILL_DELAY_INTERVAL);
+}
+
 //    uint8_t payload_format_indicator;
 int set_connect_payload_format_indicator(packet_ctx *pctx, uint8_t uint8) {
     return set_scalar(pctx, CONNECT_PAYLOAD_FORMAT_INDICATOR, uint8);
@@ -338,6 +410,10 @@ int set_connect_payload_format_indicator(packet_ctx *pctx, uint8_t uint8) {
 
 int get_connect_payload_format_indicator(packet_ctx *pctx, uint8_t *Puint8) {
     return get_uint8_scalar(pctx, CONNECT_PAYLOAD_FORMAT_INDICATOR, Puint8);
+}
+
+int reset_connect_payload_format_indicator(packet_ctx *pctx) {
+    return reset_value(pctx, CONNECT_PAYLOAD_FORMAT_INDICATOR);
 }
 
 //    uint32_t message_expiry_interval;
@@ -349,6 +425,10 @@ int get_connect_message_expiry_interval(packet_ctx *pctx, uint32_t *Puint32) {
     return get_uint32_scalar(pctx, CONNECT_MESSAGE_EXPIRY_INTERVAL, Puint32);
 }
 
+int reset_connect_message_expiry_interval(packet_ctx *pctx) {
+    return reset_value(pctx, CONNECT_MESSAGE_EXPIRY_INTERVAL);
+}
+
 //    uint8_t *content_type;
 int set_connect_content_type(packet_ctx *pctx, uint8_t *uint80, size_t len) {
     return set_vector(pctx, CONNECT_CONTENT_TYPE, uint80, len);
@@ -356,6 +436,10 @@ int set_connect_content_type(packet_ctx *pctx, uint8_t *uint80, size_t len) {
 
 int get_connect_content_type(packet_ctx *pctx, uint8_t **Puint80, size_t *Plen) {
     return get_uint8_vector(pctx, CONNECT_CONTENT_TYPE, Puint80, Plen);
+}
+
+int reset_connect_content_type(packet_ctx *pctx) {
+    return reset_value(pctx, CONNECT_CONTENT_TYPE);
 }
 
 //    uint8_t *response_topic;
@@ -367,6 +451,10 @@ int get_connect_response_topic(packet_ctx *pctx, uint8_t **Puint80, size_t *Plen
     return get_uint8_vector(pctx, CONNECT_RESPONSE_TOPIC, Puint80, Plen);
 }
 
+int reset_connect_response_topic(packet_ctx *pctx) {
+    return reset_value(pctx, CONNECT_RESPONSE_TOPIC);
+}
+
 //    uint8_t *correlation_data;
 int set_connect_correlation_data(packet_ctx *pctx, uint8_t *uint80, size_t len) {
     return set_vector(pctx, CONNECT_CORRELATION_DATA, uint80, len);
@@ -374,6 +462,10 @@ int set_connect_correlation_data(packet_ctx *pctx, uint8_t *uint80, size_t len) 
 
 int get_connect_correlation_data(packet_ctx *pctx, uint8_t **Puint80, size_t *Plen) {
     return get_uint8_vector(pctx, CONNECT_CORRELATION_DATA, Puint80, Plen);
+}
+
+int reset_connect_correlation_data(packet_ctx *pctx) {
+    return reset_value(pctx, CONNECT_CORRELATION_DATA);
 }
 
 //    string_pair *will_user_properties;
@@ -385,6 +477,10 @@ int get_connect_will_user_properties(packet_ctx *pctx, string_pair **Psp0, size_
     return get_string_pair_vector(pctx, CONNECT_WILL_USER_PROPERTIES, Psp0, Plen);
 }
 
+int reset_connect_will_user_properties(packet_ctx *pctx) {
+    return reset_value(pctx, CONNECT_WILL_USER_PROPERTIES);
+}
+
 //    uint8_t *will_topic;
 int set_connect_will_topic(packet_ctx *pctx, uint8_t *uint80, size_t len) {
     return set_vector(pctx, CONNECT_WILL_TOPIC, uint80, len);
@@ -392,6 +488,10 @@ int set_connect_will_topic(packet_ctx *pctx, uint8_t *uint80, size_t len) {
 
 int get_connect_will_topic(packet_ctx *pctx, uint8_t **Puint80, size_t *Plen) {
     return get_uint8_vector(pctx, CONNECT_WILL_TOPIC, Puint80, Plen);
+}
+
+int reset_connect_will_topic(packet_ctx *pctx) {
+    return reset_value(pctx, CONNECT_WILL_TOPIC);
 }
 
 //    uint8_t *will_payload;
@@ -403,6 +503,10 @@ int get_connect_will_payload(packet_ctx *pctx, uint8_t **Puint80, size_t *Plen) 
     return get_uint8_vector(pctx, CONNECT_WILL_PAYLOAD, Puint80, Plen);
 }
 
+int reset_connect_will_payload(packet_ctx *pctx) {
+    return reset_value(pctx, CONNECT_WILL_PAYLOAD);
+}
+
 //    uint8_t *user_name;
 int set_connect_user_name(packet_ctx *pctx, uint8_t *uint80, size_t len) {
     return set_vector(pctx, CONNECT_USER_NAME, uint80, len);
@@ -412,6 +516,10 @@ int get_connect_user_name(packet_ctx *pctx, uint8_t **Puint80, size_t *Plen) {
     return get_uint8_vector(pctx, CONNECT_USER_NAME, Puint80, Plen);
 }
 
+int reset_connect_user_name(packet_ctx *pctx) {
+    return reset_value(pctx, CONNECT_USER_NAME);
+}
+
 //    uint8_t *password;
 int set_connect_password(packet_ctx *pctx, uint8_t *uint80, size_t len) {
     return set_vector(pctx, CONNECT_PASSWORD, uint80, len);
@@ -419,4 +527,8 @@ int set_connect_password(packet_ctx *pctx, uint8_t *uint80, size_t len) {
 
 int get_connect_password(packet_ctx *pctx, uint8_t **Puint80, size_t *Plen) {
     return get_uint8_vector(pctx, CONNECT_PASSWORD, Puint80, Plen);
+}
+
+int reset_connect_password(packet_ctx *pctx) {
+    return reset_value(pctx, CONNECT_PASSWORD);
 }

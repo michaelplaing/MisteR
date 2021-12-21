@@ -107,7 +107,7 @@ int get_string_pair_vector(packet_ctx *pctx, int index, string_pair **Psp0, size
     return rc;
 }
 
-int reset_header_value(packet_ctx *pctx, int index) {
+int reset_value(packet_ctx *pctx, int index) {
     mr_mdata *mdata = pctx->mdata0 + index;
     mdata->value = 0;
     mdata->exists = false;

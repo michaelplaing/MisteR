@@ -13,63 +13,119 @@ int get_connect_remaining_length(packet_ctx *pctx, uint32_t *Puint32);
 int get_connect_protocol_name(packet_ctx *pctx, uint8_t **Puint80, size_t *Plen);
 int get_connect_protocol_version(packet_ctx *pctx, uint8_t *Puint8);
 int get_connect_reserved(packet_ctx *pctx, bool *Pboolean);
+
 int set_connect_clean_start(packet_ctx *pctx, bool boolean);
+int reset_connect_clean_start(packet_ctx *pctx);
 int get_connect_clean_start(packet_ctx *pctx, bool *Pboolean);
-int set_connect_will_flag(packet_ctx *pctx, bool boolean);
+
 int get_connect_will_flag(packet_ctx *pctx, bool *Pboolean);
+
 int set_connect_will_qos(packet_ctx *pctx, uint8_t uint8);
+int reset_connect_will_qos(packet_ctx *pctx);
 int get_connect_will_qos(packet_ctx *pctx, uint8_t *Puint8);
+
 int set_connect_will_retain(packet_ctx *pctx, bool boolean);
+int reset_connect_will_retain(packet_ctx *pctx);
 int get_connect_will_retain(packet_ctx *pctx, bool *Pboolean);
+
 int set_connect_password_flag(packet_ctx *pctx, bool boolean);
+int reset_connect_password_flag(packet_ctx *pctx);
 int get_connect_password_flag(packet_ctx *pctx, bool *Pboolean);
+
 int set_connect_username_flag(packet_ctx *pctx, bool boolean);
+int reset_connect_username_flag(packet_ctx *pctx);
 int get_connect_username_flag(packet_ctx *pctx, bool *Pboolean);
+
 int set_connect_keep_alive(packet_ctx *pctx, uint16_t uint16);
+int reset_connect_keep_alive(packet_ctx *pctx);
 int get_connect_keep_alive(packet_ctx *pctx, uint16_t *Puint16);
+
 int get_connect_property_length(packet_ctx *pctx, uint32_t *Puint32);
+
 int set_connect_session_expiry(packet_ctx *pctx, uint32_t uint32);
+int reset_connect_session_expiry(packet_ctx *pctx);
 int get_connect_session_expiry(packet_ctx *pctx, uint32_t *Puint32);
+
 int set_connect_receive_maximum(packet_ctx *pctx, uint16_t uint16);
+int reset_connect_receive_maximum(packet_ctx *pctx);
 int get_connect_receive_maximum(packet_ctx *pctx, uint16_t *Puint16);
+
 int set_connect_maximum_packet_size(packet_ctx *pctx, uint32_t uint32);
+int reset_connect_maximum_packet_size(packet_ctx *pctx);
 int get_connect_maximum_packet_size(packet_ctx *pctx, uint32_t *Puint32);
+
 int set_connect_topic_alias_maximum(packet_ctx *pctx, uint16_t uint16);
+int reset_connect_topic_alias_maximum(packet_ctx *pctx);
 int get_connect_topic_alias_maximum(packet_ctx *pctx, uint16_t *Puint16);
+
 int set_connect_request_response_information(packet_ctx *pctx, uint8_t uint8);
+int reset_connect_request_response_information(packet_ctx *pctx);
 int get_connect_request_response_information(packet_ctx *pctx, uint8_t *Puint8);
+
 int set_connect_request_problem_information(packet_ctx *pctx, uint8_t uint8);
+int reset_connect_request_problem_information(packet_ctx *pctx);
 int get_connect_request_problem_information(packet_ctx *pctx, uint8_t *Puint8);
+
 int set_connect_user_properties(packet_ctx *pctx, string_pair *sp0, size_t len);
+int reset_connect_user_properties(packet_ctx *pctx);
 int get_connect_user_properties(packet_ctx *pctx, string_pair **Psp0, size_t *Plen);
+
 int set_connect_authentication_method(packet_ctx *pctx, uint8_t *uint80, size_t len);
+int reset_connect_authentication_method(packet_ctx *pctx);
 int get_connect_authentication_method(packet_ctx *pctx, uint8_t **Puint80, size_t *Plen);
+
 int set_connect_authentication_data(packet_ctx *pctx, uint8_t *uint80, size_t len);
+int reset_connect_authentication_data(packet_ctx *pctx);
 int get_connect_authentication_data(packet_ctx *pctx, uint8_t **Puint80, size_t *Plen);
+
 int set_connect_client_identifier(packet_ctx *pctx, uint8_t *uint80, size_t len);
+int reset_connect_client_identifier(packet_ctx *pctx);
 int get_connect_client_identifier(packet_ctx *pctx, uint8_t **Puint80, size_t *Plen);
+
 int get_will_property_length(packet_ctx *pctx, uint32_t *Puint32);
+
 int set_connect_will_delay_interval(packet_ctx *pctx, uint32_t uint32);
+int reset_connect_will_delay_interval(packet_ctx *pctx);
 int get_connect_will_delay_interval(packet_ctx *pctx, uint32_t *Puint32);
+
 int set_connect_payload_format_indicator(packet_ctx *pctx, uint8_t uint8);
+int reset_connect_payload_format_indicator(packet_ctx *pctx);
 int get_connect_payload_format_indicator(packet_ctx *pctx, uint8_t *Puint8);
+
 int set_connect_message_expiry_interval(packet_ctx *pctx, uint32_t uint32);
+int reset_connect_message_expiry_interval(packet_ctx *pctx);
 int get_connect_message_expiry_interval(packet_ctx *pctx, uint32_t *Puint32);
+
 int set_connect_content_type(packet_ctx *pctx, uint8_t *uint80, size_t len);
+int reset_connect_content_type(packet_ctx *pctx);
 int get_connect_content_type(packet_ctx *pctx, uint8_t **Puint80, size_t *Plen);
+
 int set_connect_response_topic(packet_ctx *pctx, uint8_t *uint80, size_t len);
+int reset_connect_response_topic(packet_ctx *pctx);
 int get_connect_response_topic(packet_ctx *pctx, uint8_t **Puint80, size_t *Plen);
+
 int set_connect_correlation_data(packet_ctx *pctx, uint8_t *uint80, size_t len);
+int reset_connect_correlation_data(packet_ctx *pctx);
 int get_connect_correlation_data(packet_ctx *pctx, uint8_t **Puint80, size_t *Plen);
+
 int set_connect_will_user_properties(packet_ctx *pctx, string_pair *sp0, size_t len);
+int reset_connect_will_user_properties(packet_ctx *pctx);
 int get_connect_will_user_properties(packet_ctx *pctx, string_pair **Psp0, size_t *Plen);
+
 int set_connect_will_topic(packet_ctx *pctx, uint8_t *uint80, size_t len);
+int reset_connect_will_topic(packet_ctx *pctx);
 int get_connect_will_topic(packet_ctx *pctx, uint8_t **Puint80, size_t *Plen);
+
 int set_connect_will_payload(packet_ctx *pctx, uint8_t *uint80, size_t len);
+int reset_connect_will_payload(packet_ctx *pctx);
 int get_connect_will_payload(packet_ctx *pctx, uint8_t **Puint80, size_t *Plen);
+
 int set_connect_user_name(packet_ctx *pctx, uint8_t *uint80, size_t len);
+int reset_connect_user_name(packet_ctx *pctx);
 int get_connect_user_name(packet_ctx *pctx, uint8_t **Puint80, size_t *Plen);
+
 int set_connect_password(packet_ctx *pctx, uint8_t *uint80, size_t len);
+int reset_connect_password(packet_ctx *pctx);
 int get_connect_password(packet_ctx *pctx, uint8_t **Puint80, size_t *Plen);
 
 typedef struct connect_values { // may or may not be useful
