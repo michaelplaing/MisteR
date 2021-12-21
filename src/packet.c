@@ -7,7 +7,7 @@
 
 #include "packet_internal.h"
 
-int set_scalar_value(packet_ctx *pctx, int index, Word_t value) {
+int set_scalar(packet_ctx *pctx, int index, Word_t value) {
     mr_mdata *mdata = pctx->mdata0 + index;
     mdata->value = value;
     mdata->exists = true;
@@ -29,43 +29,43 @@ int get_scalar_value(packet_ctx *pctx, int index, Word_t *Pvalue) {
     return rc;
 }
 
-int get_boolean_value(packet_ctx *pctx, int index, bool *Pboolean) {
+int get_boolean_scalar(packet_ctx *pctx, int index, bool *Pboolean) {
     Word_t value;
     int rc = get_scalar_value(pctx, index, &value);
     if (!rc) *Pboolean = (bool)value;
     return rc;
 }
 
-int get_uint8_value(packet_ctx *pctx, int index, uint8_t *Puint8) {
+int get_uint8_scalar(packet_ctx *pctx, int index, uint8_t *Puint8) {
     Word_t value;
     int rc = get_scalar_value(pctx, index, &value);
     if (!rc) *Puint8 = (uint8_t)value;
     return rc;
 }
 
-int get_uint16_value(packet_ctx *pctx, int index, uint16_t *Puint16) {
+int get_uint16_scalar(packet_ctx *pctx, int index, uint16_t *Puint16) {
     Word_t value;
     int rc = get_scalar_value(pctx, index, &value);
     if (!rc) *Puint16 = (uint16_t)value;
     return rc;
 }
 
-int get_uint32_value(packet_ctx *pctx, int index, uint32_t *Puint32) {
+int get_uint32_scalar(packet_ctx *pctx, int index, uint32_t *Puint32) {
     Word_t value;
     int rc = get_scalar_value(pctx, index, &value);
     if (!rc) *Puint32 = (uint32_t)value;
     return rc;
 }
 
-int set_vector_pointer(packet_ctx *pctx, int index, Word_t value, size_t len) {
+int set_vector(packet_ctx *pctx, int index, void *pointer, size_t len) {
     mr_mdata *mdata = pctx->mdata0 + index;
-    mdata->value = value;
+    mdata->value = (Word_t)pointer;
     mdata->exists = true;
     mdata->vlen = len;
     return 0;
 }
 
-int get_vector_pointer(packet_ctx *pctx, int index, Word_t *Ppointer, size_t *Plen) {
+int get_vector(packet_ctx *pctx, int index, Word_t *Ppointer, size_t *Plen) {
     int rc;
     mr_mdata *mdata = pctx->mdata0 + index;
 
@@ -81,26 +81,26 @@ int get_vector_pointer(packet_ctx *pctx, int index, Word_t *Ppointer, size_t *Pl
     return rc;
 }
 
-int get_uint8_pointer(packet_ctx *pctx, int index, uint8_t **Puint8P, size_t *Plen) {
+int get_uint8_vector(packet_ctx *pctx, int index, uint8_t **Puint80, size_t *Plen) {
     Word_t pointer;
     size_t len;
-    int rc = get_vector_pointer(pctx, index, &pointer, &len);
+    int rc = get_vector(pctx, index, &pointer, &len);
 
     if (!rc) {
-        *Puint8P = (uint8_t *)pointer;
+        *Puint80 = (uint8_t *)pointer;
         *Plen = len;
     }
 
     return rc;
 }
 
-int get_string_pair_pointer(packet_ctx *pctx, int index, string_pair **Psp0P, size_t *Plen) {
+int get_string_pair_vector(packet_ctx *pctx, int index, string_pair **Psp0, size_t *Plen) {
     Word_t pointer;
     size_t len;
-    int rc = get_vector_pointer(pctx, index, &pointer, &len);
+    int rc = get_vector(pctx, index, &pointer, &len);
 
     if (!rc) {
-        *Psp0P = (string_pair *)pointer;
+        *Psp0 = (string_pair *)pointer;
         *Plen = len;
     }
 

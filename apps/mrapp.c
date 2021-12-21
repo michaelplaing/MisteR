@@ -95,43 +95,40 @@ void mrConnectCallback(redisAsyncContext *rctx, void *reply_void, void *private_
 void mr_send_connect(redisAsyncContext *rctx) {
     packet_ctx *pctx;
     int rc = init_connect_pctx(&pctx);
-    // set_scalar_value(pctx, "clean_start", true);
     set_connect_clean_start(pctx, true);
     bool clean_start;
     get_connect_clean_start(pctx, &clean_start);
     printf("get_clean_start: %u\n", clean_start);
-    // set_scalar_value(pctx, "will_qos", 3);
-    // set_scalar_value(pctx, "session_expiry", 42);
     string_pair foobar = {(uint8_t *)"fool", (uint8_t *)"barr"};
     string_pair sp0[] = {foobar, foobar};
     size_t sp_count = sizeof(sp0) / sizeof(string_pair);
-    // set_vector_value(pctx, "user_properties", (Word_t)sps, 2);
     set_connect_user_properties(pctx, sp0, sp_count);
     string_pair *mysp0;
-    size_t mysp0len;
-    rc = get_connect_user_properties(pctx, &mysp0, &mysp0len);
+    size_t myspvlen;
+    rc = get_connect_user_properties(pctx, &mysp0, &myspvlen);
 
     if (!rc) {
+        string_pair *mysp = mysp0;
         printf("user_properties:\n");
-        for (int i = 0; i < mysp0len; i++, mysp0++) {
-            printf("  name: %s; value: %s\n", mysp0->name, mysp0->value);
+
+        for (int i = 0; i < myspvlen; i++, mysp++) {
+            printf("  name: %s; value: %s\n", mysp->name, mysp->value);
         }
     }
 
     uint8_t bambaz[] = {0x01, 0x02};
-    // set_vector_value(pctx, "authentication_data", (Word_t)bambaz, 2);
     set_connect_authentication_data(pctx, bambaz, sizeof(bambaz));
-    uint8_t *myauth;
-    size_t myauthlen;
-    rc = get_connect_authentication_data(pctx, &myauth, &myauthlen);
+    uint8_t *myauth0;
+    size_t myauthvlen;
+    rc = get_connect_authentication_data(pctx, &myauth0, &myauthvlen);
 
     if (!rc) {
+        uint8_t *myauth = myauth0;
         printf("authentication_data:");
-        for (int i = 0; i < myauthlen; i++, myauth++) printf(" %02hhX", *myauth);
+        for (int i = 0; i < myauthvlen; i++) printf(" %02hhX", *myauth++);
         puts("\n");
     }
 
-    // set_scalar_value(pctx, "client_identifier", (Word_t)"Snoopy");
     pack_connect_buffer(pctx);
 
     printf("Connect Buf:");
@@ -148,10 +145,12 @@ void mr_send_connect(redisAsyncContext *rctx) {
     rc = get_connect_remaining_length(pctx, &remlen);
     printf("remaining_length: rc: %d; remlen: %u\n", rc, remlen);
 
-    uint8_t *proto_nm = NULL; size_t protolen = 0;
-    rc = get_connect_protocol_name(pctx, &proto_nm, &protolen);
-    printf("protocol_name: rc: %d; len: %lu; bytes:", rc, protolen);
-    for (int i = 0; i < protolen; i++) printf(" %02hhX", *proto_nm++);
+    uint8_t *proto_nm0;
+    size_t protovlen;
+    rc = get_connect_protocol_name(pctx, &proto_nm0, &protovlen);
+    uint8_t *proto_nm = proto_nm0;
+    printf("protocol_name: rc: %d; len: %lu; bytes:", rc, protovlen);
+    for (int i = 0; i < protovlen; i++) printf(" %02hhX", *proto_nm++);
     printf("\n");
 
     free_connect_pctx(pctx);
