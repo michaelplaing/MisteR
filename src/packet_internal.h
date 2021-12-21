@@ -61,6 +61,6 @@ int unpack_VBI(packet_ctx *pctx, mr_mdata *mdata);
 
 int pack_char_buf(packet_ctx *pctx, mr_mdata *mdata);
 int pack_flags_alloc(packet_ctx *pctx, mr_mdata *mdata);
-int pack_in_parent(packet_ctx *pctx, mr_mdata *mdata);
+int pack_in_link(packet_ctx *pctx, mr_mdata *mdata);
 
 #endif // PACK_INTERNAL_H

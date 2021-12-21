@@ -482,7 +482,7 @@ const uint8_t BIT_MASKS[] = {
 };
 
 //  get the link (parent) mdata, reset bit(s) and set if value is non-zero
-int pack_in_parent(packet_ctx *pctx, mr_mdata *mdata) {
+int pack_in_link(packet_ctx *pctx, mr_mdata *mdata) {
     mr_mdata *link_mdata = pctx->mdata0 + mdata->link;
     *link_mdata->buf = *link_mdata->buf & ~(BIT_MASKS[mdata->vlen] << mdata->bitpos);
 
