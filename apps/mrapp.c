@@ -96,6 +96,7 @@ void mr_send_connect(redisAsyncContext *rctx) {
     packet_ctx *pctx;
     int rc = mr_init_connect_pctx(&pctx);
     mr_set_connect_clean_start(pctx, true);
+    mr_set_connect_will_qos(pctx, 3);
     bool clean_start;
     mr_get_connect_clean_start(pctx, &clean_start);
     printf("get_clean_start: %u\n", clean_start);
@@ -137,9 +138,9 @@ void mr_send_connect(redisAsyncContext *rctx) {
 
     mr_unpack_connect_u8v0(pctx);
 
-    uint8_t ptype = 0;
-    rc = mr_get_connect_packet_type(pctx, &ptype);
-    printf("packet_type: rc: %d; ptype: %u\n", rc, ptype);
+    uint8_t type = 0;
+    rc = mr_get_connect_packet_type(pctx, &type);
+    printf("packet_type: rc: %d; type: %u\n", rc, type);
 
     uint32_t remlen = 0;
     rc = mr_get_connect_remaining_length(pctx, &remlen);
@@ -152,6 +153,17 @@ void mr_send_connect(redisAsyncContext *rctx) {
     printf("protocol_name: rc: %d; len: %lu; bytes:", rc, protovlen);
     for (int i = 0; i < protovlen; i++) printf(" %02hhX", *pproto_nm++);
     printf("\n");
+
+    uint8_t version = 0;
+    rc = mr_get_connect_protocol_version(pctx, &version);
+    printf("protocol_version: rc: %d; version: %u\n", rc, version);
+
+    mr_get_connect_clean_start(pctx, &clean_start);
+    printf("get_clean_start: %u\n", clean_start);
+
+    uint8_t will_qos;
+    mr_get_connect_will_qos(pctx, &will_qos);
+    printf("get_will_qos: %u\n", will_qos);
 
     mr_free_connect_pctx(pctx);
 }

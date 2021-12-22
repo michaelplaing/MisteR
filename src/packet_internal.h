@@ -61,5 +61,6 @@ int mr_unpack_VBI(packet_ctx *pctx, mr_mdata *mdata);
 int mr_pack_u8v(packet_ctx *pctx, mr_mdata *mdata);
 int mr_unpack_u8v(packet_ctx *pctx, mr_mdata *mdata);
 int mr_pack_bits(packet_ctx *pctx, mr_mdata *mdata);
+int mr_unpack_bits(packet_ctx *pctx, mr_mdata *mdata);
 
 #endif // PACK_INTERNAL_H

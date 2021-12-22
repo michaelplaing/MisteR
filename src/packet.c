@@ -275,6 +275,7 @@ int mr_pack_u8(packet_ctx *pctx, mr_mdata *mdata) {
 
 int mr_unpack_u8(packet_ctx *pctx, mr_mdata *mdata) {
     //if (!pctx->isalloc || pctx->pos >= pctx->len) return 0;
+    mdata->exists = true;
     mdata->vlen = 1;
     mdata->value = pctx->u8v0[pctx->pos++];
     return 0;
@@ -482,7 +483,11 @@ int mr_pack_u8v(packet_ctx *pctx, mr_mdata *mdata) { // do not allocate
     return 0;
 }
 
-int mr_unpack_u8v(packet_ctx *pctx, mr_mdata *mdata){
+int mr_unpack_u8v(packet_ctx *pctx, mr_mdata *mdata) {
+    mdata->exists = true;
+    mdata->vlen = mdata->u8vlen;
+    mdata->value = (Word_t)(mdata->u8v0 + pctx->pos);
+    pctx->pos += mdata->u8vlen;
     return 0;
 }
 
@@ -501,5 +506,11 @@ int mr_pack_bits(packet_ctx *pctx, mr_mdata *mdata) {
         *link_mdata->u8v0 = *link_mdata->u8v0 | (u8 << mdata->bitpos);
     }
 
+    return 0;
+}
+
+int mr_unpack_bits(packet_ctx *pctx, mr_mdata *mdata) { // don't advance pctx->pos
+    mdata->exists = true;
+    mdata->value = pctx->u8v0[pctx->pos] >> mdata->bitpos & BIT_MASKS[mdata->vlen];
     return 0;
 }
