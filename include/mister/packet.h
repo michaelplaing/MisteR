@@ -1,14 +1,14 @@
 #ifndef PACK_H
 #define PACK_H
 
-// expect either 32-bit or 64-bit words 
+// expect either 32-bit or 64-bit words
 // to be cast as pointer or whatever fits
 typedef unsigned long Word_t;
 
 struct mr_mdata;
 
 typedef struct packet_ctx {
-    uint8_t *buf;
+    uint8_t *u8v0;
     bool isalloc;
     size_t len;
     size_t pos;

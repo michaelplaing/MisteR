@@ -14,53 +14,52 @@ typedef struct mr_mdata {
     size_t vlen;    // for sub-byte values, pointer values, vectors & VBIs
     bool exists;    // for properties
     uint8_t id;     // for properties
-    bool isalloc;   // is buf allocated
-    size_t blen;
-    uint8_t *buf;   // packed value
+    bool isalloc;   // is uint80 allocated
+    size_t u8vlen;
+    uint8_t *u8v0;// packed value
 } mr_mdata;
 
-int init_packet_context(
-    packet_ctx **Ppctx, const mr_mdata *MDATA_TEMPLATE, size_t mdata_count
+int mr_init_packet_context(
+    packet_ctx **ppctx, const mr_mdata *MDATA_TEMPLATE, size_t mdata_count
 );
 
-int free_packet_context(packet_ctx *pctx);
+int mr_free_packet_context(packet_ctx *pctx);
 
-int set_scalar(packet_ctx *pctx, int index, Word_t value);
+int mr_set_scalar(packet_ctx *pctx, int index, Word_t value);
 
-int get_boolean_scalar(packet_ctx *pctx, int index, bool *Pboolean);
-int get_uint8_scalar(packet_ctx *pctx, int index, uint8_t *Puint8);
-int get_uint16_scalar(packet_ctx *pctx, int index, uint16_t *Puint16);
-int get_uint32_scalar(packet_ctx *pctx, int index, uint32_t *Puint32);
+int mr_get_boolean(packet_ctx *pctx, int index, bool *pboolean);
+int mr_get_u8(packet_ctx *pctx, int index, uint8_t *pu8);
+int mr_get_u16(packet_ctx *pctx, int index, uint16_t *pu16);
+int mr_get_u32(packet_ctx *pctx, int index, uint32_t *pu32);
 
-int set_vector(packet_ctx *pctx, int index, void *pointer, size_t len);
+int mr_set_vector(packet_ctx *pctx, int index, void *pvoid, size_t len);
 
-int get_uint8_vector(packet_ctx *pctx, int index, uint8_t **Puint80, size_t *Plen);
-int get_string_pair_vector(packet_ctx *pctx, int index, string_pair **Psp0, size_t *Plen);
+int mr_get_u8v(packet_ctx *pctx, int index, uint8_t **pu8v0, size_t *plen);
+int mr_get_spv(packet_ctx *pctx, int index, string_pair **pspv0, size_t *plen);
 
-int reset_value(packet_ctx *pctx, int index);
+int mr_reset_value(packet_ctx *pctx, int index);
 
-int pack_mdata_buffer(packet_ctx *pctx);
-int unpack_mdata_buffer(packet_ctx *pctx);
+int mr_pack_mdata_u8v(packet_ctx *pctx);
+int mr_unpack_mdata_u8v(packet_ctx *pctx);
 
-int pack_uint8(packet_ctx *pctx, mr_mdata *mdata);
-int unpack_uint8(packet_ctx *pctx, mr_mdata *mdata);
+int mr_pack_u8(packet_ctx *pctx, mr_mdata *mdata);
+int mr_unpack_u8(packet_ctx *pctx, mr_mdata *mdata);
 
-int pack_uint16(packet_ctx *pctx, mr_mdata *mdata);
-int pack_uint32(packet_ctx *pctx, mr_mdata *mdata);
-int pack_sprop_uint8(packet_ctx *pctx, mr_mdata *mdata);
-int pack_sprop_uint16(packet_ctx *pctx, mr_mdata *mdata);
-int pack_sprop_uint32(packet_ctx *pctx, mr_mdata *mdata);
-int pack_sprop_char_buf(packet_ctx *pctx, mr_mdata *mdata);
-int pack_mprop_strpair(packet_ctx *pctx, mr_mdata *mdata);
-int pack_str(packet_ctx *pctx, mr_mdata *mdata);
-int pack_sprop_str(packet_ctx *pctx, mr_mdata *mdata);
+int mr_pack_u16(packet_ctx *pctx, mr_mdata *mdata);
+int mr_pack_u32(packet_ctx *pctx, mr_mdata *mdata);
+int mr_pack_prop_u8(packet_ctx *pctx, mr_mdata *mdata);
+int mr_pack_prop_u16(packet_ctx *pctx, mr_mdata *mdata);
+int mr_pack_prop_u32(packet_ctx *pctx, mr_mdata *mdata);
+int mr_pack_prop_u8v(packet_ctx *pctx, mr_mdata *mdata);
+int mr_pack_prop_spv(packet_ctx *pctx, mr_mdata *mdata);
+int mr_pack_str(packet_ctx *pctx, mr_mdata *mdata);
+int mr_pack_prop_str(packet_ctx *pctx, mr_mdata *mdata);
 
-int make_VBI(uint32_t val32, uint8_t *buf);
-int pack_VBI(packet_ctx *pctx, mr_mdata *mdata);
-int unpack_VBI(packet_ctx *pctx, mr_mdata *mdata);
+int mr_pack_VBI(packet_ctx *pctx, mr_mdata *mdata);
+int mr_unpack_VBI(packet_ctx *pctx, mr_mdata *mdata);
 
-int pack_char_buf(packet_ctx *pctx, mr_mdata *mdata);
-int pack_flags_alloc(packet_ctx *pctx, mr_mdata *mdata);
-int pack_in_link(packet_ctx *pctx, mr_mdata *mdata);
+int mr_pack_u8v(packet_ctx *pctx, mr_mdata *mdata);
+int mr_unpack_u8v(packet_ctx *pctx, mr_mdata *mdata);
+int mr_pack_bits(packet_ctx *pctx, mr_mdata *mdata);
 
 #endif // PACK_INTERNAL_H
