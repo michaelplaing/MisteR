@@ -119,7 +119,7 @@ int mr_reset_value(packet_ctx *pctx, int index) {
 //  into its allocated buffer using its packing function
 //  then allocate pctx->u8v0 and catenate mdata buffers in it
 //  free each mdata buffer if allocated
-int mr_pack_mdata_u8v(packet_ctx *pctx) {
+int mr_pack_mdata_u8v0(packet_ctx *pctx) {
     mr_mdata *mdata = pctx->mdata0 + pctx->mdata_count - 1;
 
     for (int i = pctx->mdata_count - 1; i > -1; mdata--, i--) {
@@ -149,7 +149,7 @@ int mr_pack_mdata_u8v(packet_ctx *pctx) {
     return 0;
 }
 
-int mr_unpack_mdata_u8v(packet_ctx *pctx) {
+int mr_unpack_mdata_u8v0(packet_ctx *pctx) {
     mr_mdata *mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
         if (mdata->unpack_fn) mdata->unpack_fn(pctx, mdata);

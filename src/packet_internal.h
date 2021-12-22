@@ -39,8 +39,8 @@ int mr_get_spv(packet_ctx *pctx, int index, string_pair **pspv0, size_t *plen);
 
 int mr_reset_value(packet_ctx *pctx, int index);
 
-int mr_pack_mdata_u8v(packet_ctx *pctx);
-int mr_unpack_mdata_u8v(packet_ctx *pctx);
+int mr_pack_mdata_u8v0(packet_ctx *pctx);
+int mr_unpack_mdata_u8v0(packet_ctx *pctx);
 
 int mr_pack_u8(packet_ctx *pctx, mr_mdata *mdata);
 int mr_unpack_u8(packet_ctx *pctx, mr_mdata *mdata);

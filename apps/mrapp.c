@@ -94,66 +94,66 @@ void mrConnectCallback(redisAsyncContext *rctx, void *reply_void, void *private_
 
 void mr_send_connect(redisAsyncContext *rctx) {
     packet_ctx *pctx;
-    int rc = init_connect_pctx(&pctx);
-    set_connect_clean_start(pctx, true);
+    int rc = mr_init_connect_pctx(&pctx);
+    mr_set_connect_clean_start(pctx, true);
     bool clean_start;
-    get_connect_clean_start(pctx, &clean_start);
+    mr_get_connect_clean_start(pctx, &clean_start);
     printf("get_clean_start: %u\n", clean_start);
     string_pair foobar = {(uint8_t *)"fool", (uint8_t *)"barr"};
-    string_pair sp0[] = {foobar, foobar};
-    size_t sp_count = sizeof(sp0) / sizeof(string_pair);
-    set_connect_user_properties(pctx, sp0, sp_count);
-    string_pair *mysp0;
+    string_pair spv0[] = {foobar, foobar};
+    size_t sp_count = sizeof(spv0) / sizeof(string_pair);
+    mr_set_connect_user_properties(pctx, spv0, sp_count);
+    string_pair *myspv0;
     size_t myspvlen;
-    rc = get_connect_user_properties(pctx, &mysp0, &myspvlen);
+    rc = mr_get_connect_user_properties(pctx, &myspv0, &myspvlen);
 
     if (!rc) {
-        string_pair *mysp = mysp0;
+        string_pair *pmysp = myspv0;
         printf("user_properties:\n");
 
-        for (int i = 0; i < myspvlen; i++, mysp++) {
-            printf("  name: %s; value: %s\n", mysp->name, mysp->value);
+        for (int i = 0; i < myspvlen; i++, pmysp++) {
+            printf("  name: %s; value: %s\n", pmysp->name, pmysp->value);
         }
     }
 
     uint8_t bambaz[] = {0x01, 0x02};
-    set_connect_authentication_data(pctx, bambaz, sizeof(bambaz));
-    uint8_t *myauth0;
+    mr_set_connect_authentication_data(pctx, bambaz, sizeof(bambaz));
+    uint8_t *myauthv0;
     size_t myauthvlen;
-    rc = get_connect_authentication_data(pctx, &myauth0, &myauthvlen);
+    rc = mr_get_connect_authentication_data(pctx, &myauthv0, &myauthvlen);
 
     if (!rc) {
-        uint8_t *myauth = myauth0;
+        uint8_t *pmyauth = myauthv0;
         printf("authentication_data:");
-        for (int i = 0; i < myauthvlen; i++) printf(" %02hhX", *myauth++);
+        for (int i = 0; i < myauthvlen; i++) printf(" %02hhX", *pmyauth++);
         puts("\n");
     }
 
-    pack_connect_buffer(pctx);
+    mr_pack_connect_u8v0(pctx);
 
     printf("Connect Buf:");
     for (int i = 0; i < pctx->len; i++) printf(" %02hhX", pctx->u8v0[i]);
     printf("\n");
 
-    unpack_connect_buffer(pctx);
+    mr_unpack_connect_u8v0(pctx);
 
     uint8_t ptype = 0;
-    rc = get_connect_packet_type(pctx, &ptype);
+    rc = mr_get_connect_packet_type(pctx, &ptype);
     printf("packet_type: rc: %d; ptype: %u\n", rc, ptype);
 
     uint32_t remlen = 0;
-    rc = get_connect_remaining_length(pctx, &remlen);
+    rc = mr_get_connect_remaining_length(pctx, &remlen);
     printf("remaining_length: rc: %d; remlen: %u\n", rc, remlen);
 
-    uint8_t *proto_nm0;
+    uint8_t *proto_nmv0;
     size_t protovlen;
-    rc = get_connect_protocol_name(pctx, &proto_nm0, &protovlen);
-    uint8_t *proto_nm = proto_nm0;
+    rc = mr_get_connect_protocol_name(pctx, &proto_nmv0, &protovlen);
+    uint8_t *pproto_nm = proto_nmv0;
     printf("protocol_name: rc: %d; len: %lu; bytes:", rc, protovlen);
-    for (int i = 0; i < protovlen; i++) printf(" %02hhX", *proto_nm++);
+    for (int i = 0; i < protovlen; i++) printf(" %02hhX", *pproto_nm++);
     printf("\n");
 
-    free_connect_pctx(pctx);
+    mr_free_connect_pctx(pctx);
 }
 
 int main(void) {
