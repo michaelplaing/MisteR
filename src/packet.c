@@ -514,3 +514,8 @@ int mr_unpack_bits(packet_ctx *pctx, mr_mdata *mdata) { // don't advance pctx->p
     mdata->value = pctx->u8v0[pctx->pos] >> mdata->bitpos & BIT_MASKS[mdata->vlen];
     return 0;
 }
+
+int mr_unpack_noop(packet_ctx *pctx, mr_mdata *mdata) { // now advance
+    pctx->pos++;
+    return 0;
+}

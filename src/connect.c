@@ -44,14 +44,14 @@ const mr_mdata CONNECT_MDATA_TEMPLATE[] = {
     {"username_flag",       CONNECT_USERNAME_FLAG,      CONNECT_FLAGS,
         mr_pack_bits,       mr_unpack_bits,     0,              7,      1,      true,   NA,     false,  0,      NULL},
     {"flags",               CONNECT_FLAGS,              0, // not in protocol - used for allocation of bits
-        mr_pack_u8,         NULL,               NA,             NA,     1,      true,   NA,     false,  0,      NULL},
+        mr_pack_u8,         mr_unpack_noop,     NA,             NA,     1,      true,   NA,     false,  0,      NULL},
     {"keep_alive",          CONNECT_KEEP_ALIVE,         0,
-        mr_pack_u16,        NULL,               0,              NA,     NA,     true,   NA,     false,  0,      NULL},
+        mr_pack_u16,        mr_unpack_u16,      0,              NA,     NA,     true,   NA,     false,  0,      NULL},
 //  Variable Header Properties
 //   name                   index                       link
 //      pack_fn             unpack_fn           value           bitpos  vlen    exists  id      isalloc u8vlen  u8v0
     {"property_length",     CONNECT_PROPERTY_LENGTH,    CONNECT_AUTHENTICATION_DATA,
-        mr_pack_VBI,        NULL,               0,              NA,     0,      true,   NA,     false,  0,      NULL},
+        mr_pack_VBI,        mr_unpack_VBI,      0,              NA,     0,      true,   NA,     false,  0,      NULL},
     {"session_expiry",      CONNECT_SESSION_EXPIRY,     0,
         mr_pack_prop_u32,   NULL,               0,              NA,     NA,     false,  0x11,   false,  0,      NULL},
     {"receive_maximum",     CONNECT_RECEIVE_MAXIMUM,    0,

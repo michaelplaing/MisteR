@@ -46,6 +46,8 @@ int mr_pack_u8(packet_ctx *pctx, mr_mdata *mdata);
 int mr_unpack_u8(packet_ctx *pctx, mr_mdata *mdata);
 
 int mr_pack_u16(packet_ctx *pctx, mr_mdata *mdata);
+int mr_unpack_u16(packet_ctx *pctx, mr_mdata *mdata);
+
 int mr_pack_u32(packet_ctx *pctx, mr_mdata *mdata);
 int mr_pack_prop_u8(packet_ctx *pctx, mr_mdata *mdata);
 int mr_pack_prop_u16(packet_ctx *pctx, mr_mdata *mdata);
@@ -62,5 +64,6 @@ int mr_pack_u8v(packet_ctx *pctx, mr_mdata *mdata);
 int mr_unpack_u8v(packet_ctx *pctx, mr_mdata *mdata);
 int mr_pack_bits(packet_ctx *pctx, mr_mdata *mdata);
 int mr_unpack_bits(packet_ctx *pctx, mr_mdata *mdata);
+int mr_unpack_noop(packet_ctx *pctx, mr_mdata *mdata);
 
 #endif // PACK_INTERNAL_H
