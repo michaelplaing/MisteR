@@ -9,22 +9,55 @@
 #include <stdbool.h>
 #include <string.h>
 
-/* Message types */
-#define CMD_CONNECT         0x10U
-#define CMD_CONNACK         0x20U
-#define CMD_PUBLISH         0x30U
-#define CMD_PUBACK          0x40U
-#define CMD_PUBREC          0x50U
-#define CMD_PUBREL          0x60U
-#define CMD_PUBCOMP         0x70U
-#define CMD_SUBSCRIBE       0x80U
-#define CMD_SUBACK          0x90U
-#define CMD_UNSUBSCRIBE     0xA0U
-#define CMD_UNSUBACK        0xB0U
-#define CMD_PINGREQ         0xC0U
-#define CMD_PINGRESP        0xD0U
-#define CMD_DISCONNECT      0xE0U
-#define CMD_AUTH            0xF0U
+enum mqtt_packet_type {
+    MQTT_CONNECT        = 0x10U,
+    MQTT_CONNACK        = 0x20U,
+    MQTT_PUBLISH        = 0x30U,
+    MQTT_PUBACK         = 0x40U,
+    MQTT_PUBREC         = 0x50U,
+    MQTT_PUBREL         = 0x60U,
+    MQTT_PUBCOMP        = 0x70U,
+    MQTT_SUBSCRIBE      = 0x80U,
+    MQTT_SUBACK         = 0x90U,
+    MQTT_UNSUBSCRIBE    = 0xA0U,
+    MQTT_UNSUBACK       = 0xB0U,
+    MQTT_PINGREQ        = 0xC0U,
+    MQTT_PINGRESP       = 0xD0U,
+    MQTT_DISCONNECT     = 0xE0U,
+    MQTT_AUTH           = 0xF0U
+};
+
+/* copied from mosqitto & spec */
+enum mqtt_property {
+    MQTT_PROP_PAYLOAD_FORMAT_INDICATOR = 1,		/* Byte :				PUBLISH, Will Properties */
+    MQTT_PROP_MESSAGE_EXPIRY_INTERVAL = 2,		/* 4 byte int :			PUBLISH, Will Properties */
+    MQTT_PROP_CONTENT_TYPE = 3,					/* UTF-8 string :		PUBLISH, Will Properties */
+    MQTT_PROP_RESPONSE_TOPIC = 8,				/* UTF-8 string :		PUBLISH, Will Properties */
+    MQTT_PROP_CORRELATION_DATA = 9,				/* Binary Data :		PUBLISH, Will Properties */
+    MQTT_PROP_SUBSCRIPTION_IDENTIFIER = 11,		/* Variable byte int :	PUBLISH, SUBSCRIBE */
+    MQTT_PROP_SESSION_EXPIRY_INTERVAL = 17,		/* 4 byte int :			CONNECT, CONNACK, DISCONNECT */
+    MQTT_PROP_ASSIGNED_CLIENT_IDENTIFIER = 18,	/* UTF-8 string :		CONNACK */
+    MQTT_PROP_SERVER_KEEP_ALIVE = 19,			/* 2 byte int :			CONNACK */
+    MQTT_PROP_AUTHENTICATION_METHOD = 21,		/* UTF-8 string :		CONNECT, CONNACK, AUTH */
+    MQTT_PROP_AUTHENTICATION_DATA = 22,			/* Binary Data :		CONNECT, CONNACK, AUTH */
+    MQTT_PROP_REQUEST_PROBLEM_INFORMATION = 23,	/* Byte :				CONNECT */
+    MQTT_PROP_WILL_DELAY_INTERVAL = 24,			/* 4 byte int :			Will properties */
+    MQTT_PROP_REQUEST_RESPONSE_INFORMATION = 25,/* Byte :				CONNECT */
+    MQTT_PROP_RESPONSE_INFORMATION = 26,		/* UTF-8 string :		CONNACK */
+    MQTT_PROP_SERVER_REFERENCE = 28,			/* UTF-8 string :		CONNACK, DISCONNECT */
+    MQTT_PROP_REASON_STRING = 31,				/* UTF-8 string :		All except Will properties */
+    MQTT_PROP_RECEIVE_MAXIMUM = 33,				/* 2 byte int :			CONNECT, CONNACK */
+    MQTT_PROP_TOPIC_ALIAS_MAXIMUM = 34,			/* 2 byte int :			CONNECT, CONNACK */
+    MQTT_PROP_TOPIC_ALIAS = 35,					/* 2 byte int :			PUBLISH */
+    MQTT_PROP_MAXIMUM_QOS = 36,					/* Byte :				CONNACK */
+    MQTT_PROP_RETAIN_AVAILABLE = 37,			/* Byte :				CONNACK */
+    MQTT_PROP_USER_PROPERTY = 38,				/* UTF-8 string pair :	All */
+    MQTT_PROP_MAXIMUM_PACKET_SIZE = 39,			/* 4 byte int :			CONNECT, CONNACK */
+    MQTT_PROP_WILDCARD_SUB_AVAILABLE = 40,		/* Byte :				CONNACK */
+    MQTT_PROP_SUBSCRIPTION_ID_AVAILABLE = 41,	/* Byte :				CONNACK */
+    MQTT_PROP_SHARED_SUB_AVAILABLE = 42,		/* Byte :				CONNACK */
+};
+
 
 /* MisteR Commands understood by the Redis mister module */
 #define MR_CONNECT          "mr.connect"
@@ -42,22 +75,5 @@
 #define MR_PINGRESP         "mr.pingresp"
 #define MR_DISCONNECT       "mr.disconnect"
 #define MR_AUTH             "mr.auth"
-
-/* Message types */
-#define CMD_CONNECT         0x10U
-#define CMD_CONNACK         0x20U
-#define CMD_PUBLISH         0x30U
-#define CMD_PUBACK          0x40U
-#define CMD_PUBREC          0x50U
-#define CMD_PUBREL          0x60U
-#define CMD_PUBCOMP         0x70U
-#define CMD_SUBSCRIBE       0x80U
-#define CMD_SUBACK          0x90U
-#define CMD_UNSUBSCRIBE     0xA0U
-#define CMD_UNSUBACK        0xB0U
-#define CMD_PINGREQ         0xC0U
-#define CMD_PINGRESP        0xD0U
-#define CMD_DISCONNECT      0xE0U
-#define CMD_AUTH            0xF0U
 
 #endif /* MISTER_H */

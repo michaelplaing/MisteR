@@ -154,7 +154,7 @@ int mr_pack_mdata_u8v0(packet_ctx *pctx) {
 int mr_unpack_mdata_u8v0(packet_ctx *pctx) {
     mr_mdata *mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
-        if (mdata->unpack_fn) mdata->unpack_fn(pctx, mdata);
+        if (mdata->unpack_fn && !mdata->isprop) mdata->unpack_fn(pctx, mdata);
     }
 
     return 0;
@@ -219,38 +219,31 @@ int mr_pack_VBI(packet_ctx *pctx, mr_mdata *mdata) {
     mdata->isalloc = true;
     mdata->u8v0 = u8v0;
     memcpy(mdata->u8v0, u8v, mdata->u8vlen);
+
     return 0;
 }
 
 int mr_unpack_VBI(packet_ctx *pctx, mr_mdata *mdata) {
     uint32_t u32;
     int rc = mr_get_VBI(&u32, pctx->u8v0 + pctx->pos);
+    if (rc < 0) return rc;
 
-    if (rc > 0) {
-        mdata->value = u32;
-        mdata->vlen = rc;
-        mdata->exists = true;
-        pctx->pos += rc;
-        rc = 0;
-    }
+    mdata->value = u32;
+    mdata->vlen = rc;
+    mdata->exists = true;
+    pctx->pos += rc;
+    pctx->limit = pctx->pos + u32;
 
-    return rc;
+    return 0;
  }
 
 int mr_free_packet_context(packet_ctx *pctx) {
-    mr_mdata *mdata;
-    Word_t bytes_freed;
-
-    //  free mdata buffers
-    for (int i = 0; i < pctx->mdata_count; i++) {
-        mdata = pctx->mdata0 + i;
+    mr_mdata *mdata = pctx->mdata0;
+    for (int i = 0; i < pctx->mdata_count; i++, mdata++) {
         if (mdata->isalloc) free(mdata->u8v0);
     }
 
-    //  free packet buffer
     if (pctx->isalloc) free(pctx->u8v0);
-
-    // free pack context
     free(pctx);
 
     return 0;
@@ -262,6 +255,7 @@ int mr_init_packet_context(packet_ctx **ppctx, const mr_mdata *MDATA_TEMPLATE, s
     mr_mdata *mdata0 = calloc(pctx->mdata_count, sizeof(mr_mdata));
     //  copy template
     for (int i = 0; i < pctx->mdata_count; i++) mdata0[i] = MDATA_TEMPLATE[i];
+    pctx->mqtt_packet_type = mdata0->value; // always the value of the 0th mdata row
     pctx->mdata0 = mdata0;
     *ppctx = pctx;
     return 0;
@@ -380,6 +374,18 @@ int mr_pack_prop_u32(packet_ctx *pctx, mr_mdata *mdata) {
     return 0;
 }
 
+int mr_unpack_prop_u32(packet_ctx *pctx, mr_mdata *mdata) {
+    uint8_t *u8v = pctx->u8v0 + pctx->pos;
+    if (*u8v != mdata->id) return 0;
+    pctx->pos++; u8v++;
+    mdata->vlen = 5;
+    uint32_t u32v[] = {u8v[0], u8v[1], u8v[2], u8v[3]};
+    mdata->value = (u32v[0] << 24) + (u32v[1] << 16) + (u32v[2] << 8) + u32v[3];
+    mdata->exists = true;
+    pctx->pos += 4;
+    return 1;
+}
+
 int mr_pack_str(packet_ctx *pctx, mr_mdata *mdata) {
     if (!mdata->exists) return 0;
 
@@ -476,6 +482,39 @@ int mr_pack_prop_spv(packet_ctx *pctx, mr_mdata *mdata) {
     }
 
     return 0;
+}
+/*
+int mr_unpack_VBI(packet_ctx *pctx, mr_mdata *mdata) {
+    uint32_t u32;
+    int rc = mr_get_VBI(&u32, pctx->u8v0 + pctx->pos);
+    if (rc < 0) return rc;
+
+    mdata->value = u32;
+    mdata->vlen = rc;
+    mdata->exists = true;
+    pctx->pos += rc;
+    pctx->limit = pctx->pos + u32;
+
+    return 0;
+ }
+*/
+int mr_unpack_prop_VBI(packet_ctx *pctx, mr_mdata *mdata) {
+    int rc = mr_unpack_VBI(pctx, mdata);
+    if (rc) return rc;
+    mr_mdata *cur_mdata = mdata + 1;
+
+    // pctx->pos is incremented by the called unpack function
+    for (int end_pos = pctx->pos + mdata->value; pctx->pos < end_pos;) {
+        int j, rc;
+        for (j = mdata->index + 1; j <= mdata->link; j++, cur_mdata++) {
+            rc = 0;
+            if (cur_mdata->unpack_fn) rc = cur_mdata->unpack_fn(pctx, cur_mdata);
+            if (rc) break; // positive=SUCCESS; zero=PASS; negative=FAILURE
+        }
+
+        if (rc < 0) return rc;
+        if (j > mdata->link) return -1;
+    }
 }
 
 int mr_pack_u8v(packet_ctx *pctx, mr_mdata *mdata) { // do not allocate

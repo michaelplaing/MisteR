@@ -37,7 +37,7 @@ void mrPingreqCallback(redisAsyncContext *rctx, void *reply_void, void *private_
     }
 
     if (
-        (uint8_t)reply1->str[0] == CMD_PINGRESP
+        (uint8_t)reply1->str[0] == MQTT_PINGRESP
         && (uint8_t)reply1->str[1] == 0
         && reply1->len == 2
     ) {
@@ -70,7 +70,7 @@ void redisAsyncDisconnectCallback(const redisAsyncContext *rctx, int status) {
 }
 
 void mrSendPingreq(redisAsyncContext *rctx) {
-    uint8_t PINGREQ_BUF[2] = {CMD_PINGREQ, 0x00};
+    uint8_t PINGREQ_BUF[2] = {MQTT_PINGREQ, 0x00};
     size_t i;
 
     redisAsyncCommand(
@@ -116,6 +116,9 @@ void mr_send_connect(redisAsyncContext *rctx) {
             printf("  name: %s; value: %s\n", pmysp->name, pmysp->value);
         }
     }
+
+    uint32_t session_expiry = 42;
+    rc = mr_set_connect_session_expiry(pctx, session_expiry);
 
     uint8_t bambaz[] = {0x01, 0x02};
     mr_set_connect_authentication_data(pctx, bambaz, sizeof(bambaz));
@@ -168,6 +171,10 @@ void mr_send_connect(redisAsyncContext *rctx) {
     uint32_t property_length = 0;
     mr_get_connect_property_length(pctx, &property_length);
     printf("property_length: %u\n", property_length);
+
+    session_expiry = 0;
+    rc = mr_get_connect_session_expiry(pctx, &session_expiry);
+    printf("session_expiry: rc: %d; %u\n", rc, session_expiry);
 
     mr_free_connect_pctx(pctx);
 }
