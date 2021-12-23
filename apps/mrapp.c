@@ -118,7 +118,7 @@ void mr_send_connect(redisAsyncContext *rctx) {
     }
 
     uint32_t session_expiry = 42;
-    rc = mr_set_connect_session_expiry(pctx, session_expiry);
+    rc = mr_set_connect_session_expiry_interval(pctx, session_expiry);
 
     uint8_t bambaz[] = {0x01, 0x02};
     mr_set_connect_authentication_data(pctx, bambaz, sizeof(bambaz));
@@ -173,7 +173,7 @@ void mr_send_connect(redisAsyncContext *rctx) {
     printf("property_length: %u\n", property_length);
 
     session_expiry = 0;
-    rc = mr_get_connect_session_expiry(pctx, &session_expiry);
+    rc = mr_get_connect_session_expiry_interval(pctx, &session_expiry);
     printf("session_expiry: rc: %d; %u\n", rc, session_expiry);
 
     mr_free_connect_pctx(pctx);

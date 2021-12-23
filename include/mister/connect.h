@@ -44,9 +44,9 @@ int mr_get_connect_keep_alive(packet_ctx *pctx, uint16_t *pu16);
 
 int mr_get_connect_property_length(packet_ctx *pctx, uint32_t *pu32);
 
-int mr_set_connect_session_expiry(packet_ctx *pctx, uint32_t u32);
-int mr_reset_connect_session_expiry(packet_ctx *pctx);
-int mr_get_connect_session_expiry(packet_ctx *pctx, uint32_t *pu32);
+int mr_set_connect_session_expiry_interval(packet_ctx *pctx, uint32_t u32);
+int mr_reset_connect_session_expiry_interval(packet_ctx *pctx);
+int mr_get_connect_session_expiry_interval(packet_ctx *pctx, uint32_t *pu32);
 
 int mr_set_connect_receive_maximum(packet_ctx *pctx, uint16_t u16);
 int mr_reset_connect_receive_maximum(packet_ctx *pctx);

@@ -16,104 +16,70 @@ const uint8_t PNM[] = {0x00, 0x04, 'M', 'Q', 'T', 'T'};  // protocol signature
 
 const mr_mdata CONNECT_MDATA_TEMPLATE[] = {
 //  Fixed Header
-//   name                   index                       link                            isprop
-//      pack_fn             unpack_fn           value           bitpos  vlen    exists  id      isalloc u8vlen  u8v0
-    {"packet_type",         CONNECT_PACKET_TYPE,        0,                              false,
-        mr_pack_u8,         mr_unpack_u8,       MQTT_CONNECT,   NA,     NA,     true,   NA,     false,  0,      NULL},
-    {"remaining_length",    CONNECT_REMAINING_LENGTH,   CONNECT_PASSWORD,               false,
-        mr_pack_VBI,        mr_unpack_VBI,      0,              NA,     0,      true,   NA,     false,  0,      NULL},
-//  Variable Header
-//   name                   index                       link
-//      pack_fn             unpack_fn           value           bitpos  vlen    exists  id      isalloc u8vlen  u8v0
-    {"protocol_name",       CONNECT_PROTOCOL_NAME,      0,                              false,
-        mr_pack_u8v,        mr_unpack_u8v,      (Word_t)PNM,    NA,     PNMSZ,  true,   NA,     false,  0,      NULL},
-    {"protocol_version",    CONNECT_PROTOCOL_VERSION,   0,                              false,
-        mr_pack_u8,         mr_unpack_u8,       PROTO_VERSION,  NA,     NA,     true,   NA,     false,  0,      NULL},
-    {"reserved",            CONNECT_RESERVED,           CONNECT_FLAGS,                  false,
-        mr_pack_bits,       mr_unpack_bits,     0,              0,      1,      true,   NA,     false,  0,      NULL},
-    {"clean_start",         CONNECT_CLEAN_START,        CONNECT_FLAGS,                  false,
-        mr_pack_bits,       mr_unpack_bits,     0,              1,      1,      true,   NA,     false,  0,      NULL},
-    {"will_flag",           CONNECT_WILL_FLAG,          CONNECT_FLAGS,                  false,
-        mr_pack_bits,       mr_unpack_bits,     0,              2,      1,      true,   NA,     false,  0,      NULL},
-    {"will_qos",            CONNECT_WILL_QOS,           CONNECT_FLAGS,                  false,
-        mr_pack_bits,       mr_unpack_bits,     0,              3,      2,      true,   NA,     false,  0,      NULL},
-    {"will_retain",         CONNECT_WILL_RETAIN,        CONNECT_FLAGS,                  false,
-        mr_pack_bits,       mr_unpack_bits,     0,              5,      1,      true,   NA,     false,  0,      NULL},
-    {"password_flag",       CONNECT_PASSWORD_FLAG,      CONNECT_FLAGS,                  false,
-        mr_pack_bits,       mr_unpack_bits,     0,              6,      1,      true,   NA,     false,  0,      NULL},
-    {"username_flag",       CONNECT_USERNAME_FLAG,      CONNECT_FLAGS,                  false,
-        mr_pack_bits,       mr_unpack_bits,     0,              7,      1,      true,   NA,     false,  0,      NULL},
-    {"flags",               CONNECT_FLAGS,              0,                              false,
-        mr_pack_u8,         mr_unpack_noop,     NA,             NA,     1,      true,   NA,     false,  0,      NULL},
-    {"keep_alive",          CONNECT_KEEP_ALIVE,         0,                              false,
-        mr_pack_u16,        mr_unpack_u16,      0,              NA,     NA,     true,   NA,     false,  0,      NULL},
+//   name                   index                       link                isprop  pack_fn             unpack_fn           value           bitpos  vlen    exists  id      isalloc u8vlen  u8v0
+    {"packet_type",         CONNECT_PACKET_TYPE,        0,                  false,  mr_pack_u8,         mr_unpack_u8,       MQTT_CONNECT,   NA,     NA,     true,   NA,     false,  0,      NULL},
+    {"remaining_length",    CONNECT_REMAINING_LENGTH,   CONNECT_PASSWORD,   false,  mr_pack_VBI,        mr_unpack_VBI,      0,              NA,     0,      true,   NA,     false,  0,      NULL},
+//  Var
+//   name                   index                       link                isprop  pack_fn             unpack_fn           value           bitpos  vlen    exists  id      isalloc u8vlen  u8v0
+    {"protocol_name",       CONNECT_PROTOCOL_NAME,      0,                  false,  mr_pack_u8v,        mr_unpack_u8v,      (Word_t)PNM,    NA,     PNMSZ,  true,   NA,     false,  0,      NULL},
+    {"protocol_version",    CONNECT_PROTOCOL_VERSION,   0,                  false,  mr_pack_u8,         mr_unpack_u8,       PROTO_VERSION,  NA,     NA,     true,   NA,     false,  0,      NULL},
+    {"reserved",            CONNECT_RESERVED,           CONNECT_FLAGS,      false,  mr_pack_bits,       mr_unpack_bits,     0,              0,      1,      true,   NA,     false,  0,      NULL},
+    {"clean_start",         CONNECT_CLEAN_START,        CONNECT_FLAGS,      false,  mr_pack_bits,       mr_unpack_bits,     0,              1,      1,      true,   NA,     false,  0,      NULL},
+    {"will_flag",           CONNECT_WILL_FLAG,          CONNECT_FLAGS,      false,  mr_pack_bits,       mr_unpack_bits,     0,              2,      1,      true,   NA,     false,  0,      NULL},
+    {"will_qos",            CONNECT_WILL_QOS,           CONNECT_FLAGS,      false,  mr_pack_bits,       mr_unpack_bits,     0,              3,      2,      true,   NA,     false,  0,      NULL},
+    {"will_retain",         CONNECT_WILL_RETAIN,        CONNECT_FLAGS,      false,  mr_pack_bits,       mr_unpack_bits,     0,              5,      1,      true,   NA,     false,  0,      NULL},
+    {"password_flag",       CONNECT_PASSWORD_FLAG,      CONNECT_FLAGS,      false,  mr_pack_bits,       mr_unpack_bits,     0,              6,      1,      true,   NA,     false,  0,      NULL},
+    {"username_flag",       CONNECT_USERNAME_FLAG,      CONNECT_FLAGS,      false,  mr_pack_bits,       mr_unpack_bits,     0,              7,      1,      true,   NA,     false,  0,      NULL},
+    {"flags",               CONNECT_FLAGS,              0,                  false,  mr_pack_u8,         mr_unpack_noop,     NA,             NA,     1,      true,   NA,     false,  0,      NULL},
+    {"keep_alive",          CONNECT_KEEP_ALIVE,         0,                  false,  mr_pack_u16,        mr_unpack_u16,      0,              NA,     NA,     true,   NA,     false,  0,      NULL},
 //  Variable Header Properties
-//   name                   index                       link                            isprop
-//      pack_fn             unpack_fn           value           bitpos  vlen    exists  id      isalloc u8vlen  u8v0
-    {"property_length",     CONNECT_PROPERTY_LENGTH,    CONNECT_AUTHENTICATION_DATA,    false,
-        mr_pack_VBI,        mr_unpack_prop_VBI, 0,              NA,     0,      true,   NA,     false,  0,      NULL},
-    {"session_expiry",      CONNECT_SESSION_EXPIRY,     0,                              true,
-        mr_pack_prop_u32,   mr_unpack_prop_u32, 0,              NA,     NA,     false,  0x11,   false,  0,      NULL},
-    {"receive_maximum",     CONNECT_RECEIVE_MAXIMUM,    0,                              true,
-        mr_pack_prop_u16,   NULL,               0,              NA,     NA,     false,  0x21,   false,  0,      NULL},
-    {"maximum_packet_size", CONNECT_MAXIMUM_PACKET_SIZE,0,                              true,
-        mr_pack_prop_u32,   NULL,               0,              NA,     NA,     false,  0x27,   false,  0,      NULL},
-    {"topic_alias_maximum", CONNECT_TOPIC_ALIAS_MAXIMUM,0,                              true,
-        mr_pack_prop_u16,   NULL,               0,              NA,     NA,     false,  0x22,   false,  0,      NULL},
+//   name                   index                       link                isprop  pack_fn             unpack_fn           value           bitpos  vlen    exists  id                                      isalloc u8vlen  u8v0
+    {"property_length",     CONNECT_PROPERTY_LENGTH,    CONNECT_AUTHENTICATION_DATA,
+                                                                            false,  mr_pack_VBI,        mr_unpack_prop_VBI, 0,              NA,     0,      true,   NA,                                     false,  0,      NULL},
+    {"session_expiry_interval",
+                            CONNECT_SESSION_EXPIRY_INTERVAL,
+                                                        0,                  true,   mr_pack_prop_u32,   mr_unpack_prop_u32, 0,              NA,     NA,     false,  MQTT_PROP_SESSION_EXPIRY_INTERVAL,      false,  0,      NULL},
+    {"receive_maximum",     CONNECT_RECEIVE_MAXIMUM,    0,                  true,   mr_pack_prop_u16,   NULL,               0,              NA,     NA,     false,  MQTT_PROP_RECEIVE_MAXIMUM,              false,  0,      NULL},
+    {"maximum_packet_size", CONNECT_MAXIMUM_PACKET_SIZE,0,                  true,   mr_pack_prop_u32,   NULL,               0,              NA,     NA,     false,  MQTT_PROP_MAXIMUM_PACKET_SIZE,          false,  0,      NULL},
+    {"topic_alias_maximum", CONNECT_TOPIC_ALIAS_MAXIMUM,0,                  true,   mr_pack_prop_u16,   NULL,               0,              NA,     NA,     false,  MQTT_PROP_TOPIC_ALIAS_MAXIMUM,          false,  0,      NULL},
     {"request_response_information",
                             CONNECT_REQUEST_RESPONSE_INFORMATION,
-                                                        0,                              true,
-        mr_pack_prop_u8,    NULL,               0,              NA,     NA,     false,  0x19,   false,  0,      NULL},
+                                                        0,                  true,   mr_pack_prop_u8,    NULL,               0,              NA,     NA,     false,  MQTT_PROP_REQUEST_RESPONSE_INFORMATION, false,  0,      NULL},
     {"request_problem_information",
                             CONNECT_REQUEST_PROBLEM_INFORMATION,
-                                                        0,                              true,
-        mr_pack_prop_u8,    NULL,               0,              NA,     NA,     false,  0x17,   false,  0,      NULL},
-    {"user_properties",     CONNECT_USER_PROPERTIES,    0,                              true,
-        mr_pack_prop_spv,   NULL,               (Word_t)NULL,   NA,     0,      false,  0x26,   false,  0,      NULL},
+                                                        0,                  true,   mr_pack_prop_u8,    NULL,               0,              NA,     NA,     false,  MQTT_PROP_REQUEST_PROBLEM_INFORMATION,  false,  0,      NULL},
+    {"user_properties",     CONNECT_USER_PROPERTIES,    0,                  true,   mr_pack_prop_spv,   NULL,               (Word_t)NULL,   NA,     0,      false,  MQTT_PROP_USER_PROPERTY,                false,  0,      NULL},
     {"authentication_method",
                             CONNECT_AUTHENTICATION_METHOD,
-                                                        0,                              true,
-        mr_pack_prop_str,   NULL,               (Word_t)NULL,   NA,     0,      false,  0x15,   false,  0,      NULL},
-    {"authentication_data", CONNECT_AUTHENTICATION_DATA,0,                              true,
-        mr_pack_prop_u8v,   NULL,               (Word_t)NULL,   NA,     0,      false,  0x16,   false,  0,      NULL},
+                                                        0,                  true,   mr_pack_prop_str,   NULL,               (Word_t)NULL,   NA,     0,      false,  MQTT_PROP_AUTHENTICATION_METHOD,        false,  0,      NULL},
+    {"authentication_data", CONNECT_AUTHENTICATION_DATA,0,                  true,   mr_pack_prop_u8v,   NULL,               (Word_t)NULL,   NA,     0,      false,  MQTT_PROP_AUTHENTICATION_DATA,          false,  0,      NULL},
 // Payload
-//   name                   index                       link                            isprop
-//      pack_fn             unpack_fn           value           bitpos  vlen    exists  id      isalloc u8vlen  u8v0
-    {"client_identifier",   CONNECT_CLIENT_IDENTIFIER,  0,                              false,
-        mr_pack_str,        NULL,               (Word_t)NULL,   NA,     0,      false,  NA,     false,  0,      NULL},
+//   name                   index                       link                isprop  pack_fn             unpack_fn           value           bitpos  vlen    exists  id      isalloc u8vlen  u8v0
+    {"client_identifier",   CONNECT_CLIENT_IDENTIFIER,  0,                  false,  mr_pack_str,        NULL,               (Word_t)NULL,   NA,     0,      false,  NA,     false,  0,      NULL},
 // Payload Will Properties
+//   name                   index                       link                isprop  pack_fn             unpack_fn           value           bitpos  vlen    exists  id                                      isalloc u8vlen  u8v0
     {"will_property_length",
                             CONNECT_WILL_PROPERTY_LENGTH,
-                                                        CONNECT_WILL_USER_PROPERTIES,   false,
-        mr_pack_VBI,        NULL,               0,              NA,     0,      false,  NA,     false,  0,      NULL},
-    {"will_delay_interval", CONNECT_WILL_DELAY_INTERVAL,0,                              true,
-        mr_pack_prop_u32,   NULL,               0,              NA,     NA,     false,  0x18,   false,  0,      NULL},
+                                                        CONNECT_WILL_USER_PROPERTIES,
+                                                                            false,  mr_pack_VBI,        NULL,               0,              NA,     0,      false,  NA,                                     false,  0,      NULL},
+    {"will_delay_interval", CONNECT_WILL_DELAY_INTERVAL,0,                  true,   mr_pack_prop_u32,   NULL,               0,              NA,     NA,     false,  MQTT_PROP_WILL_DELAY_INTERVAL,          false,  0,      NULL},
     {"payload_format_indicator",
                             CONNECT_PAYLOAD_FORMAT_INDICATOR,
-                                                        0,                              true,
-        mr_pack_prop_u8,    NULL,               0,              NA,     NA,     false,  0x01,   false,  0,      NULL},
+                                                        0,                  true,   mr_pack_prop_u8,    NULL,               0,              NA,     NA,     false,  MQTT_PROP_PAYLOAD_FORMAT_INDICATOR,     false,  0,      NULL},
     {"message_expiry_interval",
                             CONNECT_MESSAGE_EXPIRY_INTERVAL,
-                                                        0,                              true,
-        mr_pack_prop_u32,   NULL,               0,              NA,     NA,     false,  0x02,   false,  0,      NULL},
-    {"content_type",        CONNECT_CONTENT_TYPE,       0,                              true,
-        mr_pack_prop_str,   NULL,               (Word_t)NULL,   NA,     0,      false,  0x03,   false,  0,      NULL},
-    {"response_topic",      CONNECT_RESPONSE_TOPIC,     0,                              true,
-        mr_pack_prop_str,   NULL,               (Word_t)NULL,   NA,     0,      false,  0x08,   false,  0,      NULL},
-    {"correlation_data",    CONNECT_CORRELATION_DATA,   0,                              true,
-        mr_pack_prop_u8v,   NULL,               (Word_t)NULL,   NA,     0,      false,  0x09,   false,  0,      NULL},
+                                                        0,                  true,   mr_pack_prop_u32,   NULL,               0,              NA,     NA,     false,  MQTT_PROP_MESSAGE_EXPIRY_INTERVAL,      false,  0,      NULL},
+    {"content_type",        CONNECT_CONTENT_TYPE,       0,                  true,   mr_pack_prop_str,   NULL,               (Word_t)NULL,   NA,     0,      false,  MQTT_PROP_CONTENT_TYPE,                 false,  0,      NULL},
+    {"response_topic",      CONNECT_RESPONSE_TOPIC,     0,                  true,   mr_pack_prop_str,   NULL,               (Word_t)NULL,   NA,     0,      false,  MQTT_PROP_RESPONSE_TOPIC,               false,  0,      NULL},
+    {"correlation_data",    CONNECT_CORRELATION_DATA,   0,                  true,   mr_pack_prop_u8v,   NULL,               (Word_t)NULL,   NA,     0,      false,  MQTT_PROP_CORRELATION_DATA,             false,  0,      NULL},
     {"will_user_properties",CONNECT_WILL_USER_PROPERTIES,
-                                                        0,                              true,
-        mr_pack_prop_spv,   NULL,               (Word_t)NULL,   NA,     0,      false,  0x26,   false,  0,      NULL},
+                                                        0,                  true,   mr_pack_prop_spv,   NULL,               (Word_t)NULL,   NA,     0,      false,  MQTT_PROP_RESPONSE_INFORMATION,         false,  0,      NULL},
 // Payload (remainder)
-    {"will_topic",          CONNECT_WILL_TOPIC,         0,                              false,
-        mr_pack_str,        NULL,               (Word_t)NULL,   NA,     0,      false,  NA,     false,  0,      NULL},
-    {"will_payload",        CONNECT_WILL_PAYLOAD,       0,                              false,
-        mr_pack_u8v,        NULL,               (Word_t)NULL,   NA,     0,      false,  NA,     false,  0,      NULL},
-    {"user_name",           CONNECT_USER_NAME,          0,                              false,
-        mr_pack_str,        NULL,               (Word_t)NULL,   NA,     0,      false,  NA,     false,  0,      NULL},
-    {"password",            CONNECT_PASSWORD,           0,                              false,
-        mr_pack_u8v,        NULL,               (Word_t)NULL,   NA,     0,      false,  NA,     false,  0,      NULL}
+//   name                   index                       link                isprop  pack_fn             unpack_fn           value           bitpos  vlen    exists  id      isalloc u8vlen  u8v0
+    {"will_topic",          CONNECT_WILL_TOPIC,         0,                  false,  mr_pack_str,        NULL,               (Word_t)NULL,   NA,     0,      false,  NA,     false,  0,      NULL},
+    {"will_payload",        CONNECT_WILL_PAYLOAD,       0,                  false,  mr_pack_u8v,        NULL,               (Word_t)NULL,   NA,     0,      false,  NA,     false,  0,      NULL},
+    {"user_name",           CONNECT_USER_NAME,          0,                  false,  mr_pack_str,        NULL,               (Word_t)NULL,   NA,     0,      false,  NA,     false,  0,      NULL},
+    {"password",            CONNECT_PASSWORD,           0,                  false,  mr_pack_u8v,        NULL,               (Word_t)NULL,   NA,     0,      false,  NA,     false,  0,      NULL}
 };
 
 int mr_init_connect_pctx(packet_ctx **Ppctx) {
@@ -255,16 +221,16 @@ int mr_get_connect_property_length(packet_ctx *pctx, uint32_t *pu32) {
 }
 
 //    uint32_t session_expiry;
-int mr_set_connect_session_expiry(packet_ctx *pctx, uint32_t u32) {
-    return mr_set_scalar(pctx, CONNECT_SESSION_EXPIRY, u32);
+int mr_set_connect_session_expiry_interval(packet_ctx *pctx, uint32_t u32) {
+    return mr_set_scalar(pctx, CONNECT_SESSION_EXPIRY_INTERVAL, u32);
 }
 
-int mr_get_connect_session_expiry(packet_ctx *pctx, uint32_t *pu32) {
-    return mr_get_u32(pctx, CONNECT_SESSION_EXPIRY, pu32);
+int mr_get_connect_session_expiry_interval(packet_ctx *pctx, uint32_t *pu32) {
+    return mr_get_u32(pctx, CONNECT_SESSION_EXPIRY_INTERVAL, pu32);
 }
 
-int mr_reset_connect_session_expiry(packet_ctx *pctx) {
-    return mr_reset_value(pctx, CONNECT_SESSION_EXPIRY);
+int mr_reset_connect_session_expiry_interval(packet_ctx *pctx) {
+    return mr_reset_value(pctx, CONNECT_SESSION_EXPIRY_INTERVAL);
 }
 
 //    uint16_t receive_maximum;
