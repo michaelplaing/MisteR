@@ -139,6 +139,8 @@ int mr_pack_mdata_u8v0(packet_ctx *pctx) {
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
         memcpy(pu8, mdata->u8v0, mdata->u8vlen);
         pu8 += mdata->u8vlen;
+        mdata->exists = false;
+        mdata->value = 0;
 
         if (mdata->isalloc) {
             free(mdata->u8v0);
@@ -227,6 +229,7 @@ int mr_unpack_VBI(packet_ctx *pctx, mr_mdata *mdata) {
     if (rc > 0) {
         mdata->value = u32;
         mdata->vlen = rc;
+        mdata->exists = true;
         pctx->pos += rc;
         rc = 0;
     }
@@ -324,6 +327,7 @@ int mr_unpack_u32(packet_ctx *pctx, mr_mdata *mdata) {
     uint8_t *u8v = pctx->u8v0 + pctx->pos;
     uint32_t u32v[] = {u8v[0], u8v[1], u8v[2], u8v[3]};
     mdata->value = (u32v[0] << 24) + (u32v[1] << 16) + (u32v[2] << 8) + u32v[3];
+    mdata->exists = true;
     pctx->pos += 4;
     return 0;
 }
@@ -515,7 +519,9 @@ int mr_unpack_bits(packet_ctx *pctx, mr_mdata *mdata) { // don't advance pctx->p
     return 0;
 }
 
-int mr_unpack_noop(packet_ctx *pctx, mr_mdata *mdata) { // now advance
+int mr_unpack_noop(packet_ctx *pctx, mr_mdata *mdata) { // now advance; bits all unpacked
+    mdata->exists = true;
+    mdata->vlen = 1;
     pctx->pos++;
     return 0;
 }

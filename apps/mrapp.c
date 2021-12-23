@@ -165,7 +165,7 @@ void mr_send_connect(redisAsyncContext *rctx) {
     mr_get_connect_will_qos(pctx, &will_qos);
     printf("get_will_qos: %u\n", will_qos);
 
-    uint32_t property_length;
+    uint32_t property_length = 0;
     mr_get_connect_property_length(pctx, &property_length);
     printf("property_length: %u\n", property_length);
 

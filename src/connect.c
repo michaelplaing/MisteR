@@ -43,7 +43,7 @@ const mr_mdata CONNECT_MDATA_TEMPLATE[] = {
         mr_pack_bits,       mr_unpack_bits,     0,              6,      1,      true,   NA,     false,  0,      NULL},
     {"username_flag",       CONNECT_USERNAME_FLAG,      CONNECT_FLAGS,
         mr_pack_bits,       mr_unpack_bits,     0,              7,      1,      true,   NA,     false,  0,      NULL},
-    {"flags",               CONNECT_FLAGS,              0, // not in protocol - used for allocation of bits
+    {"flags",               CONNECT_FLAGS,              0, // not in protocol - used for preceding flags
         mr_pack_u8,         mr_unpack_noop,     NA,             NA,     1,      true,   NA,     false,  0,      NULL},
     {"keep_alive",          CONNECT_KEEP_ALIVE,         0,
         mr_pack_u16,        mr_unpack_u16,      0,              NA,     NA,     true,   NA,     false,  0,      NULL},
