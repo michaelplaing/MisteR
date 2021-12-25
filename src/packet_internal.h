@@ -4,20 +4,20 @@
 #include "mister/packet.h"
 
 typedef struct mr_mdata {
-    char *name;
-    int index;      // integer position in the mdata vector
-    int link;       // end of range for VBI; byte to stuff for bit mdata
-    bool isprop;    // is it a property
+    const char *name;
+    const bool isprop;      // is it a property
     int (*pack_fn)(struct packet_ctx *pctx, struct mr_mdata *mdata);
     int (*unpack_fn)(struct packet_ctx *pctx, struct mr_mdata *mdata);
-    Word_t value;   // can handle any mr_mdata value including pointers
-    size_t bitpos;  // for sub-byte values
-    size_t vlen;    // for sub-byte values, pointer values, vectors & VBIs
-    bool exists;    // for properties
-    uint8_t id;     // for properties
-    bool isalloc;   // is uint80 allocated
+    Word_t value;           // can handle any mr_mdata value including pointers
+    bool valloc;            // is value allocated
+    size_t vlen;            // for sub-byte values, pointer values, vectors & VBIs
+    bool vexists;           // value has been set
+    const int link;         // end of range for VBI; byte to stuff for bit mdata
+    const uint8_t id;       // for properties & bit position for flags
+    const int index;        // integer position in the mdata vector
+    bool ualloc;            // is u8v0 allocated
     size_t u8vlen;
-    uint8_t *u8v0;// packed value
+    uint8_t *u8v0;          // packed value
 } mr_mdata;
 
 int mr_init_packet_context(
@@ -61,17 +61,23 @@ int mr_unpack_u8v(packet_ctx *pctx, mr_mdata *mdata);
 
 int mr_pack_bits(packet_ctx *pctx, mr_mdata *mdata);
 int mr_unpack_bits(packet_ctx *pctx, mr_mdata *mdata);
-int mr_unpack_noop(packet_ctx *pctx, mr_mdata *mdata);
+int mr_unpack_incr1(packet_ctx *pctx, mr_mdata *mdata);
 
 int mr_pack_prop_u8(packet_ctx *pctx, mr_mdata *mdata);
+
 int mr_pack_prop_u16(packet_ctx *pctx, mr_mdata *mdata);
+
 int mr_pack_prop_u32(packet_ctx *pctx, mr_mdata *mdata);
 int mr_unpack_prop_u32(packet_ctx *pctx, mr_mdata *mdata);
+
 int mr_pack_prop_u8v(packet_ctx *pctx, mr_mdata *mdata);
+
 int mr_pack_prop_spv(packet_ctx *pctx, mr_mdata *mdata);
+
 int mr_pack_prop_str(packet_ctx *pctx, mr_mdata *mdata);
 
-int mr_unpack_prop(packet_ctx *pctx, mr_mdata *mdata);
 int mr_unpack_prop_VBI(packet_ctx *pctx, mr_mdata *mdata);
+
+int mr_unpack_props(packet_ctx *pctx, mr_mdata *mdata);
 
 #endif // PACK_INTERNAL_H

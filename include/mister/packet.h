@@ -12,10 +12,9 @@ struct mr_mdata;
 typedef struct packet_ctx {
     uint8_t mqtt_packet_type;
     uint8_t *u8v0;
-    bool isalloc;
+    bool ualloc;
     size_t len;
     size_t pos;
-    size_t limit; // pos + property_length
     struct mr_mdata *mdata0;
     size_t mdata_count;
 } packet_ctx;

@@ -10,7 +10,7 @@
 int mr_set_scalar(packet_ctx *pctx, int index, Word_t value) {
     mr_mdata *mdata = pctx->mdata0 + index;
     mdata->value = value;
-    mdata->exists = true;
+    mdata->vexists = true;
     return 0;
 }
 
@@ -18,7 +18,7 @@ static int mr_get_scalar(packet_ctx *pctx, int index, Word_t *pvalue) {
     int rc;
     mr_mdata *mdata = pctx->mdata0 + index;
 
-    if (mdata->exists) {
+    if (mdata->vexists) {
         *pvalue = mdata->value;
         rc = 0;
     }
@@ -60,7 +60,7 @@ int mr_get_u32(packet_ctx *pctx, int index, uint32_t *pu32) {
 int mr_set_vector(packet_ctx *pctx, int index, void *pvoid, size_t len) {
     mr_mdata *mdata = pctx->mdata0 + index;
     mdata->value = (Word_t)pvoid;
-    mdata->exists = true;
+    mdata->vexists = true;
     mdata->vlen = len;
     return 0;
 }
@@ -69,7 +69,7 @@ static int mr_get_vector(packet_ctx *pctx, int index, Word_t *ppvoid, size_t *pl
     int rc;
     mr_mdata *mdata = pctx->mdata0 + index;
 
-    if (mdata->exists) {
+    if (mdata->vexists) {
         *ppvoid = mdata->value; // for a vector, value is a pointer to something
         *plen = mdata->vlen;
         rc = 0;
@@ -110,7 +110,7 @@ int mr_get_spv(packet_ctx *pctx, int index, string_pair **pspv0, size_t *plen) {
 int mr_reset_value(packet_ctx *pctx, int index) {
     mr_mdata *mdata = pctx->mdata0 + index;
     mdata->value = 0;
-    mdata->exists = false;
+    mdata->vexists = false;
     mdata->vlen = 0;
     return 0;
 }
@@ -120,10 +120,14 @@ int mr_reset_value(packet_ctx *pctx, int index) {
 //  then allocate pctx->u8v0 and catenate mdata buffers in it
 //  free each mdata buffer if allocated
 int mr_pack_mdata_u8v0(packet_ctx *pctx) {
+    int rc;
     mr_mdata *mdata = pctx->mdata0 + pctx->mdata_count - 1;
 
     for (int i = pctx->mdata_count - 1; i > -1; mdata--, i--) {
-        mdata->pack_fn(pctx, mdata);
+        if (mdata->vexists && mdata->pack_fn) {
+            rc = mdata->pack_fn(pctx, mdata);
+            if (rc) return rc;
+        }
     }
 
     mdata = pctx->mdata0 + 1; // <CONTROL_PACKET_NAME>_REMAINING_LENGTH is always index 1
@@ -132,19 +136,22 @@ int mr_pack_mdata_u8v0(packet_ctx *pctx) {
     uint8_t *u8v0 = malloc(pctx->len); // TODO: err checks on malloc
 
     pctx->u8v0 = u8v0;
-    pctx->isalloc = true;
+    pctx->ualloc = true;
 
     mdata = pctx->mdata0;
     uint8_t *pu8 = u8v0;
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
-        memcpy(pu8, mdata->u8v0, mdata->u8vlen);
-        pu8 += mdata->u8vlen;
-        mdata->exists = false;
-        mdata->value = 0;
+        if (mdata->u8v0) {
+            memcpy(pu8, mdata->u8v0, mdata->u8vlen);
+            pu8 += mdata->u8vlen;
 
-        if (mdata->isalloc) {
-            free(mdata->u8v0);
-            mdata->isalloc = false;
+            if (mdata->ualloc) {
+                free(mdata->u8v0);
+                mdata->ualloc = false;
+            }
+
+            mdata->u8v0 = NULL;
+            mdata->u8vlen = 0;
         }
     }
 
@@ -198,15 +205,13 @@ static int mr_get_VBI(uint32_t *pu32, uint8_t *u8v) {
 
 //  calculate length, convert to VBI, & pack into buffer
 int mr_pack_VBI(packet_ctx *pctx, mr_mdata *mdata) {
-    if (!mdata->exists) return 0;
-
     size_t cum_len = 0;
     mr_mdata *current_mdata;
 
     //  accumulate buffer lengths in cum_len for the range of the VBI
     for (int j = mdata->index + 1; j <= mdata->link; j++) {
         current_mdata = pctx->mdata0 + j;
-        if (current_mdata->exists) cum_len += current_mdata->u8vlen;
+        if (current_mdata->vexists) cum_len += current_mdata->u8vlen;
     }
 
     mdata->value = cum_len;
@@ -216,7 +221,7 @@ int mr_pack_VBI(packet_ctx *pctx, mr_mdata *mdata) {
 
     uint8_t *u8v0 = malloc(mdata->u8vlen); // TODO: err checks on malloc
 
-    mdata->isalloc = true;
+    mdata->ualloc = true;
     mdata->u8v0 = u8v0;
     memcpy(mdata->u8v0, u8v, mdata->u8vlen);
 
@@ -230,9 +235,9 @@ int mr_unpack_VBI(packet_ctx *pctx, mr_mdata *mdata) {
 
     mdata->value = u32;
     mdata->vlen = rc;
-    mdata->exists = true;
+    mdata->vexists = true;
     pctx->pos += rc;
-    pctx->limit = pctx->pos + u32;
+    // pctx->limit = pctx->pos + u32;
 
     return 0;
  }
@@ -240,10 +245,10 @@ int mr_unpack_VBI(packet_ctx *pctx, mr_mdata *mdata) {
 int mr_free_packet_context(packet_ctx *pctx) {
     mr_mdata *mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; i++, mdata++) {
-        if (mdata->isalloc) free(mdata->u8v0);
+        if (mdata->ualloc) free(mdata->u8v0);
     }
 
-    if (pctx->isalloc) free(pctx->u8v0);
+    if (pctx->ualloc) free(pctx->u8v0);
     free(pctx);
 
     return 0;
@@ -254,7 +259,8 @@ int mr_init_packet_context(packet_ctx **ppctx, const mr_mdata *MDATA_TEMPLATE, s
     pctx->mdata_count = mdata_count;
     mr_mdata *mdata0 = calloc(pctx->mdata_count, sizeof(mr_mdata));
     //  copy template
-    for (int i = 0; i < pctx->mdata_count; i++) mdata0[i] = MDATA_TEMPLATE[i];
+    memcpy(mdata0, MDATA_TEMPLATE, mdata_count * sizeof(mr_mdata));
+    // for (int i = 0; i < pctx->mdata_count; i++) mdata0[i] = MDATA_TEMPLATE[i];
     pctx->mqtt_packet_type = mdata0->value; // always the value of the 0th mdata row
     pctx->mdata0 = mdata0;
     *ppctx = pctx;
@@ -264,15 +270,15 @@ int mr_init_packet_context(packet_ctx **ppctx, const mr_mdata *MDATA_TEMPLATE, s
 int mr_pack_u8(packet_ctx *pctx, mr_mdata *mdata) {
     mdata->u8vlen = 1;
     uint8_t *u8v0 = malloc(mdata->u8vlen); // TODO: err checks on malloc
-    mdata->isalloc = true;
+    mdata->ualloc = true;
     mdata->u8v0 = u8v0;
     *u8v0 = mdata->value;
     return 0;
 }
 
 int mr_unpack_u8(packet_ctx *pctx, mr_mdata *mdata) {
-    //if (!pctx->isalloc || pctx->pos >= pctx->len) return 0;
-    mdata->exists = true;
+    //if (!pctx->ualloc || pctx->pos >= pctx->len) return 0;
+    mdata->vexists = true;
     mdata->vlen = 1;
     mdata->value = pctx->u8v0[pctx->pos++];
     return 0;
@@ -281,7 +287,7 @@ int mr_unpack_u8(packet_ctx *pctx, mr_mdata *mdata) {
 int mr_pack_u16(packet_ctx *pctx, mr_mdata *mdata) {
     mdata->u8vlen = 2;
     uint8_t *u8v0 = malloc(mdata->u8vlen); // TODO: err checks on malloc
-    mdata->isalloc = true;
+    mdata->ualloc = true;
     mdata->u8v0 = u8v0;
     uint16_t u16 = mdata->value;
     uint8_t *pu8 = u8v0;
@@ -291,9 +297,9 @@ int mr_pack_u16(packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 int mr_unpack_u16(packet_ctx *pctx, mr_mdata *mdata) {
-    //if (!pctx->isalloc || pctx->pos >= pctx->len) return 0;
+    //if (!pctx->ualloc || pctx->pos >= pctx->len) return 0;
     mdata->vlen = 2;
-    mdata->exists = true;
+    mdata->vexists = true;
     uint8_t *u8v = pctx->u8v0 + pctx->pos;
     uint16_t u16v[] = {u8v[0], u8v[1]};
     mdata->value = (u16v[0] << 8) + u16v[1];
@@ -304,7 +310,7 @@ int mr_unpack_u16(packet_ctx *pctx, mr_mdata *mdata) {
 int mr_pack_u32(packet_ctx *pctx, mr_mdata *mdata) {
     mdata->u8vlen = 4;
     uint8_t *u8v0 = malloc(mdata->u8vlen); // TODO: err checks on malloc
-    mdata->isalloc = true;
+    mdata->ualloc = true;
     mdata->u8v0 = u8v0;
     uint32_t u32 = mdata->value;
     uint8_t *pu8 = u8v0;
@@ -316,86 +322,76 @@ int mr_pack_u32(packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 int mr_unpack_u32(packet_ctx *pctx, mr_mdata *mdata) {
-    //if (!pctx->isalloc || pctx->pos >= pctx->len) return 0;
+    //if (!pctx->ualloc || pctx->pos >= pctx->len) return 0;
     mdata->vlen = 4;
     uint8_t *u8v = pctx->u8v0 + pctx->pos;
     uint32_t u32v[] = {u8v[0], u8v[1], u8v[2], u8v[3]};
     mdata->value = (u32v[0] << 24) + (u32v[1] << 16) + (u32v[2] << 8) + u32v[3];
-    mdata->exists = true;
+    mdata->vexists = true;
     pctx->pos += 4;
     return 0;
 }
 
 int mr_pack_prop_u8(packet_ctx *pctx, mr_mdata *mdata) {
-    if (mdata->exists) {
-        mdata->u8vlen = 2;
-        uint8_t *u8v0 = malloc(mdata->u8vlen); // TODO: err checks on malloc
-        mdata->isalloc = true;
-        mdata->u8v0 = u8v0;
-        uint8_t *pu8 = u8v0;
-        *pu8++ = mdata->id;
-        *pu8 = mdata->value;
-    }
+    mdata->u8vlen = 2;
+    uint8_t *u8v0 = malloc(mdata->u8vlen); // TODO: err checks on malloc
+    mdata->ualloc = true;
+    mdata->u8v0 = u8v0;
+    uint8_t *pu8 = u8v0;
+    *pu8++ = mdata->id;
+    *pu8 = mdata->value;
 
     return 0;
 }
 
 int mr_pack_prop_u16(packet_ctx *pctx, mr_mdata *mdata) {
-    if (mdata->exists) {
-        mdata->u8vlen = 3;
-        uint8_t *u8v0 = malloc(mdata->u8vlen); // TODO: err checks on malloc
-        mdata->isalloc = true;
-        mdata->u8v0 = u8v0;
-        uint16_t u16 = mdata->value;
-        uint8_t *pu8 = u8v0;
-        *pu8++ = mdata->id;
-        *pu8++ = (u16 >> 8) & 0xFF;
-        *pu8 = u16 & 0xFF;
-    }
+    mdata->u8vlen = 3;
+    uint8_t *u8v0 = malloc(mdata->u8vlen); // TODO: err checks on malloc
+    mdata->ualloc = true;
+    mdata->u8v0 = u8v0;
+    uint16_t u16 = mdata->value;
+    uint8_t *pu8 = u8v0;
+    *pu8++ = mdata->id;
+    *pu8++ = (u16 >> 8) & 0xFF;
+    *pu8 = u16 & 0xFF;
 
     return 0;
 }
 
 int mr_pack_prop_u32(packet_ctx *pctx, mr_mdata *mdata) {
-    if (mdata->exists) {
-        mdata->u8vlen = 5;
-        uint8_t *u8v0 = malloc(mdata->u8vlen); // TODO: err checks on malloc
-        mdata->isalloc = true;
-        mdata->u8v0 = u8v0;
-        uint32_t u32 = mdata->value;
-        uint8_t *pu8 = u8v0;
-        *pu8++ = mdata->id;
-        *pu8++ = (u32 >> 24) & 0xFF;
-        *pu8++ = (u32 >> 16) & 0xFF;
-        *pu8++ = (u32 >> 8) & 0xFF;
-        *pu8 = u32 & 0xFF;
-    }
+    mdata->u8vlen = 5;
+    uint8_t *u8v0 = malloc(mdata->u8vlen); // TODO: err checks on malloc
+    mdata->ualloc = true;
+    mdata->u8v0 = u8v0;
+    uint32_t u32 = mdata->value;
+    uint8_t *pu8 = u8v0;
+    *pu8++ = mdata->id;
+    *pu8++ = (u32 >> 24) & 0xFF;
+    *pu8++ = (u32 >> 16) & 0xFF;
+    *pu8++ = (u32 >> 8) & 0xFF;
+    *pu8 = u32 & 0xFF;
 
     return 0;
 }
 
 int mr_unpack_prop_u32(packet_ctx *pctx, mr_mdata *mdata) {
     uint8_t *u8v = pctx->u8v0 + pctx->pos;
-    if (*u8v != mdata->id) return 0;
-    pctx->pos++; u8v++;
     mdata->vlen = 5;
     uint32_t u32v[] = {u8v[0], u8v[1], u8v[2], u8v[3]};
     mdata->value = (u32v[0] << 24) + (u32v[1] << 16) + (u32v[2] << 8) + u32v[3];
-    mdata->exists = true;
+    mdata->vexists = true;
     pctx->pos += 4;
-    return 1;
+    return 0;
 }
 
 int mr_pack_str(packet_ctx *pctx, mr_mdata *mdata) {
-    if (!mdata->exists) return 0;
-
     uint8_t *u8v = (uint8_t *)mdata->value;
     uint16_t u16 = strlen((char *)u8v); // get number of bytes (not chars)
     size_t u8vlen = 2 + u16;
 
     uint8_t *u8v0 = malloc(u8vlen); // TODO: err checks on malloc
 
-    mdata->isalloc = true;
+    mdata->ualloc = true;
     mdata->u8v0 = u8v0;
     mdata->u8vlen = u8vlen;
 
@@ -408,15 +404,13 @@ int mr_pack_str(packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 int mr_pack_prop_str(packet_ctx *pctx, mr_mdata *mdata) {
-    if (!mdata->exists) return 0;
-
     uint8_t *u8v = (uint8_t *)mdata->value;
     uint16_t u16 = strlen((char *)u8v); // get number of bytes (not chars)
     size_t u8vlen = 1 + 2 + u16;
 
     uint8_t *u8v0 = malloc(u8vlen); // TODO: err checks on malloc
 
-    mdata->isalloc = true;
+    mdata->ualloc = true;
     mdata->u8v0 = u8v0;
     mdata->u8vlen = u8vlen;
 
@@ -430,13 +424,11 @@ int mr_pack_prop_str(packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 int mr_pack_prop_u8v(packet_ctx *pctx, mr_mdata *mdata) {
-    if (!mdata->exists) return 0;
-
     size_t u8vlen = 1 + mdata->vlen;
 
     uint8_t *u8v0 = malloc(u8vlen); // TODO: err checks on malloc
 
-    mdata->isalloc = true;
+    mdata->ualloc = true;
     mdata->u8v0 = u8v0;
     mdata->u8vlen = u8vlen;
 
@@ -449,8 +441,6 @@ int mr_pack_prop_u8v(packet_ctx *pctx, mr_mdata *mdata) {
 
 //  for property vectors, e.g. connect_payload:will_properties:user_properties
 int mr_pack_prop_spv(packet_ctx *pctx, mr_mdata *mdata) {
-    if (!mdata->exists) return 0;
-
     string_pair *spv = (string_pair *)mdata->value;
     size_t u8vlen = 0;
 
@@ -459,7 +449,7 @@ int mr_pack_prop_spv(packet_ctx *pctx, mr_mdata *mdata) {
     }
 
     uint8_t *u8v0 = malloc(u8vlen); // TODO: err checks on malloc
-    mdata->isalloc = true;
+    mdata->ualloc = true;
     mdata->u8v0 = u8v0;
     mdata->u8vlen = u8vlen;
     uint8_t *pu8 = u8v0;
@@ -484,27 +474,11 @@ int mr_pack_prop_spv(packet_ctx *pctx, mr_mdata *mdata) {
     return 0;
 }
 /*
-int mr_unpack_VBI(packet_ctx *pctx, mr_mdata *mdata) {
-    uint32_t u32;
-    int rc = mr_get_VBI(&u32, pctx->u8v0 + pctx->pos);
-    if (rc < 0) return rc;
+int mr_unpack_props1(packet_ctx *pctx, mr_mdata *mdata) {
+    mr_mdata *len_mdata = mdata - 1, *cur_mdata = mdata + 1;
 
-    mdata->value = u32;
-    mdata->vlen = rc;
-    mdata->exists = true;
-    pctx->pos += rc;
-    pctx->limit = pctx->pos + u32;
-
-    return 0;
- }
-*/
-int mr_unpack_prop_VBI(packet_ctx *pctx, mr_mdata *mdata) {
-    int rc = mr_unpack_VBI(pctx, mdata);
-    if (rc) return rc;
-    mr_mdata *cur_mdata = mdata + 1;
-
-    // pctx->pos is incremented by the called unpack function
-    for (int end_pos = pctx->pos + mdata->value; pctx->pos < end_pos;) {
+    // pctx->pos will incremented by the called unpack functions
+    for (int end_pos = pctx->pos + len_mdata->value; pctx->pos < end_pos;) {
         int j, rc;
         for (j = mdata->index + 1; j <= mdata->link; j++, cur_mdata++) {
             rc = 0;
@@ -513,21 +487,40 @@ int mr_unpack_prop_VBI(packet_ctx *pctx, mr_mdata *mdata) {
         }
 
         if (rc < 0) return rc;
-        if (j > mdata->link) return -1;
+        if (j > mdata->link) return -1; // not found
     }
+
+    return 0;
+}
+*/
+int mr_unpack_props(packet_ctx *pctx, mr_mdata *mdata) {
+    size_t end_pos = pctx->pos + (mdata - 1)->value; // use property_length
+    uint8_t *pu8, *pprop_index;
+    int prop_index, rc = 0;
+    mr_mdata *prop_mdata;
+
+    for (; pctx->pos < end_pos;) {
+        pu8 = pctx->u8v0 + pctx->pos++;
+        pprop_index = memchr((uint8_t *)mdata->value, *pu8, mdata->vlen);
+        if (!pprop_index) return -1; // not found
+        prop_index = pprop_index - (uint8_t *)mdata->value;
+        prop_mdata = mdata + prop_index + 1;
+        rc = prop_mdata->unpack_fn(pctx, prop_mdata); // increments pctx->pos
+        if (rc) break;
+    }
+
+    return rc;
 }
 
 int mr_pack_u8v(packet_ctx *pctx, mr_mdata *mdata) { // do not allocate
-    if (mdata->exists) {
-        mdata->u8vlen = mdata->vlen;
-        mdata->u8v0 = (uint8_t *)mdata->value;
-    }
+    mdata->u8vlen = mdata->vlen;
+    mdata->u8v0 = (uint8_t *)mdata->value;
 
     return 0;
 }
 
 int mr_unpack_u8v(packet_ctx *pctx, mr_mdata *mdata) {
-    mdata->exists = true;
+    mdata->vexists = true;
     mdata->vlen = mdata->u8vlen;
     mdata->value = (Word_t)(mdata->u8v0 + pctx->pos);
     pctx->pos += mdata->u8vlen;
@@ -542,24 +535,24 @@ const uint8_t BIT_MASKS[] = {
 //  get the link mdata byte, reset specified bit(s) and set if value is non-zero
 int mr_pack_bits(packet_ctx *pctx, mr_mdata *mdata) {
     mr_mdata *link_mdata = pctx->mdata0 + mdata->link;
-    *link_mdata->u8v0 = *link_mdata->u8v0 & ~(BIT_MASKS[mdata->vlen] << mdata->bitpos);
+    *link_mdata->u8v0 = *link_mdata->u8v0 & ~(BIT_MASKS[mdata->vlen] << mdata->id);
 
     if (mdata->value) {
         uint8_t u8 = mdata->value;
-        *link_mdata->u8v0 = *link_mdata->u8v0 | (u8 << mdata->bitpos);
+        *link_mdata->u8v0 = *link_mdata->u8v0 | (u8 << mdata->id);
     }
 
     return 0;
 }
 
 int mr_unpack_bits(packet_ctx *pctx, mr_mdata *mdata) { // don't advance pctx->pos
-    mdata->exists = true;
-    mdata->value = pctx->u8v0[pctx->pos] >> mdata->bitpos & BIT_MASKS[mdata->vlen];
+    mdata->vexists = true;
+    mdata->value = pctx->u8v0[pctx->pos] >> mdata->id & BIT_MASKS[mdata->vlen];
     return 0;
 }
 
-int mr_unpack_noop(packet_ctx *pctx, mr_mdata *mdata) { // now advance; bits all unpacked
-    mdata->exists = true;
+int mr_unpack_incr1(packet_ctx *pctx, mr_mdata *mdata) { // now advance; bits all unpacked
+    mdata->vexists = true;
     mdata->vlen = 1;
     pctx->pos++;
     return 0;
