@@ -176,6 +176,27 @@ void mr_send_connect(redisAsyncContext *rctx) {
     rc = mr_get_connect_session_expiry_interval(pctx, &session_expiry);
     printf("session_expiry: rc: %d; %u\n", rc, session_expiry);
 
+    myspv0 = NULL;
+    rc = mr_get_connect_user_properties(pctx, &myspv0, &myspvlen);
+
+    if (!rc) {
+        string_pair *pmysp = myspv0;
+        printf("user_properties:\n");
+
+        for (int i = 0; i < myspvlen; i++, pmysp++) {
+            printf("  name: %s; value: %s\n", pmysp->name, pmysp->value);
+        }
+    }
+
+    myauthv0 = NULL;
+    rc = mr_get_connect_authentication_data(pctx, &myauthv0, &myauthvlen);
+
+    if (!rc) {
+        uint8_t *pmyauth = myauthv0;
+        printf("authentication_data:");
+        for (int i = 0; i < myauthvlen; i++) printf(" %02hhX", *pmyauth++);
+        puts("\n");
+    }
     mr_free_connect_pctx(pctx);
 }
 

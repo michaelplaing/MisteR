@@ -81,6 +81,7 @@ int mr_pack_u32(packet_ctx *pctx, mr_mdata *mdata);
 int mr_unpack_u32(packet_ctx *pctx, mr_mdata *mdata);
 
 int mr_pack_str(packet_ctx *pctx, mr_mdata *mdata);
+int mr_unpack_str(packet_ctx *pctx, mr_mdata *mdata);
 
 int mr_pack_VBI(packet_ctx *pctx, mr_mdata *mdata);
 int mr_unpack_VBI(packet_ctx *pctx, mr_mdata *mdata);

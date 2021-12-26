@@ -16,7 +16,7 @@ const mr_dtype DTYPE_MDATA0[] = {
     {MR_U8V_DTYPE,      false,  mr_pack_u8v,        mr_unpack_u8v,      mr_free_value},
     {MR_U8VF_DTYPE,     false,  mr_pack_u8vf,       mr_unpack_u8vf,     NULL},
     {MR_BITS_DTYPE,     false,  mr_pack_bits,       mr_unpack_bits,     NULL},
-    {MR_STR_DTYPE,      false,  mr_pack_str,        NULL,               mr_free_value},
+    {MR_STR_DTYPE,      false,  mr_pack_str,        mr_unpack_str,      mr_free_value},
     {MR_PROP_U8_DTYPE,  true,   mr_pack_prop_u8,    NULL,               NULL},
     {MR_PROP_U16_DTYPE, true,   mr_pack_prop_u16,   NULL,               NULL},
     {MR_PROP_U32_DTYPE, true,   mr_pack_prop_u32,   NULL,               NULL},
@@ -454,6 +454,23 @@ int mr_pack_str(packet_ctx *pctx, mr_mdata *mdata) {
     *pu8++ = u16 & 0xFF;
     memcpy(pu8, u8v, u16);
 
+    return 0;
+}
+
+int mr_unpack_str(packet_ctx *pctx, mr_mdata *mdata) {
+    uint8_t *u8v = pctx->u8v0 + pctx->pos;
+    uint16_t u16v[] = {u8v[0], u8v[1]}; u8v += 2;
+    size_t vlen = (u16v[0] << 8) + u16v[1];
+
+    uint8_t *value = malloc(vlen + 1);
+
+    memcpy(value, u8v, vlen);
+    value[vlen] = 0;
+    mdata->value = (Word_t)value;
+    mdata->vlen = vlen;
+    mdata->vexists = true;
+    mdata->valloc = true;
+    pctx->pos += 2 + vlen;
     return 0;
 }
 

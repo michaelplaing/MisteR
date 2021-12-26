@@ -25,8 +25,18 @@ const uint8_t MRCP[] = {
     MQTT_PROP_AUTHENTICATION_METHOD,
     MQTT_PROP_AUTHENTICATION_DATA
 };
-
 #define MRCPSZ 9
+
+const uint8_t MRCWP[] = {
+    MQTT_PROP_WILL_DELAY_INTERVAL,
+    MQTT_PROP_PAYLOAD_FORMAT_INDICATOR,
+    MQTT_PROP_MESSAGE_EXPIRY_INTERVAL,
+    MQTT_PROP_CONTENT_TYPE,
+    MQTT_PROP_RESPONSE_TOPIC,
+    MQTT_PROP_CORRELATION_DATA,
+    MQTT_PROP_RESPONSE_INFORMATION
+};
+#define MRCWPSZ 7
 
 const mr_mdata CONNECT_MDATA_TEMPLATE[] = {
 //   name                           dtype               value           valloc  vlen    vexists link                            id                                      idx                                     ualloc u8vlen  u8v0
@@ -55,8 +65,8 @@ const mr_mdata CONNECT_MDATA_TEMPLATE[] = {
     {"authentication_method",       MR_PROP_STR_DTYPE,  (Word_t)NULL,   false,  0,      false,  0,                              MQTT_PROP_AUTHENTICATION_METHOD,        CONNECT_AUTHENTICATION_METHOD,          false,  0,      NULL},
     {"authentication_data",         MR_PROP_U8V_DTYPE,  (Word_t)NULL,   false,  0,      false,  0,                              MQTT_PROP_AUTHENTICATION_DATA,          CONNECT_AUTHENTICATION_DATA,            false,  0,      NULL},
     {"client_identifier",           MR_STR_DTYPE,       (Word_t)NULL,   false,  0,      false,  0,                              NA,                                     CONNECT_CLIENT_IDENTIFIER,              false,  0,      NULL},
-    {"will_property_length",        MR_U8_DTYPE,        0,              false,  0,      false,  CONNECT_WILL_USER_PROPERTIES,   NA,                                     CONNECT_WILL_PROPERTY_LENGTH,           false,  0,      NULL},
-    {"mr_will_properties",          MR_U8_DTYPE,        (Word_t)MRCP,   false,  MRCPSZ, true,   0,                              NA,                                     CONNECT_MR_WILL_PROPERTIES,             false,  0,      NULL},
+    {"will_property_length",        MR_VBI_DTYPE,       0,              false,  0,      false,  CONNECT_WILL_USER_PROPERTIES,   NA,                                     CONNECT_WILL_PROPERTY_LENGTH,           false,  0,      NULL},
+    {"mr_will_properties",          MR_PROPS_DTYPE,     (Word_t)MRCWP,  false,  MRCWPSZ,true,   0,                              NA,                                     CONNECT_MR_WILL_PROPERTIES,             false,  0,      NULL},
     {"will_delay_interval",         MR_PROP_U32_DTYPE,  0,              false,  5,      false,  0,                              MQTT_PROP_WILL_DELAY_INTERVAL,          CONNECT_WILL_DELAY_INTERVAL,            false,  0,      NULL},
     {"payload_format_indicator",    MR_PROP_U8_DTYPE,   0,              false,  2,      false,  0,                              MQTT_PROP_PAYLOAD_FORMAT_INDICATOR,     CONNECT_PAYLOAD_FORMAT_INDICATOR,       false,  0,      NULL},
     {"message_expiry_interval",     MR_PROP_U32_DTYPE,  0,              false,  5,      false,  0,                              MQTT_PROP_MESSAGE_EXPIRY_INTERVAL,      CONNECT_MESSAGE_EXPIRY_INTERVAL,        false,  0,      NULL},
