@@ -8,11 +8,6 @@ typedef int (*mr_mdata_fn)(struct packet_ctx *pctx, struct mr_mdata *mdata);
 typedef struct mr_mdata {
     const char *name;
     const int dtype;
-    const bool isprop;      // is it a property
-    const mr_mdata_fn pack_fn;
-//    int (*pack_fn)(struct packet_ctx *pctx, struct mr_mdata *mdata);
-    const mr_mdata_fn unpack_fn;
-//    int (*unpack_fn)(struct packet_ctx *pctx, struct mr_mdata *mdata);
     Word_t value;           // can handle any mr_mdata value including pointers
     bool valloc;            // is value allocated
     size_t vlen;            // for sub-byte values, pointer values, vectors & VBIs
@@ -26,14 +21,11 @@ typedef struct mr_mdata {
 } mr_mdata;
 
 typedef struct mr_dtype {
-    int idx;
-    bool isprop;
+    const int idx;
+    const bool isprop;
     const mr_mdata_fn pack_fn;
-//    int (*pack_fn)(struct packet_ctx *pctx, struct mr_mdata *mdata);
     const mr_mdata_fn unpack_fn;
-//    int (*unpack_fn)(struct packet_ctx *pctx, struct mr_mdata *mdata);
     const mr_mdata_fn free_fn;
-//    int (*free_fn)(struct packet_ctx *pctx, struct mr_mdata *mdata);
 } mr_dtype;
 
 enum mr_dtypes {
