@@ -8,23 +8,23 @@
 #include "packet_internal.h"
 
 const mr_dtype DTYPE_MDATA0[] = {
-//   dtype idx          isprop  pack_fn             unpack_fn           free_fn
-    {MR_U8_DTYPE,       false,  mr_pack_u8,         mr_unpack_u8,       NULL},
-    {MR_U16_DTYPE,      false,  mr_pack_u16,        mr_unpack_u16,      NULL},
-    {MR_U32_DTYPE,      false,  mr_pack_u32,        mr_unpack_u32,      NULL},
-    {MR_VBI_DTYPE,      false,  mr_pack_VBI,        mr_unpack_VBI,      NULL},
-    {MR_U8V_DTYPE,      false,  mr_pack_u8v,        mr_unpack_u8v,      mr_free_value},
-    {MR_U8VF_DTYPE,     false,  mr_pack_u8vf,       mr_unpack_u8vf,     NULL},
-    {MR_BITS_DTYPE,     false,  mr_pack_bits,       mr_unpack_bits,     NULL},
-    {MR_STR_DTYPE,      false,  mr_pack_str,        mr_unpack_str,      mr_free_value},
-    {MR_PROP_U8_DTYPE,  true,   mr_pack_u8,         mr_unpack_u8,       NULL},
-    {MR_PROP_U16_DTYPE, true,   mr_pack_u16,        mr_unpack_u16,      NULL},
-    {MR_PROP_U32_DTYPE, true,   mr_pack_u32,        mr_unpack_u32,      NULL},
-    {MR_PROP_SPV_DTYPE, true,   mr_pack_prop_spv,   mr_unpack_spv,      mr_free_spv},
-    {MR_PROP_STR_DTYPE, true,   mr_pack_prop_str,   mr_unpack_str,      mr_free_value},
-    {MR_PROP_U8V_DTYPE, true,   mr_pack_prop_u8v,   mr_unpack_u8v,      mr_free_value},
-    {MR_FLAGS_DTYPE,    false,  mr_pack_u8,         mr_unpack_incr1,    NULL},
-    {MR_PROPS_DTYPE,    false,  NULL,               mr_unpack_props,    NULL}
+//   dtype idx          pack_fn             unpack_fn           free_fn
+    {MR_U8_DTYPE,       mr_pack_u8,         mr_unpack_u8,       NULL},
+    {MR_U16_DTYPE,      mr_pack_u16,        mr_unpack_u16,      NULL},
+    {MR_U32_DTYPE,      mr_pack_u32,        mr_unpack_u32,      NULL},
+    {MR_VBI_DTYPE,      mr_pack_VBI,        mr_unpack_VBI,      NULL},
+    {MR_U8V_DTYPE,      mr_pack_u8v,        mr_unpack_u8v,      mr_free_value},
+    {MR_U8VF_DTYPE,     mr_pack_u8vf,       mr_unpack_u8vf,     NULL},
+    {MR_BITS_DTYPE,     mr_pack_bits,       mr_unpack_bits,     NULL},
+    {MR_STR_DTYPE,      mr_pack_str,        mr_unpack_str,      mr_free_value},
+    {MR_PROP_U8_DTYPE,  mr_pack_u8,         mr_unpack_u8,       NULL},
+    {MR_PROP_U16_DTYPE, mr_pack_u16,        mr_unpack_u16,      NULL},
+    {MR_PROP_U32_DTYPE, mr_pack_u32,        mr_unpack_u32,      NULL},
+    {MR_PROP_SPV_DTYPE, mr_pack_spv,        mr_unpack_spv,      mr_free_spv},
+    {MR_PROP_STR_DTYPE, mr_pack_str,        mr_unpack_str,      mr_free_value},
+    {MR_PROP_U8V_DTYPE, mr_pack_u8v,        mr_unpack_u8v,      mr_free_value},
+    {MR_FLAGS_DTYPE,    mr_pack_u8,         mr_unpack_incr1,    NULL},
+    {MR_PROPS_DTYPE,    NULL,               mr_unpack_props,    NULL}
 };
 
 int mr_set_scalar(packet_ctx *pctx, int idx, Word_t value) {
@@ -189,7 +189,7 @@ int mr_unpack_mdata_u8v0(packet_ctx *pctx) {
     mr_mdata_fn unpack_fn;
     mr_mdata *mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
-        isprop = DTYPE_MDATA0[mdata->dtype].isprop;
+        isprop = mdata->id && (mdata->dtype != MR_BITS_DTYPE); // DTYPE_MDATA0[mdata->dtype].isprop;
 
         if (!isprop) {
             unpack_fn = DTYPE_MDATA0[mdata->dtype].unpack_fn;
@@ -214,7 +214,7 @@ static int mr_make_VBI(uint32_t u32, uint8_t *u8v0) {
     do {
         *pu8 = u32 & 0x7F;
         u32 = u32 >> 7;
-        if (u32) *pu8 = *pu8 | 0x80;
+        if (u32) *pu8 |= 0x80;
         i++; pu8++;
     } while (u32);
 
@@ -323,13 +323,13 @@ int mr_init_packet_context(packet_ctx **ppctx, const mr_mdata *MDATA_TEMPLATE, s
 
 int mr_pack_u8(packet_ctx *pctx, mr_mdata *mdata) {
     size_t u8vlen = 1;
-    bool isprop = DTYPE_MDATA0[mdata->dtype].isprop;
-    if (isprop) u8vlen++;
+    uint8_t prop_id = mdata->id;
+    if (prop_id) u8vlen++;
 
     uint8_t *pu8 = malloc(mdata->u8vlen); // TODO: err checks on malloc
 
     mdata->u8v0 = pu8;
-    if (isprop) *pu8++ = mdata->id;
+    if (prop_id) *pu8++ = prop_id;
     *pu8 = mdata->value;
     mdata->ualloc = true;
     mdata->u8vlen = u8vlen;
@@ -345,13 +345,13 @@ int mr_unpack_u8(packet_ctx *pctx, mr_mdata *mdata) {
 
 int mr_pack_u16(packet_ctx *pctx, mr_mdata *mdata) {
     size_t u8vlen = 2;
-    bool isprop = DTYPE_MDATA0[mdata->dtype].isprop;
-    if (isprop) u8vlen++;
+    uint8_t prop_id = mdata->id;
+    if (prop_id) u8vlen++;
 
     uint8_t *pu8 = malloc(mdata->u8vlen); // TODO: err checks on malloc
 
     mdata->u8v0 = pu8;
-    if (isprop) *pu8++ = mdata->id;
+    if (prop_id) *pu8++ = prop_id;
     uint16_t u16 = mdata->value;
     *pu8++ = (u16 >> 8) & 0xFF;
     *pu8 = u16 & 0xFF;
@@ -373,13 +373,13 @@ int mr_unpack_u16(packet_ctx *pctx, mr_mdata *mdata) {
 
 int mr_pack_u32(packet_ctx *pctx, mr_mdata *mdata) {
     size_t u8vlen = 4;
-    bool isprop = DTYPE_MDATA0[mdata->dtype].isprop;
-    if (isprop) u8vlen++;
+    uint8_t prop_id = mdata->id;
+    if (prop_id) u8vlen++;
 
     uint8_t *pu8 = malloc(mdata->u8vlen); // TODO: err checks on malloc
 
     mdata->u8v0 = pu8;
-    if (isprop) *pu8++ = mdata->id;
+    if (prop_id) *pu8++ = prop_id;
     uint32_t u32 = mdata->value;
     *pu8++ = (u32 >> 24) & 0xFF;
     *pu8++ = (u32 >> 16) & 0xFF;
@@ -391,7 +391,6 @@ int mr_pack_u32(packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 int mr_unpack_u32(packet_ctx *pctx, mr_mdata *mdata) {
-    //if (!pctx->ualloc || pctx->pos >= pctx->len) return 0;
     mdata->vlen = 4;
     uint8_t *u8v = pctx->u8v0 + pctx->pos;
     uint32_t u32v[] = {u8v[0], u8v[1], u8v[2], u8v[3]};
@@ -471,9 +470,11 @@ int mr_unpack_prop_u32(packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 int mr_pack_str(packet_ctx *pctx, mr_mdata *mdata) {
+    uint8_t prop_id = mdata->id;
     uint8_t *u8v = (uint8_t *)mdata->value;
-    uint16_t u16 = strlen((char *)u8v); // get number of bytes (not chars)
+    uint16_t u16 = strlen((char *)u8v);
     size_t u8vlen = 2 + u16;
+    if (prop_id) u8vlen++;
 
     uint8_t *u8v0 = malloc(u8vlen); // TODO: err checks on malloc
 
@@ -482,6 +483,7 @@ int mr_pack_str(packet_ctx *pctx, mr_mdata *mdata) {
     mdata->u8vlen = u8vlen;
 
     uint8_t *pu8 = u8v0;
+    if (prop_id) *pu8++ = prop_id;
     *pu8++ = (u16 >> 8) & 0xFF;
     *pu8++ = u16 & 0xFF;
     memcpy(pu8, u8v, u16);
@@ -561,7 +563,8 @@ int mr_pack_prop_u8v(packet_ctx *pctx, mr_mdata *mdata) {
     return 0;
 }
 
-int mr_pack_prop_spv(packet_ctx *pctx, mr_mdata *mdata) {
+int mr_pack_spv(packet_ctx *pctx, mr_mdata *mdata) {
+    uint8_t prop_id = mdata->id; // string_pair vectors are always properties
     string_pair *spv = (string_pair *)mdata->value;
     size_t u8vlen = 0;
 
@@ -578,7 +581,7 @@ int mr_pack_prop_spv(packet_ctx *pctx, mr_mdata *mdata) {
     uint16_t u16;
 
     for (int i = 0; i < mdata->vlen; i++) {
-        *pu8++ = mdata->id;
+        *pu8++ = prop_id;
         // name
         u16 = strlen((char *)spv[i].name);
         *pu8++ = (u16 >> 8) & 0xFF;
@@ -676,6 +679,8 @@ int mr_unpack_props(packet_ctx *pctx, mr_mdata *mdata) {
 
 int mr_pack_u8v(packet_ctx *pctx, mr_mdata *mdata) {
     size_t u8vlen = 2 + mdata->vlen;
+    uint8_t prop_id = mdata->id;
+    if (prop_id) u8vlen++;
 
     uint8_t *u8v0 = malloc(mdata->u8vlen); // TODO: err checks on malloc
 
@@ -684,6 +689,7 @@ int mr_pack_u8v(packet_ctx *pctx, mr_mdata *mdata) {
     mdata->u8vlen = u8vlen;
 
     uint8_t *pu8 = u8v0;
+    if (prop_id) *pu8++ = prop_id;
     uint16_t u16 = mdata->vlen;
     *pu8++ = (u16 >> 8) & 0xFF;
     *pu8++ = u16 & 0xFF;
@@ -728,20 +734,25 @@ const uint8_t BIT_MASKS[] = {
 
 //  get the link mdata byte, reset specified bit(s) and set if value is non-zero
 int mr_pack_bits(packet_ctx *pctx, mr_mdata *mdata) {
+    uint8_t bitpos = mdata->id;
     mr_mdata *link_mdata = pctx->mdata0 + mdata->link;
-    *link_mdata->u8v0 = *link_mdata->u8v0 & ~(BIT_MASKS[mdata->vlen] << mdata->id);
+    uint8_t *u8v0 = link_mdata->u8v0;
+
+    *u8v0 &= ~(BIT_MASKS[mdata->vlen] << bitpos);
 
     if (mdata->value) {
         uint8_t u8 = mdata->value;
-        *link_mdata->u8v0 = *link_mdata->u8v0 | (u8 << mdata->id);
+        *u8v0 |= u8 << bitpos;
     }
 
     return 0;
 }
 
 int mr_unpack_bits(packet_ctx *pctx, mr_mdata *mdata) { // don't advance pctx->pos
+    uint8_t bitpos = mdata->id;
+    uint8_t *pu8 = pctx->u8v0 + pctx->pos;
+    mdata->value = *pu8 >> bitpos & BIT_MASKS[mdata->vlen];
     mdata->vexists = true;
-    mdata->value = pctx->u8v0[pctx->pos] >> mdata->id & BIT_MASKS[mdata->vlen];
     return 0;
 }
 

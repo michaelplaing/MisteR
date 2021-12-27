@@ -22,7 +22,6 @@ typedef struct mr_mdata {
 
 typedef struct mr_dtype {
     const int idx;
-    const bool isprop;
     const mr_mdata_fn pack_fn;
     const mr_mdata_fn unpack_fn;
     const mr_mdata_fn free_fn;
@@ -106,7 +105,7 @@ int mr_unpack_prop_u32(packet_ctx *pctx, mr_mdata *mdata);
 
 int mr_pack_prop_u8v(packet_ctx *pctx, mr_mdata *mdata);
 
-int mr_pack_prop_spv(packet_ctx *pctx, mr_mdata *mdata);
+int mr_pack_spv(packet_ctx *pctx, mr_mdata *mdata);
 int mr_unpack_spv(packet_ctx *pctx, mr_mdata *mdata);
 int mr_free_spv(packet_ctx *pctx, mr_mdata *mdata);
 
