@@ -24,6 +24,7 @@ typedef struct mr_dtype {
     const int idx;
     const mr_mdata_fn pack_fn;
     const mr_mdata_fn unpack_fn;
+    const mr_mdata_fn validate_fn;
     const mr_mdata_fn free_fn;
 } mr_dtype;
 
@@ -77,6 +78,7 @@ static int mr_unpack_u32(packet_ctx *pctx, mr_mdata *mdata);
 
 static int mr_pack_str(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_unpack_str(packet_ctx *pctx, mr_mdata *mdata);
+static int mr_validate_str(packet_ctx *pctx, mr_mdata *mdata);
 
 static int mr_pack_VBI(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_unpack_VBI(packet_ctx *pctx, mr_mdata *mdata);

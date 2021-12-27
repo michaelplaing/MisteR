@@ -6,24 +6,32 @@
 #include <stdbool.h>
 
 #include "packet_internal.h"
+#include "validate.h"
 
 const mr_dtype DTYPE_MDATA0[] = {
-//   dtype idx          pack_fn             unpack_fn           free_fn
-    {MR_U8_DTYPE,       mr_pack_u8,         mr_unpack_u8,       NULL},
-    {MR_U16_DTYPE,      mr_pack_u16,        mr_unpack_u16,      NULL},
-    {MR_U32_DTYPE,      mr_pack_u32,        mr_unpack_u32,      NULL},
-    {MR_VBI_DTYPE,      mr_pack_VBI,        mr_unpack_VBI,      NULL},
-    {MR_U8V_DTYPE,      mr_pack_u8v,        mr_unpack_u8v,      mr_free_value},
-    {MR_U8VF_DTYPE,     mr_pack_u8vf,       mr_unpack_u8vf,     mr_free_value},
-    {MR_BITS_DTYPE,     mr_pack_bits,       mr_unpack_bits,     NULL},
-    {MR_STR_DTYPE,      mr_pack_str,        mr_unpack_str,      mr_free_value},
-    {MR_SPV_DTYPE,      mr_pack_spv,        mr_unpack_spv,      mr_free_spv},
-    {MR_FLAGS_DTYPE,    mr_pack_u8,         mr_unpack_incr1,    NULL},
-    {MR_PROPS_DTYPE,    NULL,               mr_unpack_props,    NULL}
+//   dtype idx          pack_fn             unpack_fn           validate_fn         free_fn
+    {MR_U8_DTYPE,       mr_pack_u8,         mr_unpack_u8,       NULL,               NULL},
+    {MR_U16_DTYPE,      mr_pack_u16,        mr_unpack_u16,      NULL,               NULL},
+    {MR_U32_DTYPE,      mr_pack_u32,        mr_unpack_u32,      NULL,               NULL},
+    {MR_VBI_DTYPE,      mr_pack_VBI,        mr_unpack_VBI,      NULL,               NULL},
+    {MR_U8V_DTYPE,      mr_pack_u8v,        mr_unpack_u8v,      NULL,               mr_free_value},
+    {MR_U8VF_DTYPE,     mr_pack_u8vf,       mr_unpack_u8vf,     NULL,               mr_free_value},
+    {MR_BITS_DTYPE,     mr_pack_bits,       mr_unpack_bits,     NULL,               NULL},
+    {MR_STR_DTYPE,      mr_pack_str,        mr_unpack_str,      mr_validate_str,    mr_free_value},
+    {MR_SPV_DTYPE,      mr_pack_spv,        mr_unpack_spv,      NULL,               mr_free_spv},
+    {MR_FLAGS_DTYPE,    mr_pack_u8,         mr_unpack_incr1,    NULL,               NULL},
+    {MR_PROPS_DTYPE,    NULL,               mr_unpack_props,    NULL,               NULL}
 };
 
 int mr_set_scalar(packet_ctx *pctx, int idx, Word_t value) {
     mr_mdata *mdata = pctx->mdata0 + idx;
+    mr_mdata_fn validate_fn = DTYPE_MDATA0[mdata->dtype].validate_fn;
+
+    if (validate_fn) {
+        int rc = validate_fn(pctx, mdata);
+        if (rc) return rc;
+    }
+
     mdata->value = value;
     mdata->vexists = true;
     return 0;
@@ -74,6 +82,13 @@ int mr_get_u32(packet_ctx *pctx, int idx, uint32_t *pu32) {
 
 int mr_set_vector(packet_ctx *pctx, int idx, void *pvoid, size_t len) {
     mr_mdata *mdata = pctx->mdata0 + idx;
+    mr_mdata_fn validate_fn = DTYPE_MDATA0[mdata->dtype].validate_fn;
+
+    if (validate_fn) {
+        int rc = validate_fn(pctx, mdata);
+        if (rc) return rc;
+    }
+
     mdata->value = (Word_t)pvoid;
     mdata->vexists = true;
     mdata->vlen = len;
@@ -436,6 +451,11 @@ static int mr_unpack_str(packet_ctx *pctx, mr_mdata *mdata) {
     mdata->valloc = true;
     pctx->pos += 2 + vlen;
     return 0;
+}
+
+static int mr_validate_str(packet_ctx *pctx, mr_mdata *mdata) {
+    int rc = utf8val((uint8_t *)mdata->value, mdata->vlen);
+    return rc;
 }
 
 static int mr_pack_spv(packet_ctx *pctx, mr_mdata *mdata) {
