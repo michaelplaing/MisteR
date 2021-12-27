@@ -97,6 +97,7 @@ int mr_unpack_bits(packet_ctx *pctx, mr_mdata *mdata);
 int mr_unpack_incr1(packet_ctx *pctx, mr_mdata *mdata);
 
 int mr_pack_prop_u8(packet_ctx *pctx, mr_mdata *mdata);
+int mr_unpack_prop_u8(packet_ctx *pctx, mr_mdata *mdata);
 
 int mr_pack_prop_u16(packet_ctx *pctx, mr_mdata *mdata);
 
@@ -106,7 +107,7 @@ int mr_unpack_prop_u32(packet_ctx *pctx, mr_mdata *mdata);
 int mr_pack_prop_u8v(packet_ctx *pctx, mr_mdata *mdata);
 
 int mr_pack_prop_spv(packet_ctx *pctx, mr_mdata *mdata);
-int mr_unpack_prop_spv(packet_ctx *pctx, mr_mdata *mdata);
+int mr_unpack_spv(packet_ctx *pctx, mr_mdata *mdata);
 int mr_free_spv(packet_ctx *pctx, mr_mdata *mdata);
 
 int mr_pack_prop_str(packet_ctx *pctx, mr_mdata *mdata);

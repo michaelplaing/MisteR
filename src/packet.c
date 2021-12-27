@@ -17,12 +17,12 @@ const mr_dtype DTYPE_MDATA0[] = {
     {MR_U8VF_DTYPE,     false,  mr_pack_u8vf,       mr_unpack_u8vf,     NULL},
     {MR_BITS_DTYPE,     false,  mr_pack_bits,       mr_unpack_bits,     NULL},
     {MR_STR_DTYPE,      false,  mr_pack_str,        mr_unpack_str,      mr_free_value},
-    {MR_PROP_U8_DTYPE,  true,   mr_pack_prop_u8,    NULL,               NULL},
-    {MR_PROP_U16_DTYPE, true,   mr_pack_prop_u16,   NULL,               NULL},
-    {MR_PROP_U32_DTYPE, true,   mr_pack_prop_u32,   NULL,               NULL},
-    {MR_PROP_SPV_DTYPE, true,   mr_pack_prop_spv,   mr_unpack_prop_spv, mr_free_spv},
-    {MR_PROP_STR_DTYPE, true,   mr_pack_prop_str,   NULL,               mr_free_value},
-    {MR_PROP_U8V_DTYPE, true,   mr_pack_prop_u8v,   NULL,               mr_free_value},
+    {MR_PROP_U8_DTYPE,  true,   mr_pack_u8,         mr_unpack_u8,       NULL},
+    {MR_PROP_U16_DTYPE, true,   mr_pack_u16,        mr_unpack_u16,      NULL},
+    {MR_PROP_U32_DTYPE, true,   mr_pack_u32,        mr_unpack_u32,      NULL},
+    {MR_PROP_SPV_DTYPE, true,   mr_pack_prop_spv,   mr_unpack_spv,      mr_free_spv},
+    {MR_PROP_STR_DTYPE, true,   mr_pack_prop_str,   mr_unpack_str,      mr_free_value},
+    {MR_PROP_U8V_DTYPE, true,   mr_pack_prop_u8v,   mr_unpack_u8v,      mr_free_value},
     {MR_FLAGS_DTYPE,    false,  mr_pack_u8,         mr_unpack_incr1,    NULL},
     {MR_PROPS_DTYPE,    false,  NULL,               mr_unpack_props,    NULL}
 };
@@ -322,16 +322,21 @@ int mr_init_packet_context(packet_ctx **ppctx, const mr_mdata *MDATA_TEMPLATE, s
 }
 
 int mr_pack_u8(packet_ctx *pctx, mr_mdata *mdata) {
-    mdata->u8vlen = 1;
-    uint8_t *u8v0 = malloc(mdata->u8vlen); // TODO: err checks on malloc
+    size_t u8vlen = 1;
+    bool isprop = DTYPE_MDATA0[mdata->dtype].isprop;
+    if (isprop) u8vlen++;
+
+    uint8_t *pu8 = malloc(mdata->u8vlen); // TODO: err checks on malloc
+
+    mdata->u8v0 = pu8;
+    if (isprop) *pu8++ = mdata->id;
+    *pu8 = mdata->value;
     mdata->ualloc = true;
-    mdata->u8v0 = u8v0;
-    *u8v0 = mdata->value;
+    mdata->u8vlen = u8vlen;
     return 0;
 }
 
 int mr_unpack_u8(packet_ctx *pctx, mr_mdata *mdata) {
-    //if (!pctx->ualloc || pctx->pos >= pctx->len) return 0;
     mdata->vexists = true;
     mdata->vlen = 1;
     mdata->value = pctx->u8v0[pctx->pos++];
@@ -339,14 +344,19 @@ int mr_unpack_u8(packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 int mr_pack_u16(packet_ctx *pctx, mr_mdata *mdata) {
-    mdata->u8vlen = 2;
-    uint8_t *u8v0 = malloc(mdata->u8vlen); // TODO: err checks on malloc
-    mdata->ualloc = true;
-    mdata->u8v0 = u8v0;
+    size_t u8vlen = 2;
+    bool isprop = DTYPE_MDATA0[mdata->dtype].isprop;
+    if (isprop) u8vlen++;
+
+    uint8_t *pu8 = malloc(mdata->u8vlen); // TODO: err checks on malloc
+
+    mdata->u8v0 = pu8;
+    if (isprop) *pu8++ = mdata->id;
     uint16_t u16 = mdata->value;
-    uint8_t *pu8 = u8v0;
     *pu8++ = (u16 >> 8) & 0xFF;
     *pu8 = u16 & 0xFF;
+    mdata->ualloc = true;
+    mdata->u8vlen = u8vlen;
     return 0;
 }
 
@@ -362,16 +372,21 @@ int mr_unpack_u16(packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 int mr_pack_u32(packet_ctx *pctx, mr_mdata *mdata) {
-    mdata->u8vlen = 4;
-    uint8_t *u8v0 = malloc(mdata->u8vlen); // TODO: err checks on malloc
-    mdata->ualloc = true;
-    mdata->u8v0 = u8v0;
+    size_t u8vlen = 4;
+    bool isprop = DTYPE_MDATA0[mdata->dtype].isprop;
+    if (isprop) u8vlen++;
+
+    uint8_t *pu8 = malloc(mdata->u8vlen); // TODO: err checks on malloc
+
+    mdata->u8v0 = pu8;
+    if (isprop) *pu8++ = mdata->id;
     uint32_t u32 = mdata->value;
-    uint8_t *pu8 = u8v0;
     *pu8++ = (u32 >> 24) & 0xFF;
     *pu8++ = (u32 >> 16) & 0xFF;
     *pu8++ = (u32 >> 8) & 0xFF;
     *pu8 = u32 & 0xFF;
+    mdata->ualloc = true;
+    mdata->u8vlen = u8vlen;
     return 0;
 }
 
@@ -398,6 +413,13 @@ int mr_pack_prop_u8(packet_ctx *pctx, mr_mdata *mdata) {
     return 0;
 }
 
+int mr_unpack_prop_u8(packet_ctx *pctx, mr_mdata *mdata) {
+    mdata->vexists = true;
+    mdata->vlen = 2;
+    mdata->value = pctx->u8v0[pctx->pos++];
+    return 0;
+}
+
 int mr_pack_prop_u16(packet_ctx *pctx, mr_mdata *mdata) {
     mdata->u8vlen = 3;
     uint8_t *u8v0 = malloc(mdata->u8vlen); // TODO: err checks on malloc
@@ -409,6 +431,16 @@ int mr_pack_prop_u16(packet_ctx *pctx, mr_mdata *mdata) {
     *pu8++ = (u16 >> 8) & 0xFF;
     *pu8 = u16 & 0xFF;
 
+    return 0;
+}
+
+int mr_unpack_prop_u16(packet_ctx *pctx, mr_mdata *mdata) {
+    uint8_t *u8v = pctx->u8v0 + pctx->pos;
+    mdata->vlen = 3;
+    uint16_t u16v[] = {u8v[0], u8v[1]};
+    mdata->value = (u16v[0] << 8) + u16v[1];
+    mdata->vexists = true;
+    pctx->pos += 2;
     return 0;
 }
 
@@ -462,11 +494,11 @@ int mr_unpack_str(packet_ctx *pctx, mr_mdata *mdata) {
     uint16_t u16v[] = {u8v[0], u8v[1]}; u8v += 2;
     size_t vlen = (u16v[0] << 8) + u16v[1];
 
-    uint8_t *value = malloc(vlen + 1);
+    uint8_t *pu8 = malloc(vlen + 1);
 
-    memcpy(value, u8v, vlen);
-    value[vlen] = 0;
-    mdata->value = (Word_t)value;
+    memcpy(pu8, u8v, vlen);
+    pu8[vlen] = 0;
+    mdata->value = (Word_t)pu8;
     mdata->vlen = vlen;
     mdata->vexists = true;
     mdata->valloc = true;
@@ -491,6 +523,23 @@ int mr_pack_prop_str(packet_ctx *pctx, mr_mdata *mdata) {
     *pu8++ = u16 & 0xFF;
     memcpy(pu8, u8v, u16);
 
+    return 0;
+}
+
+int mr_unpack_prop_str(packet_ctx *pctx, mr_mdata *mdata) {
+    uint8_t *u8v = pctx->u8v0 + pctx->pos;
+    uint16_t u16v[] = {u8v[0], u8v[1]}; u8v += 2;
+    size_t vlen = (u16v[0] << 8) + u16v[1];
+
+    uint8_t *pu8 = malloc(vlen + 1);
+
+    memcpy(pu8, u8v, vlen);
+    pu8[vlen] = 0;
+    mdata->value = (Word_t)pu8;
+    mdata->vlen = vlen;
+    mdata->vexists = true;
+    mdata->valloc = true;
+    pctx->pos += 2 + vlen;
     return 0;
 }
 
@@ -547,18 +596,18 @@ int mr_pack_prop_spv(packet_ctx *pctx, mr_mdata *mdata) {
     return 0;
 }
 
-int mr_unpack_prop_spv(packet_ctx *pctx, mr_mdata *mdata) { // multiple
+int mr_unpack_spv(packet_ctx *pctx, mr_mdata *mdata) { // multiple
     uint8_t *u8v = pctx->u8v0 + pctx->pos;
 
     uint16_t u16v[] = {u8v[0], u8v[1]}; u8v += 2;
     size_t name_len = (u16v[0] << 8) + u16v[1];
-    uint8_t *name = malloc(2 + name_len + 1);
+    uint8_t *name = malloc(name_len + 1);
     memcpy(name, u8v, name_len); u8v += name_len;
     name[name_len] = 0;
 
     u16v[0] = u8v[0]; u16v[1] = u8v[1]; u8v += 2;
     size_t value_len = (u16v[0] << 8) + u16v[1];
-    uint8_t *value = malloc(2 + value_len + 1);
+    uint8_t *value = malloc(value_len + 1);
     memcpy(value, u8v, value_len); u8v += value_len;
     value[value_len] = 0;
 
