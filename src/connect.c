@@ -39,10 +39,10 @@ const uint8_t MRCWP[] = {
 #define MRCWPSZ 7
 
 const mr_mdata CONNECT_MDATA_TEMPLATE[] = {
-//   name                           dtype               value           valloc  vlen    vexists link                            id                                      idx                                     ualloc u8vlen  u8v0
+//   name                           dtype               value           valloc  vlen    vexists link                            xf                                      idx                                     ualloc u8vlen  u8v0
     {"packet_type",                 MR_U8_DTYPE,        MQTT_CONNECT,   false,  1,      true,   0,                              NA,                                     CONNECT_PACKET_TYPE,                    false,  0,      NULL},
     {"remaining_length",            MR_VBI_DTYPE,       0,              false,  0,      true,   CONNECT_PASSWORD,               NA,                                     CONNECT_REMAINING_LENGTH,               false,  0,      NULL},
-    {"protocol_name",               MR_U8VF_DTYPE,      (Word_t)PNM,    false,  PNMSZ,  true,   0,                              NA,                                     CONNECT_PROTOCOL_NAME,                  false,  0,      NULL},
+    {"protocol_name",               MR_U8VF_DTYPE,      (Word_t)PNM,    false,  PNMSZ,  true,   0,                              PNMSZ,                                  CONNECT_PROTOCOL_NAME,                  false,  0,      NULL},
     {"protocol_version",            MR_U8_DTYPE,        PROTO_VERSION,  false,  1,      true,   0,                              NA,                                     CONNECT_PROTOCOL_VERSION,               false,  0,      NULL},
     {"reserved",                    MR_BITS_DTYPE,      0,              false,  1,      true,   CONNECT_MR_FLAGS,               0,                                      CONNECT_RESERVED,                       false,  0,      NULL},
     {"clean_start",                 MR_BITS_DTYPE,      0,              false,  1,      true,   CONNECT_MR_FLAGS,               1,                                      CONNECT_CLEAN_START,                    false,  0,      NULL},
@@ -78,7 +78,7 @@ const mr_mdata CONNECT_MDATA_TEMPLATE[] = {
     {"will_payload",                MR_U8V_DTYPE,       (Word_t)NULL,   false,  0,      false,  0,                              NA,                                     CONNECT_WILL_PAYLOAD,                   false,  0,      NULL},
     {"user_name",                   MR_STR_DTYPE,       (Word_t)NULL,   false,  0,      false,  0,                              NA,                                     CONNECT_USER_NAME,                      false,  0,      NULL},
     {"password",                    MR_U8V_DTYPE,       (Word_t)NULL,   false,  0,      false,  0,                              NA,                                     CONNECT_PASSWORD,                       false,  0,      NULL}
-//   name                           dtype               value           valloc  vlen    vexists link                            id                                      idx                                     ualloc u8vlen  u8v0
+//   name                           dtype               value           valloc  vlen    vexists link                            xf                                      idx                                     ualloc u8vlen  u8v0
 };
 
 int mr_init_connect_pctx(packet_ctx **Ppctx) {

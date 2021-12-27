@@ -11,7 +11,7 @@ typedef struct mr_mdata {
     size_t vlen;            // for sub-byte values, pointer values, vectors & VBIs
     bool vexists;           // value has been set
     const int link;         // end of range for VBI; byte to stuff for bit mdata
-    const uint8_t id;       // property id or flag bit position
+    const uint8_t xf;       // property prop_id, flag bitpos or ubvf flen
     const int idx;          // integer position in the mdata vector
     bool ualloc;            // is u8v0 allocated
     size_t u8vlen;
