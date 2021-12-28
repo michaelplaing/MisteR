@@ -32,6 +32,7 @@
  */
 
 /* Return 0 - success,  >0 - index(1-based) of first error char */
+/* MQTT: error on "Disallowed Unicode code points" (control chars) and 0 */
 int utf8val(const uint8_t *u8v, int len) {
     int err_pos = 1;
 
@@ -39,25 +40,24 @@ int utf8val(const uint8_t *u8v, int len) {
         int bytes;
         const uint8_t byte1 = u8v[0];
 
-        /* 00..7F */
-        if (byte1 <= 0x7F) {
+        if (byte1 <= 0x7F) { /* 00..7F */
+            if (byte1 <= 0x1F || byte1 == 0x7F) return err_pos; // MQTT: 0 or control char
             bytes = 1;
-        /* C2..DF, 80..BF */
         }
-        else if (
+        else if ( /* C2..DF, 80..BF */
                 len >= 2
                 && byte1 >= 0xC2
                 && byte1 <= 0xDF
                 && (int8_t)u8v[1] <= (int8_t)0xBF
         ) {
+            if (byte1 == 0xC2 && u8v[1] <= 0x9F) return err_pos; // MQTT: control char
             bytes = 2;
         }
         else if (len >= 3) {
             const uint8_t byte2 = u8v[1];
-
-            /* Is byte2, byte3 between 0x80 ~ 0xBF */
-            const bool byte2_ok = (int8_t)byte2 <= (int8_t)0xBF;
-            const bool byte3_ok = (int8_t)u8v[2] <= (int8_t)0xBF;
+            const uint8_t byte3 = u8v[2];
+            const bool byte2_ok = byte2 >= 0x80 && byte2 <= 0xBF; /* 80..BF */
+            const bool byte3_ok = byte3 >= 0x80 && byte3 <= 0xBF; /* 80..BF */
 
             if (
                 byte2_ok
@@ -72,15 +72,15 @@ int utf8val(const uint8_t *u8v, int len) {
                 bytes = 3;
             }
             else if (len >= 4) {
-                /* Is byte4 between 0x80 ~ 0xBF */
-                const bool byte4_ok = (int8_t)u8v[3] <= (int8_t)0xBF;
+                const uint8_t byte4 = u8v[3];
+                const bool byte4_ok = byte4 >= 0x80 && byte4 <= 0xBF; /* 80..BF */
 
                 if (
                     byte2_ok
                     && byte3_ok
                     && byte4_ok
                     && (
-                        (byte1 == 0xF0 && byte2 >= 0x90) /* F0, 90..BF, 80..BF, 80..BF */
+                        (byte1 == 0xF0 && byte2 >= 0x90)    /* F0, 90..BF, 80..BF, 80..BF */
                         || (byte1 >= 0xF1 && byte1 <= 0xF3) /* F1..F3, 80..BF, 80..BF, 80..BF */
                         || (byte1 == 0xF4 && byte2 <= 0x8F) /* F4, 80..8F, 80..BF, 80..BF */
                     )
