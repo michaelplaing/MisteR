@@ -24,17 +24,13 @@ const mr_dtype DTYPE_MDATA0[] = {
 };
 
 int mr_set_scalar(packet_ctx *pctx, int idx, Word_t value) {
+    int rc = 0;
     mr_mdata *mdata = pctx->mdata0 + idx;
     mr_mdata_fn validate_fn = DTYPE_MDATA0[mdata->dtype].validate_fn;
-
-    if (validate_fn) {
-        int rc = validate_fn(pctx, mdata);
-        if (rc) return rc;
-    }
-
     mdata->value = value;
     mdata->vexists = true;
-    return 0;
+    if (validate_fn) rc = validate_fn(pctx, mdata);
+    return rc;
 }
 
 static int mr_get_scalar(packet_ctx *pctx, int idx, Word_t *pvalue) {
@@ -81,18 +77,14 @@ int mr_get_u32(packet_ctx *pctx, int idx, uint32_t *pu32) {
 }
 
 int mr_set_vector(packet_ctx *pctx, int idx, void *pvoid, size_t len) {
+    int rc = 0;
     mr_mdata *mdata = pctx->mdata0 + idx;
     mr_mdata_fn validate_fn = DTYPE_MDATA0[mdata->dtype].validate_fn;
-
-    if (validate_fn) {
-        int rc = validate_fn(pctx, mdata);
-        if (rc) return rc;
-    }
-
     mdata->value = (Word_t)pvoid;
     mdata->vexists = true;
     mdata->vlen = len;
-    return 0;
+    if (validate_fn) rc = validate_fn(pctx, mdata);
+    return rc;
 }
 
 static int mr_get_vector(packet_ctx *pctx, int idx, Word_t *ppvoid, size_t *plen) {
