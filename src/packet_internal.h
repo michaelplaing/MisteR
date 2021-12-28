@@ -6,7 +6,8 @@
 typedef struct mr_mdata {
     const char *name;
     const int dtype;
-    Word_t value;           // can handle any mr_mdata value including pointers
+    const bool isprop;      // mdata is a property
+    Word_t value;           // handles any mdata value including pointers
     bool valloc;            // is value allocated
     size_t vlen;            // for sub-byte values, pointer values, vectors & VBIs
     bool vexists;           // value has been set
@@ -95,6 +96,7 @@ static int mr_unpack_incr1(packet_ctx *pctx, mr_mdata *mdata);
 
 static int mr_pack_spv(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_unpack_spv(packet_ctx *pctx, mr_mdata *mdata);
+static int mr_validate_spv(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_free_spv(packet_ctx *pctx, mr_mdata *mdata);
 
 static int mr_unpack_props(packet_ctx *pctx, mr_mdata *mdata);

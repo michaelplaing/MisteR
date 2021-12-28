@@ -48,7 +48,7 @@ int utf8val(const uint8_t *u8v, int len) {
                 len >= 2
                 && byte1 >= 0xC2
                 && byte1 <= 0xDF
-                && (signed char)u8v[1] <= (signed char)0xBF
+                && (int8_t)u8v[1] <= (int8_t)0xBF
         ) {
             bytes = 2;
         }
@@ -56,8 +56,8 @@ int utf8val(const uint8_t *u8v, int len) {
             const uint8_t byte2 = u8v[1];
 
             /* Is byte2, byte3 between 0x80 ~ 0xBF */
-            const bool byte2_ok = (signed char)byte2 <= (signed char)0xBF;
-            const bool byte3_ok = (signed char)u8v[2] <= (signed char)0xBF;
+            const bool byte2_ok = (int8_t)byte2 <= (int8_t)0xBF;
+            const bool byte3_ok = (int8_t)u8v[2] <= (int8_t)0xBF;
 
             if (
                 byte2_ok
@@ -73,7 +73,7 @@ int utf8val(const uint8_t *u8v, int len) {
             }
             else if (len >= 4) {
                 /* Is byte4 between 0x80 ~ 0xBF */
-                const bool byte4_ok = (signed char)u8v[3] <= (signed char)0xBF;
+                const bool byte4_ok = (int8_t)u8v[3] <= (int8_t)0xBF;
 
                 if (
                     byte2_ok
