@@ -27,7 +27,7 @@ enum mqtt_packet_type {
     MQTT_AUTH           = 0xF0U
 };
 
-/* copied from mosqitto & spec */
+/* copied from mosquitto & spec */
 enum mqtt_property {
     MQTT_PROP_PAYLOAD_FORMAT_INDICATOR = 1,		/* Byte :				PUBLISH, Will Properties */
     MQTT_PROP_MESSAGE_EXPIRY_INTERVAL = 2,		/* 4 byte int :			PUBLISH, Will Properties */
@@ -75,5 +75,19 @@ enum mqtt_property {
 #define MR_PINGRESP         "mr.pingresp"
 #define MR_DISCONNECT       "mr.disconnect"
 #define MR_AUTH             "mr.auth"
+
+
+/* from spec: The Reason Codes used for Malformed Packet and Protocol Errors */
+enum mqtt_reason_codes {
+    MQTT_MALFORMED_PACKET                       = 0x81,
+    MQTT_PROTOCOL_ERROR                         = 0x82,
+    MQTT_RECEIVE_MAXIMUM_EXCEEDED               = 0x93,
+    MQTT_PACKET_TOO_LARGE                       = 0x95,
+    MQTT_RETAIN_NOT_SUPPORTED                   = 0x9A,
+    MQTT_QOS_NOT_SUPPORTED                      = 0x9B,
+    MQTT_SHARED_SUBSCRIPTIONS_NOT_SUPPORTED     = 0x9E,
+    MQTT_SUBSCRIPTION_IDENTIFIERS_NOT_SUPPORTED = 0xA1,
+    MQTT_WILDCARD_SUBSCRIPTIONS_NOT_SUPPORTED   = 0xA2
+};
 
 #endif /* MISTER_H */
