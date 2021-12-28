@@ -15,7 +15,6 @@ const mr_dtype DTYPE_MDATA0[] = {
     {MR_U32_DTYPE,      mr_pack_u32,        mr_unpack_u32,      NULL,               NULL},
     {MR_VBI_DTYPE,      mr_pack_VBI,        mr_unpack_VBI,      NULL,               NULL},
     {MR_U8V_DTYPE,      mr_pack_u8v,        mr_unpack_u8v,      NULL,               mr_free_value},
-    {MR_U8VF_DTYPE,     mr_pack_u8vf,       mr_unpack_u8vf,     NULL,               mr_free_value},
     {MR_BITS_DTYPE,     mr_pack_bits,       mr_unpack_bits,     NULL,               NULL},
     {MR_STR_DTYPE,      mr_pack_str,        mr_unpack_str,      mr_validate_str,    mr_free_value},
     {MR_SPV_DTYPE,      mr_pack_spv,        mr_unpack_spv,      mr_validate_spv,    mr_free_spv},
@@ -606,34 +605,6 @@ static int mr_unpack_u8v(packet_ctx *pctx, mr_mdata *mdata) {
     mdata->vexists = true;
     mdata->valloc = true;
     pctx->pos += 2 + vlen;
-    return 0;
-}
-
-static int mr_pack_u8vf(packet_ctx *pctx, mr_mdata *mdata) {
-    size_t flen = mdata->xf; // fixed length set by template
-
-    uint8_t *u8v0 = malloc(flen); // TODO: err checks on malloc
-
-    mdata->ualloc = true;
-    mdata->u8v0 = u8v0;
-    mdata->u8vlen = flen;
-
-    memcpy(u8v0, (uint8_t *)mdata->value, flen);
-    return 0;
-}
-
-static int mr_unpack_u8vf(packet_ctx *pctx, mr_mdata *mdata) {
-    size_t flen = mdata->xf; // fixed length set by template
-    uint8_t *u8v = pctx->u8v0 + pctx->pos;
-
-    uint8_t *value = malloc(flen); // TODO: err checks on malloc
-
-    memcpy(value, u8v, flen);
-    mdata->value = (Word_t)value;
-    mdata->vlen = flen;
-    mdata->vexists = true;
-    mdata->valloc = true;
-    pctx->pos += flen;
     return 0;
 }
 

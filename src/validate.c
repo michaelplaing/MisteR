@@ -32,7 +32,7 @@
  */
 
 /* Return 0 - success,  >0 - index(1-based) of first error char */
-/* MQTT: error on "Disallowed Unicode code points" (control chars) and 0 */
+/* MQTT: error on "Disallowed Unicode code points" (control chars) and U+0000 */
 int utf8val(const uint8_t *u8v, int len) {
     int err_pos = 1;
 
@@ -41,7 +41,7 @@ int utf8val(const uint8_t *u8v, int len) {
         const uint8_t byte1 = u8v[0];
 
         if (byte1 <= 0x7F) { /* 00..7F */
-            if (byte1 <= 0x1F || byte1 == 0x7F) return err_pos; // MQTT: 0 or control char
+            if (byte1 <= 0x1F || byte1 == 0x7F) return err_pos; // MQTT: U+0000 or control char
             bytes = 1;
         }
         else if ( /* C2..DF, 80..BF */

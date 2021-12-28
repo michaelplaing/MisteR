@@ -9,8 +9,8 @@
 #include "connect_internal.h"
 #include "packet_internal.h"
 
-const uint8_t PNM[] = {0x00, 0x04, 'M', 'Q', 'T', 'T'};  // protocol signature
-#define PNMSZ 6
+const uint8_t PNM[] = {'M', 'Q', 'T', 'T'};  // protocol signature
+#define PNMSZ 4
 #define PROTO_VERSION 5 // protocol version
 #define NA 0
 
@@ -42,7 +42,7 @@ const mr_mdata CONNECT_MDATA_TEMPLATE[] = {
 //   name                           dtype               isprop  value           valloc  vlen    vexists link                            xf                                      idx                                     ualloc u8vlen  u8v0
     {"packet_type",                 MR_U8_DTYPE,        false,  MQTT_CONNECT,   false,  1,      true,   0,                              NA,                                     CONNECT_PACKET_TYPE,                    false,  0,      NULL},
     {"remaining_length",            MR_VBI_DTYPE,       false,  0,              false,  0,      true,   CONNECT_PASSWORD,               NA,                                     CONNECT_REMAINING_LENGTH,               false,  0,      NULL},
-    {"protocol_name",               MR_U8VF_DTYPE,      false,  (Word_t)PNM,    false,  PNMSZ,  true,   0,                              PNMSZ,                                  CONNECT_PROTOCOL_NAME,                  false,  0,      NULL},
+    {"protocol_name",               MR_U8V_DTYPE,       false,  (Word_t)PNM,    false,  PNMSZ,  true,   0,                              NA,                                     CONNECT_PROTOCOL_NAME,                  false,  0,      NULL},
     {"protocol_version",            MR_U8_DTYPE,        false,  PROTO_VERSION,  false,  1,      true,   0,                              NA,                                     CONNECT_PROTOCOL_VERSION,               false,  0,      NULL},
     {"reserved",                    MR_BITS_DTYPE,      false,  0,              false,  1,      true,   CONNECT_MR_FLAGS,               0,                                      CONNECT_RESERVED,                       false,  0,      NULL},
     {"clean_start",                 MR_BITS_DTYPE,      false,  0,              false,  1,      true,   CONNECT_MR_FLAGS,               1,                                      CONNECT_CLEAN_START,                    false,  0,      NULL},
