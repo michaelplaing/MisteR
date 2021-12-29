@@ -35,6 +35,7 @@
 /* MQTT: error on "Disallowed Unicode code points" (control chars) and U+0000 */
 int utf8val(const uint8_t *u8v, int len) {
     int err_pos = 1;
+    if (len > 65536) return err_pos; // MQTT: too large
 
     while (len) {
         int bytes;

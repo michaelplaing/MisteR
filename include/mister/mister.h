@@ -77,7 +77,7 @@ enum mqtt_property {
 #define MR_AUTH             "mr.auth"
 
 
-/* from spec: The Reason Codes used for Malformed Packet and Protocol Errors */
+/* from spec: Reason Codes for Malformed Packet and Protocol Errors */
 enum mqtt_reason_codes {
     MQTT_MALFORMED_PACKET                       = 0x81,
     MQTT_PROTOCOL_ERROR                         = 0x82,

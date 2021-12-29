@@ -10,4 +10,4 @@ add_library(
 )
 
 target_include_directories(mister PUBLIC ../include)
-target_link_libraries(mister PRIVATE ${MYLIBS_LIBRARIES})
+target_link_libraries(mister PRIVATE mrzlog ${MYLIBS_LIBRARIES})

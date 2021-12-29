@@ -186,17 +186,24 @@ int mr_pack_mdata_u8v0(packet_ctx *pctx) {
 
 int mr_unpack_mdata_u8v0(packet_ctx *pctx) {
     int rc;
+    bool isprop;
     mr_mdata_fn unpack_fn;
+    mr_mdata_fn validate_fn;
+
     mr_mdata *mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
-        bool isprop = mdata->xf && mdata->dtype != MR_BITS_DTYPE;
-
+        isprop = mdata->xf && mdata->dtype != MR_BITS_DTYPE;
         if (!isprop) {
             unpack_fn = DTYPE_MDATA0[mdata->dtype].unpack_fn;
-
             if (unpack_fn) {
                 rc = unpack_fn(pctx, mdata);
-                if (rc) return rc;
+                if (rc) return MQTT_MALFORMED_PACKET;
+
+                validate_fn = DTYPE_MDATA0[mdata->dtype].validate_fn;
+                if (validate_fn) {
+                    rc = validate_fn(pctx, mdata);
+                    if (rc) return MQTT_MALFORMED_PACKET;
+                }
             }
         }
     }
