@@ -10,6 +10,7 @@
 #include "mister/redismodule.h"
 #include "mister/mister.h"
 #include "mister/connect.h"
+#include "mister/zlog.h"
 
 void mrPingreqCallback(redisAsyncContext *rctx, void *reply_void, void *private_data_void) {
     REDISMODULE_NOT_USED(rctx);
@@ -201,6 +202,9 @@ void mr_send_connect(redisAsyncContext *rctx) {
 }
 
 int main(void) {
+    int rc = dzlog_init("", "mrcat");
+    printf("dzlog_init: rc: %d\n", rc);
+
     uv_loop_t* loop = uv_default_loop();
 
     redisAsyncContext *rctx = redisAsyncConnect("127.0.0.1", 6379);
@@ -226,5 +230,8 @@ int main(void) {
 
     printf("Activating event loop...\n");
     uv_run(loop, UV_RUN_DEFAULT);
+
+    dzlog_info("hello & goodbye, zlog");
+    zlog_fini();
     return 0;
 }
