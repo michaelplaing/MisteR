@@ -10,7 +10,7 @@
 #include "mister/redismodule.h"
 #include "mister/mister.h"
 #include "mister/connect.h"
-#include "mister/zlog.h"
+#include "mister/mrzlog.h"
 
 void mrPingreqCallback(redisAsyncContext *rctx, void *reply_void, void *private_data_void) {
     REDISMODULE_NOT_USED(rctx);
@@ -202,7 +202,7 @@ void mr_send_connect(redisAsyncContext *rctx) {
 }
 
 int main(void) {
-    int rc = dzlog_init("", "mrcat");
+    int rc = dzlog_init("", "mr_init");
     printf("dzlog_init: rc: %d\n", rc);
 
     uv_loop_t* loop = uv_default_loop();

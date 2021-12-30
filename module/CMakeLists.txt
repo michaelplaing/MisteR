@@ -7,4 +7,4 @@ add_library(
 )
 
 target_include_directories(mrmo PRIVATE ../include)
-target_link_libraries(mrapp PRIVATE mister)
+target_link_libraries(mrmo PRIVATE mister mrzlog)
