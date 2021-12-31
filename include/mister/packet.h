@@ -20,7 +20,9 @@ typedef struct packet_ctx {
 } packet_ctx;
 
 typedef struct string_pair {
+    uint16_t nlen;
     uint8_t *name;
+    uint16_t vlen;
     uint8_t *value;
 } string_pair;
 

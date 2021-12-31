@@ -97,11 +97,13 @@ void mr_send_connect(redisAsyncContext *rctx) {
     packet_ctx *pctx;
     int rc = mr_init_connect_pctx(&pctx);
     mr_set_connect_clean_start(pctx, true);
-    mr_set_connect_will_qos(pctx, 3);
+    // mr_set_connect_will_qos(pctx, 3);
     bool clean_start;
     mr_get_connect_clean_start(pctx, &clean_start);
     printf("get_clean_start: %u\n", clean_start);
-    string_pair foobar = {(uint8_t *)"fool", (uint8_t *)"barr"};
+    char *foo = "fööl";
+    char *bar = "barr";
+    string_pair foobar = {strlen(foo), (uint8_t *)foo, strlen(bar), (uint8_t *)bar};
     string_pair spv0[] = {foobar, foobar};
     size_t sp_count = sizeof(spv0) / sizeof(string_pair);
     mr_set_connect_user_properties(pctx, spv0, sp_count);
@@ -114,7 +116,10 @@ void mr_send_connect(redisAsyncContext *rctx) {
         printf("user_properties:\n");
 
         for (int i = 0; i < myspvlen; i++, pmysp++) {
-            printf("  name: %s; value: %s\n", pmysp->name, pmysp->value);
+            printf (
+                "  name: %.*s; value: %.*s\n",
+                pmysp->nlen, pmysp->name, pmysp->vlen, pmysp->value
+            );
         }
     }
 
@@ -134,13 +139,25 @@ void mr_send_connect(redisAsyncContext *rctx) {
         puts("\n");
     }
 
+    rc = mr_set_connect_username_flag(pctx, true);
+    uint8_t bad_user[] = {0x42, 0x42, 0x42, 0x42};
+    size_t bulen = sizeof(bad_user);
+    rc = mr_set_connect_user_name(pctx, bad_user, bulen);
+
+    if (!rc) {
+        printf("user_name ok: '%.*s'\n", (int)bulen, (char *)bad_user);
+    }
+    else {
+        printf("user_name failed: '%.*s', check log\n", (int)bulen, (char *)bad_user);
+    }
+
     mr_pack_connect_u8v0(pctx);
 
     printf("Connect Buf:");
     for (int i = 0; i < pctx->len; i++) printf(" %02hhX", pctx->u8v0[i]);
     printf("\n");
 
-    mr_unpack_connect_u8v0(pctx);
+    rc = mr_unpack_connect_u8v0(pctx);
 
     uint8_t type = 0;
     rc = mr_get_connect_packet_type(pctx, &type);
@@ -164,11 +181,11 @@ void mr_send_connect(redisAsyncContext *rctx) {
 
     mr_get_connect_clean_start(pctx, &clean_start);
     printf("get_clean_start: %u\n", clean_start);
-
+/*
     uint8_t will_qos;
     mr_get_connect_will_qos(pctx, &will_qos);
     printf("get_will_qos: %u\n", will_qos);
-
+*/
     uint32_t property_length = 0;
     mr_get_connect_property_length(pctx, &property_length);
     printf("property_length: %u\n", property_length);
@@ -185,7 +202,7 @@ void mr_send_connect(redisAsyncContext *rctx) {
         printf("user_properties:\n");
 
         for (int i = 0; i < myspvlen; i++, pmysp++) {
-            printf("  name: %s; value: %s\n", pmysp->name, pmysp->value);
+            printf("  name: %.*s; value: %.*s\n", pmysp->nlen, pmysp->name, pmysp->vlen, pmysp->value);
         }
     }
 

@@ -5,6 +5,7 @@
 
 typedef struct mr_mdata {
     const char *name;
+    const bool isprop;
     const int dtype;
     Word_t value;           // handles any mdata value including pointers
     bool valloc;            // is value allocated
