@@ -41,6 +41,7 @@ enum mr_dtypes {
     MR_FLAGS_DTYPE,
     MR_PROPS_DTYPE
 };
+int mr_validate_u8v(packet_ctx *pctx, int idx);
 
 int mr_init_packet_context(
     packet_ctx **ppctx, const mr_mdata *MDATA_TEMPLATE, size_t mdata_count

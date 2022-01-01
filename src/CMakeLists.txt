@@ -5,8 +5,8 @@ file(GLOB HEADER_LIST CONFIGURE_DEPENDS "${mister_SOURCE_DIR}/include/mister/*.h
 
 add_library(
     mister SHARED
-    connect.c packet.c validate.c
-    packet_internal.h connect_internal.h validate.h ${HEADER_LIST}
+    connect.c packet.c util.c will.c
+    packet_internal.h connect_internal.h util.h will.h ${HEADER_LIST}
 )
 
 target_include_directories(mister PUBLIC ../include)

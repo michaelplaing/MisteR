@@ -96,7 +96,7 @@ void mrConnectCallback(redisAsyncContext *rctx, void *reply_void, void *private_
 void mr_send_connect(redisAsyncContext *rctx) {
     packet_ctx *pctx;
     int rc = mr_init_connect_pctx(&pctx);
-    mr_set_connect_clean_start(pctx, true);
+    // mr_set_connect_clean_start(pctx, true);
     // mr_set_connect_will_qos(pctx, 3);
     bool clean_start;
     mr_get_connect_clean_start(pctx, &clean_start);
@@ -106,7 +106,7 @@ void mr_send_connect(redisAsyncContext *rctx) {
     string_pair foobar = {strlen(foo), (uint8_t *)foo, strlen(bar), (uint8_t *)bar};
     string_pair spv0[] = {foobar, foobar};
     size_t sp_count = sizeof(spv0) / sizeof(string_pair);
-    mr_set_connect_user_properties(pctx, spv0, sp_count);
+    // mr_set_connect_user_properties(pctx, spv0, sp_count);
     string_pair *myspv0;
     size_t myspvlen;
     rc = mr_get_connect_user_properties(pctx, &myspv0, &myspvlen);
@@ -124,10 +124,10 @@ void mr_send_connect(redisAsyncContext *rctx) {
     }
 
     uint32_t session_expiry = 42;
-    rc = mr_set_connect_session_expiry_interval(pctx, session_expiry);
+    // rc = mr_set_connect_session_expiry_interval(pctx, session_expiry);
 
     uint8_t bambaz[] = {0x01, 0x02};
-    mr_set_connect_authentication_data(pctx, bambaz, sizeof(bambaz));
+    // mr_set_connect_authentication_data(pctx, bambaz, sizeof(bambaz));
     uint8_t *myauthv0;
     size_t myauthvlen;
     rc = mr_get_connect_authentication_data(pctx, &myauthv0, &myauthvlen);
@@ -139,7 +139,6 @@ void mr_send_connect(redisAsyncContext *rctx) {
         puts("\n");
     }
 
-    rc = mr_set_connect_username_flag(pctx, true);
     uint8_t bad_user[] = {0x42, 0x42, 0x42, 0x42};
     size_t bulen = sizeof(bad_user);
     rc = mr_set_connect_user_name(pctx, bad_user, bulen);
@@ -150,6 +149,9 @@ void mr_send_connect(redisAsyncContext *rctx) {
     else {
         printf("user_name failed: '%.*s', check log\n", (int)bulen, (char *)bad_user);
     }
+
+    uint8_t password[] = {'1', '2', '3', '4'};
+    mr_set_connect_password(pctx, password, 4);
 
     mr_pack_connect_u8v0(pctx);
 

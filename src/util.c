@@ -1,8 +1,9 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include "validate.h"
+#include "util.h"
 
+// MQTT unicode validation using a reasonable fast and portable naïve method
 /*
  * http://www.unicode.org/versions/Unicode6.0.0/ch03.pdf - page 94
  *
@@ -106,4 +107,64 @@ int utf8val(const uint8_t *u8v, int len) {
     }
 
     return 0;
+}
+
+int clear_will_data(mr_will_data *pwd) {
+    pwd->will_flag = false;
+    pwd->will_qos = 0;
+    pwd->will_retain = false;
+    pwd->will_property_length = 0;
+    pwd->will_delay_interval = 0;
+    pwd->payload_format_indicator = 0;
+    pwd->message_expiry_interval = 0;
+    pwd->content_type = NULL;
+    pwd->content_type_len = 0;
+    pwd->response_topic = NULL;
+    pwd->response_topic_len = 0;
+    pwd->correlation_data = NULL;
+    pwd->correlation_data_len = 0;
+    pwd->will_user_properties = NULL;
+    pwd->will_user_properties_len = 0;
+    pwd->will_topic = NULL;
+    pwd->will_topic_len = 0;
+    pwd->will_payload = NULL;
+    pwd->will_payload_len = 0;
+
+    return 0;
+}
+
+int mr_make_VBI(uint32_t u32, uint8_t *u8v0) {
+    if (u32 >> (7 * 4)) { // overflow: too big for 4 bytes
+        return -1;
+    }
+
+    uint8_t *pu8 = u8v0;
+    int i = 0;
+    do {
+        *pu8 = u32 & 0x7F;
+        u32 = u32 >> 7;
+        if (u32) *pu8 |= 0x80;
+        i++; pu8++;
+    } while (u32);
+
+    return i;
+}
+
+int mr_get_VBI(uint32_t *pu32, uint8_t *u8v) {
+    uint8_t *pu8 = u8v;
+    uint32_t u32, result_u32 = 0;
+    int i;
+    for (i = 0; i < 4; pu8++, i++){
+        u32 = *pu8;
+        result_u32 += (u32 & 0x7F) << (7 * i);
+        if (!(*pu8 & 0x80)) break;
+    }
+
+    if (i == 4) { // overflow: byte[3] has a continuation bit
+        return -1;
+    }
+    else {
+        *pu32 = result_u32;
+        return i + 1;
+    }
 }

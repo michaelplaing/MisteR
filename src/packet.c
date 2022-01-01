@@ -6,7 +6,8 @@
 #include <stdbool.h>
 
 #include "packet_internal.h"
-#include "validate.h"
+#include "util.h"
+#include "will.h"
 #include "mister/mrzlog.h"
 
 const mr_dtype DTYPE_MDATA0[] = {
@@ -22,6 +23,12 @@ const mr_dtype DTYPE_MDATA0[] = {
     {MR_FLAGS_DTYPE,    mr_pack_u8,         mr_unpack_incr1,    NULL,               NULL},
     {MR_PROPS_DTYPE,    NULL,               mr_unpack_props,    NULL,               NULL}
 };
+
+int mr_validate_u8v(packet_ctx *pctx, int idx) { // use when u8v is validated like an str
+    int rc = 0;
+    mr_mdata *mdata = pctx->mdata0 + idx;
+    return mr_validate_str(pctx, mdata);
+}
 
 int mr_set_scalar(packet_ctx *pctx, int idx, Word_t value) {
     int rc = 0;
@@ -81,8 +88,8 @@ int mr_set_vector(packet_ctx *pctx, int idx, void *pvoid, size_t len) {
     mr_mdata *mdata = pctx->mdata0 + idx;
     mr_mdata_fn validate_fn = DTYPE_MDATA0[mdata->dtype].validate_fn;
     mdata->value = (Word_t)pvoid;
-    mdata->vexists = true;
-    mdata->vlen = len;
+    mdata->vexists = mdata->value ? true : false;
+    mdata->vlen = mdata->value ? len : 0;
     if (validate_fn) rc = validate_fn(pctx, mdata);
     return rc;
 }
@@ -211,42 +218,6 @@ int mr_unpack_mdata_u8v0(packet_ctx *pctx) {
     }
 
     return 0;
-}
-
-static int mr_make_VBI(uint32_t u32, uint8_t *u8v0) {
-    if (u32 >> (7 * 4)) { // overflow: too big for 4 bytes
-        return -1;
-    }
-
-    uint8_t *pu8 = u8v0;
-    int i = 0;
-    do {
-        *pu8 = u32 & 0x7F;
-        u32 = u32 >> 7;
-        if (u32) *pu8 |= 0x80;
-        i++; pu8++;
-    } while (u32);
-
-    return i;
-}
-
-static int mr_get_VBI(uint32_t *pu32, uint8_t *u8v) {
-    uint8_t *pu8 = u8v;
-    uint32_t u32, result_u32 = 0;
-    int i;
-    for (i = 0; i < 4; pu8++, i++){
-        u32 = *pu8;
-        result_u32 += (u32 & 0x7F) << (7 * i);
-        if (!(*pu8 & 0x80)) break;
-    }
-
-    if (i == 4) { // overflow: byte[3] has a continuation bit
-        return -1;
-    }
-    else {
-        *pu32 = result_u32;
-        return i + 1;
-    }
 }
 
 //  calculate length, convert to VBI, & pack into buffer
