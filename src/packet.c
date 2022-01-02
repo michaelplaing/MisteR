@@ -7,7 +7,7 @@
 
 #include "packet_internal.h"
 #include "util.h"
-#include "will.h"
+#include "mister/will.h"
 #include "mister/mrzlog.h"
 
 const mr_dtype DTYPE_MDATA0[] = {
@@ -90,7 +90,7 @@ int mr_set_vector(packet_ctx *pctx, int idx, void *pvoid, size_t len) {
     mdata->value = (Word_t)pvoid;
     mdata->vexists = mdata->value ? true : false;
     mdata->vlen = mdata->value ? len : 0;
-    if (validate_fn) rc = validate_fn(pctx, mdata);
+    if (validate_fn && mdata->value) rc = validate_fn(pctx, mdata);
     return rc;
 }
 
@@ -515,14 +515,30 @@ static int mr_unpack_spv(packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_validate_spv(packet_ctx *pctx, mr_mdata *mdata) {
-    int err_pos;
     string_pair *spv = (string_pair *)mdata->value;
 
     for (int i = 0; i < mdata->vlen; i++) { // utf8val returns error position
-        err_pos = utf8val(spv[i].name, spv[i].nlen);
-        if (err_pos) return -1;
+        int err_pos = utf8val(spv[i].name, spv[i].nlen);
+
+        if (err_pos) {
+            dzlog_error(
+                "invalid utf8: string_pair: %d; name: %.*s; pos: %d",
+                i, spv[i].nlen, spv[i].name, err_pos
+            );
+
+            return -1;
+        }
+
         err_pos = utf8val(spv[i].value, spv[i].vlen);
-        if (err_pos) return -1;
+
+        if (err_pos) {
+            dzlog_error(
+                "invalid utf8: string_pair: %d; value: %.*s; pos: %d",
+                i, spv[i].nlen, spv[i].value, err_pos
+            );
+
+            return -1;
+        }
     }
 
     return 0;

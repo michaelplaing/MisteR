@@ -11,6 +11,7 @@
 #include "mister/mister.h"
 #include "mister/connect.h"
 #include "mister/mrzlog.h"
+#include "mister/will.h"
 
 void mrPingreqCallback(redisAsyncContext *rctx, void *reply_void, void *private_data_void) {
     REDISMODULE_NOT_USED(rctx);
@@ -96,6 +97,7 @@ void mrConnectCallback(redisAsyncContext *rctx, void *reply_void, void *private_
 void mr_send_connect(redisAsyncContext *rctx) {
     packet_ctx *pctx;
     int rc = mr_init_connect_pctx(&pctx);
+    /*
     // mr_set_connect_clean_start(pctx, true);
     // mr_set_connect_will_qos(pctx, 3);
     bool clean_start;
@@ -152,6 +154,38 @@ void mr_send_connect(redisAsyncContext *rctx) {
 
     uint8_t password[] = {'1', '2', '3', '4'};
     mr_set_connect_password(pctx, password, 4);
+*/
+    mr_will_data wd;
+    rc = mr_clear_will_data(&wd);
+    wd.will_flag = true;
+    uint8_t will_topicv[] = {'T'};
+    wd.will_topic = will_topicv;
+    wd.will_topic_len = 1;
+    wd.payload_format_indicator = 1;
+    uint8_t will_payloadv[] = {'P'};
+    wd.will_payload = will_payloadv;
+    wd.will_payload_len = 1;
+    wd.content_type = (uint8_t *)"CT";
+    wd.content_type_len = 2;
+    wd.response_topic = (uint8_t *)"RT";
+    wd.response_topic_len = 2;
+    uint8_t correlation_datav[] = {0xFF};
+    wd.correlation_data = correlation_datav;
+    wd.correlation_data_len = 1;
+
+    char *foo = "föö";
+    char *bar = "bår";
+    string_pair foobar = {strlen(foo) + 1, (uint8_t *)foo, strlen(bar), (uint8_t *)bar};
+    string_pair spv[] = {foobar, foobar};
+    wd.will_user_properties = spv;
+    wd.will_user_properties_len = sizeof(spv) / sizeof(string_pair);
+
+    rc = mr_set_will(pctx, &wd);
+
+    if (rc) {
+        printf("failed\n");
+        return;
+    }
 
     mr_pack_connect_u8v0(pctx);
 
@@ -160,7 +194,7 @@ void mr_send_connect(redisAsyncContext *rctx) {
     printf("\n");
 
     rc = mr_unpack_connect_u8v0(pctx);
-
+/*
     uint8_t type = 0;
     rc = mr_get_connect_packet_type(pctx, &type);
     printf("packet_type: rc: %d; type: %u\n", rc, type);
@@ -183,11 +217,11 @@ void mr_send_connect(redisAsyncContext *rctx) {
 
     mr_get_connect_clean_start(pctx, &clean_start);
     printf("get_clean_start: %u\n", clean_start);
-/*
+
     uint8_t will_qos;
     mr_get_connect_will_qos(pctx, &will_qos);
     printf("get_will_qos: %u\n", will_qos);
-*/
+
     uint32_t property_length = 0;
     mr_get_connect_property_length(pctx, &property_length);
     printf("property_length: %u\n", property_length);
@@ -217,6 +251,8 @@ void mr_send_connect(redisAsyncContext *rctx) {
         for (int i = 0; i < myauthvlen; i++) printf(" %02hhX", *pmyauth++);
         puts("\n");
     }
+
+*/
     mr_free_connect_pctx(pctx);
 }
 

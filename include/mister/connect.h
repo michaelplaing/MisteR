@@ -155,6 +155,8 @@ typedef struct mr_will_data {
     size_t will_payload_len;
 } mr_will_data;
 
+int mr_clear_will_data(mr_will_data *pwd);
+
 typedef struct mr_connect_values { // may or may not be useful
     const uint8_t packet_type;
     uint32_t remaining_length;

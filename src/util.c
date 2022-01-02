@@ -38,7 +38,7 @@ int utf8val(const uint8_t *u8v, int len) {
     int err_pos = 1;
     if (len > 65536) return err_pos; // MQTT: too large
 
-    while (len) {
+    while (len) { // 0-length is valid
         int bytes;
         const uint8_t byte1 = u8v[0];
 
@@ -105,30 +105,6 @@ int utf8val(const uint8_t *u8v, int len) {
         err_pos += bytes;
         u8v += bytes;
     }
-
-    return 0;
-}
-
-int clear_will_data(mr_will_data *pwd) {
-    pwd->will_flag = false;
-    pwd->will_qos = 0;
-    pwd->will_retain = false;
-    pwd->will_property_length = 0;
-    pwd->will_delay_interval = 0;
-    pwd->payload_format_indicator = 0;
-    pwd->message_expiry_interval = 0;
-    pwd->content_type = NULL;
-    pwd->content_type_len = 0;
-    pwd->response_topic = NULL;
-    pwd->response_topic_len = 0;
-    pwd->correlation_data = NULL;
-    pwd->correlation_data_len = 0;
-    pwd->will_user_properties = NULL;
-    pwd->will_user_properties_len = 0;
-    pwd->will_topic = NULL;
-    pwd->will_topic_len = 0;
-    pwd->will_payload = NULL;
-    pwd->will_payload_len = 0;
 
     return 0;
 }
