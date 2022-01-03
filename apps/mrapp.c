@@ -180,7 +180,7 @@ void mr_send_connect(redisAsyncContext *rctx) {
     wd.will_user_properties = spv;
     wd.will_user_properties_len = sizeof(spv) / sizeof(string_pair);
 
-    rc = mr_set_will(pctx, &wd);
+    rc = mr_set_will_values(pctx, &wd);
 
     if (rc) {
         printf("failed\n");

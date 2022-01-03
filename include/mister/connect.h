@@ -18,24 +18,10 @@ int mr_set_connect_clean_start(packet_ctx *pctx, bool boolean);
 int mr_reset_connect_clean_start(packet_ctx *pctx);
 int mr_get_connect_clean_start(packet_ctx *pctx, bool *pboolean);
 
-int mr_set_connect_will_flag(packet_ctx *pctx, bool boolean);
 int mr_get_connect_will_flag(packet_ctx *pctx, bool *pboolean);
-int mr_reset_connect_will_flag(packet_ctx *pctx);
-
-int mr_set_connect_will_qos(packet_ctx *pctx, uint8_t u8);
-int mr_reset_connect_will_qos(packet_ctx *pctx);
 int mr_get_connect_will_qos(packet_ctx *pctx, uint8_t *pu8);
-
-int mr_set_connect_will_retain(packet_ctx *pctx, bool boolean);
-int mr_reset_connect_will_retain(packet_ctx *pctx);
 int mr_get_connect_will_retain(packet_ctx *pctx, bool *pboolean);
-
-// int mr_set_connect_password_flag(packet_ctx *pctx, bool boolean);
-// int mr_reset_connect_password_flag(packet_ctx *pctx);
 int mr_get_connect_password_flag(packet_ctx *pctx, bool *pboolean);
-
-int mr_set_connect_username_flag(packet_ctx *pctx, bool boolean);
-int mr_reset_connect_username_flag(packet_ctx *pctx);
 int mr_get_connect_username_flag(packet_ctx *pctx, bool *pboolean);
 
 int mr_set_connect_keep_alive(packet_ctx *pctx, uint16_t u16);
@@ -84,42 +70,15 @@ int mr_set_connect_client_identifier(packet_ctx *pctx, uint8_t *u8v0, size_t len
 int mr_reset_connect_client_identifier(packet_ctx *pctx);
 int mr_get_connect_client_identifier(packet_ctx *pctx, uint8_t **pu8v0, size_t *plen);
 
-int mr_get_will_property_length(packet_ctx *pctx, uint32_t *pu32);
-
-int mr_set_connect_will_delay_interval(packet_ctx *pctx, uint32_t u32);
-int mr_reset_connect_will_delay_interval(packet_ctx *pctx);
+int mr_get_connect_will_property_length(packet_ctx *pctx, uint32_t *pu32);
 int mr_get_connect_will_delay_interval(packet_ctx *pctx, uint32_t *pu32);
-
-int mr_set_connect_payload_format_indicator(packet_ctx *pctx, uint8_t u8);
-int mr_reset_connect_payload_format_indicator(packet_ctx *pctx);
 int mr_get_connect_payload_format_indicator(packet_ctx *pctx, uint8_t *pu8);
-
-int mr_set_connect_message_expiry_interval(packet_ctx *pctx, uint32_t u32);
-int mr_reset_connect_message_expiry_interval(packet_ctx *pctx);
 int mr_get_connect_message_expiry_interval(packet_ctx *pctx, uint32_t *pu32);
-
-int mr_set_connect_content_type(packet_ctx *pctx, uint8_t *u8v0, size_t len);
-int mr_reset_connect_content_type(packet_ctx *pctx);
 int mr_get_connect_content_type(packet_ctx *pctx, uint8_t **pu8v0, size_t *plen);
-
-int mr_set_connect_response_topic(packet_ctx *pctx, uint8_t *u8v0, size_t len);
-int mr_reset_connect_response_topic(packet_ctx *pctx);
 int mr_get_connect_response_topic(packet_ctx *pctx, uint8_t **pu8v0, size_t *plen);
-
-int mr_set_connect_correlation_data(packet_ctx *pctx, uint8_t *u8v0, size_t len);
-int mr_reset_connect_correlation_data(packet_ctx *pctx);
 int mr_get_connect_correlation_data(packet_ctx *pctx, uint8_t **pu8v0, size_t *plen);
-
-int mr_set_connect_will_user_properties(packet_ctx *pctx, string_pair *spv0, size_t len);
-int mr_reset_connect_will_user_properties(packet_ctx *pctx);
 int mr_get_connect_will_user_properties(packet_ctx *pctx, string_pair **pspv0, size_t *plen);
-
-int mr_set_connect_will_topic(packet_ctx *pctx, uint8_t *u8v0, size_t len);
-int mr_reset_connect_will_topic(packet_ctx *pctx);
 int mr_get_connect_will_topic(packet_ctx *pctx, uint8_t **pu8v0, size_t *plen);
-
-int mr_set_connect_will_payload(packet_ctx *pctx, uint8_t *u8v0, size_t len);
-int mr_reset_connect_will_payload(packet_ctx *pctx);
 int mr_get_connect_will_payload(packet_ctx *pctx, uint8_t **pu8v0, size_t *plen);
 
 int mr_set_connect_user_name(packet_ctx *pctx, uint8_t *u8v0, size_t len);
@@ -129,33 +88,6 @@ int mr_get_connect_user_name(packet_ctx *pctx, uint8_t **pu8v0, size_t *plen);
 int mr_set_connect_password(packet_ctx *pctx, uint8_t *u8v0, size_t len);
 int mr_reset_connect_password(packet_ctx *pctx);
 int mr_get_connect_password(packet_ctx *pctx, uint8_t **pu8v0, size_t *plen);
-
-int mr_reset_will(packet_ctx *pctx);
-int mr_validate_will(packet_ctx *pctx);
-
-typedef struct mr_will_data {
-    bool will_flag;
-    uint8_t will_qos;
-    bool will_retain;
-    uint32_t will_property_length;
-    uint32_t will_delay_interval;
-    uint8_t payload_format_indicator;
-    uint32_t message_expiry_interval;
-    uint8_t *content_type;
-    size_t content_type_len;
-    uint8_t *response_topic;
-    size_t response_topic_len;
-    uint8_t *correlation_data;
-    size_t correlation_data_len;
-    string_pair *will_user_properties;
-    size_t will_user_properties_len;
-    uint8_t *will_topic;
-    size_t will_topic_len;
-    uint8_t *will_payload;
-    size_t will_payload_len;
-} mr_will_data;
-
-int mr_clear_will_data(mr_will_data *pwd);
 
 typedef struct mr_connect_values { // may or may not be useful
     const uint8_t packet_type;

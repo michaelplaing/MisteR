@@ -12,66 +12,66 @@
 #include "mister/will.h"
 #include "util.h"
 
-int mr_set_will(packet_ctx *pctx, mr_will_data *pwd) {
+int mr_set_will_values(packet_ctx *pctx, mr_will_data *pwd) {
     if (mr_set_scalar(pctx, CONNECT_WILL_FLAG, pwd->will_flag)) { // should be true
-        mr_reset_will(pctx);
+        mr_reset_will_values(pctx);
         return -1;
     }
     if (mr_set_scalar(pctx, CONNECT_WILL_QOS, pwd->will_qos))  {
-        mr_reset_will(pctx);
+        mr_reset_will_values(pctx);
         return -1;
     }
     if (mr_set_scalar(pctx, CONNECT_WILL_RETAIN, pwd->will_retain))  {
-        mr_reset_will(pctx);
+        mr_reset_will_values(pctx);
         return -1;
     }
     if (mr_set_scalar(pctx, CONNECT_WILL_DELAY_INTERVAL, pwd->will_delay_interval)) {
-        mr_reset_will(pctx);
+        mr_reset_will_values(pctx);
         return -1;
     }
     if (mr_set_scalar(pctx, CONNECT_PAYLOAD_FORMAT_INDICATOR, pwd->payload_format_indicator)) {
-        mr_reset_will(pctx);
+        mr_reset_will_values(pctx);
         return -1;
     }
     if (mr_set_scalar(pctx, CONNECT_MESSAGE_EXPIRY_INTERVAL, pwd->message_expiry_interval)) {
-        mr_reset_will(pctx);
+        mr_reset_will_values(pctx);
         return -1;
     }
 
     if (mr_set_vector(pctx, CONNECT_CONTENT_TYPE, pwd->content_type, pwd->content_type_len)) {
-        mr_reset_will(pctx);
+        mr_reset_will_values(pctx);
         return -1;
     }
     if (mr_set_vector(pctx, CONNECT_RESPONSE_TOPIC, pwd->response_topic, pwd->response_topic_len)) {
-        mr_reset_will(pctx);
+        mr_reset_will_values(pctx);
         return -1;
     }
     if (mr_set_vector(pctx, CONNECT_CORRELATION_DATA, pwd->correlation_data, pwd->correlation_data_len)) {
-        mr_reset_will(pctx);
+        mr_reset_will_values(pctx);
         return -1;
     }
     if (mr_set_vector(pctx, CONNECT_WILL_USER_PROPERTIES, pwd->will_user_properties, pwd->will_user_properties_len)) {
-        mr_reset_will(pctx);
+        mr_reset_will_values(pctx);
         return -1;
     }
     if (mr_set_vector(pctx, CONNECT_WILL_TOPIC, pwd->will_topic, pwd->will_topic_len)) {
-        mr_reset_will(pctx);
+        mr_reset_will_values(pctx);
         return -1;
     }
     if (mr_set_vector(pctx, CONNECT_WILL_PAYLOAD, pwd->will_payload, pwd->will_payload_len)) {
-        mr_reset_will(pctx);
+        mr_reset_will_values(pctx);
         return -1;
     }
 
-    if (mr_validate_will(pctx)) {
-        mr_reset_will(pctx);
+    if (mr_validate_will_values(pctx)) {
+        mr_reset_will_values(pctx);
         return -1;
     }
 
     return 0;
 }
 
-int mr_reset_will(packet_ctx *pctx) {
+int mr_reset_will_values(packet_ctx *pctx) {
     if (mr_reset_value(pctx, CONNECT_WILL_FLAG)) return -1;;
     if (mr_reset_value(pctx, CONNECT_WILL_QOS)) return -1;
     if (mr_reset_value(pctx, CONNECT_WILL_RETAIN)) return -1;
@@ -89,7 +89,7 @@ int mr_reset_will(packet_ctx *pctx) {
     return 0;
 }
 
-int mr_get_will(packet_ctx *pctx, mr_will_data *pwd) {
+int mr_get_will_data_from_values(packet_ctx *pctx, mr_will_data *pwd) {
     if (mr_get_boolean(pctx, CONNECT_WILL_FLAG, &pwd->will_flag))
         pwd->will_flag = false;
     if (mr_get_u8(pctx, CONNECT_WILL_QOS, &pwd->will_qos))
@@ -125,10 +125,10 @@ int mr_get_will(packet_ctx *pctx, mr_will_data *pwd) {
     return 0;
 }
 
-int mr_validate_will(packet_ctx *pctx) {
+int mr_validate_will_values(packet_ctx *pctx) {
     int rc;
     mr_will_data wd;
-    rc = mr_get_will(pctx, &wd); if (rc) return rc;
+    rc = mr_get_will_data_from_values(pctx, &wd); if (rc) return rc;
 
     rc = mr_validate_will_qos(&wd); if (rc) return rc;
     rc = mr_validate_will_retain(&wd); if (rc) return rc;

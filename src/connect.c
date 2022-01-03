@@ -9,6 +9,7 @@
 #include "connect_internal.h"
 #include "packet_internal.h"
 #include "mister/mrzlog.h"
+#include "mister/will.h"
 
 const uint8_t PNM[] = {'M', 'Q', 'T', 'T'};  // protocol signature
 #define PNMSZ 4
@@ -313,7 +314,7 @@ int mr_reset_connect_client_identifier(packet_ctx *pctx) {
 }
 
 //    uint32_t will_property_length;
-int mr_get_will_property_length(packet_ctx *pctx, uint32_t *pu32) {
+int mr_get_connect_will_property_length(packet_ctx *pctx, uint32_t *pu32) {
     return mr_get_u32(pctx, CONNECT_WILL_PROPERTY_LENGTH, pu32);
 }
 
