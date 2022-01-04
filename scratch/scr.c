@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 //#include <string.h>
 //#include <stdbool.h>
 
@@ -38,26 +39,67 @@ int mr_get_VBI(uint32_t *Pval32, uint8_t *uint80) {
     }
 }
 
-int main(void) {
-    uint8_t uint80[5];
-    uint32_t val32 = 127;
-    int rc = mr_make_VBI(val32, uint80);
-    printf("mr_make_VBI: val32: %u; rc: %d\n", val32, rc);
+void DumpHex(const void* data, size_t size) {
+    char ascii[17];
+    size_t i, j;
+    ascii[16] = '\0';
+    for (i = 0; i < size; ++i) {
+        printf("%02X ", ((unsigned char*)data)[i]);
+        if (((unsigned char*)data)[i] >= ' ' && ((unsigned char*)data)[i] <= '~') {
+            ascii[i % 16] = ((unsigned char*)data)[i];
+        } else {
+            ascii[i % 16] = '.';
+        }
+        if ((i+1) % 8 == 0 || i+1 == size) {
+            printf(" ");
+            if ((i+1) % 16 == 0) {
+                printf("|  %s \n", ascii);
+            } else if (i+1 == size) {
+                ascii[(i+1) % 16] = '\0';
+                if ((i+1) % 16 <= 8) {
+                    printf(" ");
+                }
+                for (j = (i+1) % 16; j < 16; ++j) {
+                    printf("   ");
+                }
+                printf("|  %s \n", ascii);
+            }
+        }
+    }
+}
 
-    if (rc > 0) {
-        for (int i = 0; i < rc; i++) {
-            printf(" %02hhX", uint80[i]);
+int print_hexdump(const uint8_t *u8v, size_t len) {
+    char strv[17];
+    strv[16] = '\0';
+
+    for (int i = 0; i < len; i++) {
+        printf("%02hhX ", (uint8_t)u8v[i]);
+
+        if (isprint((int)u8v[i])) {
+            strv[i % 16] = u8v[i];
+        }
+        else {
+            strv[i % 16] = '.';
         }
 
-        printf("\n");
+        if ((i + 1) % 8 == 0 || i + 1 == len) {
+            printf(" ");
 
-        rc = mr_get_VBI(&val32, uint80);
-        printf("mr_get_VBI: rc: %d; val32: %u\n", rc, val32);
+            if ((i + 1) % 16 == 0) {
+                printf("|  %s \n", strv);
+            }
+            else if (i + 1 == len) {
+                strv[(i + 1) % 16] = '\0';
+                if ((i + 1) % 16 <= 8) printf(" ");
+                for (int j = (i + 1) % 16; j < 16; j++) printf("   ");
+                printf("|  %s \n", strv);
+            }
+        }
     }
 
-    uint8_t buf2[] = {0xFF, 0xFF, 0xFF, 0x7F};
-    val32 = 0;
-    rc = mr_get_VBI(&val32, buf2);
-    printf("mr_get_VBI: rc: %d; val32: %u\n", rc, val32);
+    return 0;
+}
 
+int main(void) {
+    print_hexdump((uint8_t *)"föobarfooföobarfoo", 21);
 }

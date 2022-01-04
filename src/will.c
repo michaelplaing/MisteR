@@ -10,7 +10,7 @@
 #include "connect_internal.h"
 #include "mister/mrzlog.h"
 #include "mister/will.h"
-#include "util.h"
+#include "mister/util.h"
 
 int mr_set_will_values(packet_ctx *pctx, mr_will_data *pwd) {
     if (mr_set_scalar(pctx, CONNECT_WILL_FLAG, pwd->will_flag)) { // should be true

@@ -6,7 +6,7 @@
 #include <stdbool.h>
 
 #include "packet_internal.h"
-#include "util.h"
+#include "mister/util.h"
 #include "mister/will.h"
 #include "mister/mrzlog.h"
 

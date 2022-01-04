@@ -1,7 +1,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
+#include <ctype.h>
 
-#include "util.h"
+#include "mister/util.h"
 
 // MQTT unicode validation using a reasonable fast and portable naïve method
 /*
@@ -34,7 +35,7 @@
 
 /* Return 0 - success,  >0 - index(1-based) of first error char */
 /* MQTT: error on "Disallowed Unicode code points" (control chars) and U+0000 */
-int utf8val(const uint8_t *u8v, int len) {
+int utf8val(const uint8_t *u8v, size_t len) {
     int err_pos = 1;
     if (len > 65536) return err_pos; // MQTT: too large
 
@@ -130,6 +131,7 @@ int mr_get_VBI(uint32_t *pu32, uint8_t *u8v) {
     uint8_t *pu8 = u8v;
     uint32_t u32, result_u32 = 0;
     int i;
+
     for (i = 0; i < 4; pu8++, i++){
         u32 = *pu8;
         result_u32 += (u32 & 0x7F) << (7 * i);
@@ -143,4 +145,72 @@ int mr_get_VBI(uint32_t *pu32, uint8_t *u8v) {
         *pu32 = result_u32;
         return i + 1;
     }
+}
+
+int print_hexdump(const uint8_t *u8v, const size_t ulen) {
+    if (!(u8v && ulen)) return -1;
+    int ulines = (ulen - 1) / 16 + 1;
+    if (ulines > 16) ulines = 16; // 16 lines max - TODO: parameterize
+    size_t clen = ulines * 70 + 1; // trailing 0
+    char *pc = calloc(clen, 1);
+    if (!pc) return -1;
+    int rc = get_hexdump(pc, clen, u8v, ulen);
+
+    if (rc) {
+        free(pc);
+        return rc;
+    }
+    else {
+        puts(pc);
+        free(pc);
+        return 0;
+    }
+}
+
+int get_hexdump(char *cv0, size_t clen, const uint8_t *u8v, size_t ulen) {
+    if (!(cv0 && clen >= 70 && u8v && ulen)) return -1;
+    int ulines = (ulen - 1) / 16 + 1;
+    if (ulines > 16) ulines = 16; // 16 lines max - TODO: parameterize
+    int clines = (clen - 2) / 70 + 1; // trailing 0
+    if (ulines > clines) ulines = clines;
+    if (ulen > ulines * 16) ulen = ulines * 16;
+
+    char cv[17];
+    cv[16] = '\0';
+    char *pc = cv0;
+
+    for (int i = 0; i < ulen; i++) {
+        sprintf(pc, "%02hhX ", (uint8_t)u8v[i]);
+        pc += 3;
+        cv[i % 16] = isprint((int)u8v[i]) ? u8v[i] : '.';
+
+        if ((i + 1) % 8 == 0 || i + 1 == ulen) {
+            sprintf(pc, " ");
+            pc++;
+
+            if ((i + 1) % 16 == 0) {
+                sprintf(pc, "|  %s \n", cv);
+                pc += 21;
+            }
+            else if (i + 1 == ulen) {
+                cv[(i + 1) % 16] = '\0';
+
+                if ((i + 1) % 16 <= 8) {
+                    sprintf(pc, " ");
+                    pc++;
+                }
+
+                for (int j = (i + 1) % 16; j < 16; j++) {
+                    sprintf(pc, "   ");
+                    pc += 3;
+                }
+
+                sprintf(pc, "|  %s \n", cv);
+                pc += 21;
+            }
+        }
+    }
+
+    *pc = '\0';
+    return 0;
 }

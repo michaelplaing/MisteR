@@ -12,6 +12,7 @@
 #include "mister/connect.h"
 #include "mister/mrzlog.h"
 #include "mister/will.h"
+#include "mister/util.h"
 
 void mrPingreqCallback(redisAsyncContext *rctx, void *reply_void, void *private_data_void) {
     REDISMODULE_NOT_USED(rctx);
@@ -175,7 +176,7 @@ void mr_send_connect(redisAsyncContext *rctx) {
 
     char *foo = "föö";
     char *bar = "bår";
-    string_pair foobar = {strlen(foo) + 1, (uint8_t *)foo, strlen(bar), (uint8_t *)bar};
+    string_pair foobar = {strlen(foo), (uint8_t *)foo, strlen(bar), (uint8_t *)bar};
     string_pair spv[] = {foobar, foobar};
     wd.will_user_properties = spv;
     wd.will_user_properties_len = sizeof(spv) / sizeof(string_pair);
@@ -189,9 +190,12 @@ void mr_send_connect(redisAsyncContext *rctx) {
 
     mr_pack_connect_u8v0(pctx);
 
-    printf("Connect Buf:");
-    for (int i = 0; i < pctx->len; i++) printf(" %02hhX", pctx->u8v0[i]);
-    printf("\n");
+    printf("Connect Packet:\n");
+    print_hexdump(pctx->u8v0, pctx->len);
+    char strv[1000] = "";
+    rc = get_hexdump(strv, sizeof(strv) - 1, pctx->u8v0, pctx->len);
+    dzlog_info("Connect Packet:\n%s", strv);
+
 
     rc = mr_unpack_connect_u8v0(pctx);
 /*
