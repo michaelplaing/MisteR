@@ -1,10 +1,12 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 #include <ctype.h>
 
 #include "mister/util.h"
 
-// MQTT unicode validation using a reasonable fast and portable naïve method
+// MQTT unicode validation using a reasonably fast and portable naïve method
 /*
  * http://www.unicode.org/versions/Unicode6.0.0/ch03.pdf - page 94
  *
@@ -161,7 +163,7 @@ int print_hexdump(const uint8_t *u8v, const size_t ulen) {
         return rc;
     }
     else {
-        puts(pc);
+        printf("%s", pc);
         free(pc);
         return 0;
     }
@@ -171,30 +173,28 @@ int get_hexdump(char *cv0, size_t clen, const uint8_t *u8v, size_t ulen) {
     if (!(cv0 && clen >= 70 && u8v && ulen)) return -1;
     int ulines = (ulen - 1) / 16 + 1;
     if (ulines > 16) ulines = 16; // 16 lines max - TODO: parameterize
-    int clines = (clen - 2) / 70 + 1; // trailing 0
+    int clines = (clen - 2) / 70 + 1; // trailing \0
     if (ulines > clines) ulines = clines;
     if (ulen > ulines * 16) ulen = ulines * 16;
 
-    char cv[17];
-    cv[16] = '\0';
-    char *pc = cv0;
+    char cv[17]; // char vector is our string
+    cv[16] = '\0'; // so needs termination
+    char *pc = cv0; // pointer to next char in the output buffer - increment as we go
 
     for (int i = 0; i < ulen; i++) {
-        sprintf(pc, "%02hhX ", (uint8_t)u8v[i]);
+        sprintf(pc, "%02hhX ", (uint8_t)u8v[i]); // hex
         pc += 3;
-        cv[i % 16] = isprint((int)u8v[i]) ? u8v[i] : '.';
+        cv[i % 16] = isprint((int)u8v[i]) ? u8v[i] : '.'; // char or .
 
-        if ((i + 1) % 8 == 0 || i + 1 == ulen) {
+        if ((i + 1) % 8 == 0 || i + 1 == ulen) { // finished 1st 8 of hex - or done
             sprintf(pc, " ");
             pc++;
 
-            if ((i + 1) % 16 == 0) {
+            if ((i + 1) % 16 == 0) { // finished hex so print the string - might be done
                 sprintf(pc, "|  %s \n", cv);
                 pc += 21;
             }
-            else if (i + 1 == ulen) {
-                cv[(i + 1) % 16] = '\0';
-
+            else if (i + 1 == ulen) { // pad the hex and finish up the leftovers
                 if ((i + 1) % 16 <= 8) {
                     sprintf(pc, " ");
                     pc++;
@@ -205,8 +205,9 @@ int get_hexdump(char *cv0, size_t clen, const uint8_t *u8v, size_t ulen) {
                     pc += 3;
                 }
 
+                cv[(i + 1) % 16] = '\0'; // short string left over
                 sprintf(pc, "|  %s \n", cv);
-                pc += 21;
+                pc += 3 + (i + 1) % 16 + 2;
             }
         }
     }

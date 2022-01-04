@@ -8,15 +8,13 @@
 #include "mister/mister.h"
 #include "connect_internal.h"
 #include "packet_internal.h"
-#include "mister/mrzlog.h"
-#include "mister/will.h"
 
-const uint8_t PNM[] = {'M', 'Q', 'T', 'T'};  // protocol signature
+static const uint8_t PNM[] = {'M', 'Q', 'T', 'T'};  // protocol signature
 #define PNMSZ 4
-#define PROTO_VERSION 5 // protocol version
+#define PROTO_VERSION 5
 #define NA 0
 
-const uint8_t MRCP[] = {
+static const uint8_t MRCP[] = {
     MQTT_PROP_SESSION_EXPIRY_INTERVAL,
     MQTT_PROP_RECEIVE_MAXIMUM,
     MQTT_PROP_MAXIMUM_PACKET_SIZE,
@@ -29,7 +27,7 @@ const uint8_t MRCP[] = {
 };
 #define MRCPSZ 9
 
-const uint8_t MRCWP[] = {
+static const uint8_t MRCWP[] = {
     MQTT_PROP_WILL_DELAY_INTERVAL,
     MQTT_PROP_PAYLOAD_FORMAT_INDICATOR,
     MQTT_PROP_MESSAGE_EXPIRY_INTERVAL,
@@ -40,7 +38,7 @@ const uint8_t MRCWP[] = {
 };
 #define MRCWPSZ 7
 
-const mr_mdata CONNECT_MDATA_TEMPLATE[] = {
+static const mr_mdata CONNECT_MDATA_TEMPLATE[] = {
 //   name                           isprop  dtype           value           valloc  vlen    vexists link                            xf                                      idx                                     ualloc u8vlen  u8v0
     {"packet_type",                 false,  MR_U8_DTYPE,    MQTT_CONNECT,   false,  1,      true,   0,                              NA,                                     CONNECT_PACKET_TYPE,                    false,  0,      NULL},
     {"remaining_length",            false,  MR_VBI_DTYPE,   0,              false,  0,      true,   CONNECT_PASSWORD,               NA,                                     CONNECT_REMAINING_LENGTH,               false,  0,      NULL},
@@ -397,28 +395,4 @@ int mr_reset_connect_password(packet_ctx *pctx) {
     int rc = mr_reset_value(pctx, CONNECT_PASSWORD);
     if (!rc) rc = mr_reset_value(pctx, CONNECT_PASSWORD_FLAG);
     return rc;
-}
-
-int mr_clear_will_data(mr_will_data *pwd) {
-    pwd->will_flag = false;
-    pwd->will_qos = 0;
-    pwd->will_retain = false;
-    pwd->will_property_length = 0;
-    pwd->will_delay_interval = 0;
-    pwd->payload_format_indicator = 0;
-    pwd->message_expiry_interval = 0;
-    pwd->content_type = NULL;
-    pwd->content_type_len = 0;
-    pwd->response_topic = NULL;
-    pwd->response_topic_len = 0;
-    pwd->correlation_data = NULL;
-    pwd->correlation_data_len = 0;
-    pwd->will_user_properties = NULL;
-    pwd->will_user_properties_len = 0;
-    pwd->will_topic = NULL;
-    pwd->will_topic_len = 0;
-    pwd->will_payload = NULL;
-    pwd->will_payload_len = 0;
-
-    return 0;
 }

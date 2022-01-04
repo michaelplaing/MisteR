@@ -3,11 +3,7 @@
 #ifndef MISTER_H
 #define MISTER_H
 
-#include <sys/types.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdbool.h>
-#include <string.h>
+extern int mr_errno;
 
 enum mqtt_packet_type {
     MQTT_CONNECT        = 0x10U,

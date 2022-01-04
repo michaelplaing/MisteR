@@ -1,10 +1,5 @@
 /* mister module */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <string.h>
-
 #include "mister/redismodule.h"
 #include "mister/mister.h"
 #include "mister/mrzlog.h"
@@ -38,10 +33,10 @@ int RedisModule_OnLoad(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) 
 
     const char *mrzlog_conf = RedisModule_StringPtrLen(argv[0], NULL);
     if (dzlog_init(mrzlog_conf, "mr_init")) return REDISMODULE_ERR;
-    dzlog_info("mrzlog logging initialized");
+    dzlog_info("mrzlog logging initialized"); // to stdout probably (see configs)
     const char *mrzlog_category = RedisModule_StringPtrLen(argv[1], NULL);
     dzlog_set_category(mrzlog_category);
-    dzlog_info("mrzlog logging initialized");
+    dzlog_info("mrzlog logging initialized"); // to log probably (see configs)
 
     for (int j = 0; j < argc; j++) {
         const char *s = RedisModule_StringPtrLen(argv[j], NULL);

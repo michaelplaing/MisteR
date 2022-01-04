@@ -8,9 +8,9 @@
 #include "mister/mister.h"
 #include "packet_internal.h"
 #include "connect_internal.h"
+#include "will_internal.h"
 #include "mister/mrzlog.h"
-#include "mister/will.h"
-#include "mister/util.h"
+#include "util_internal.h"
 
 int mr_set_will_values(packet_ctx *pctx, mr_will_data *pwd) {
     if (mr_set_scalar(pctx, CONNECT_WILL_FLAG, pwd->will_flag)) { // should be true
@@ -67,6 +67,30 @@ int mr_set_will_values(packet_ctx *pctx, mr_will_data *pwd) {
         mr_reset_will_values(pctx);
         return -1;
     }
+
+    return 0;
+}
+
+int mr_clear_will_data(mr_will_data *pwd) {
+    pwd->will_flag = false;
+    pwd->will_qos = 0;
+    pwd->will_retain = false;
+    pwd->will_property_length = 0;
+    pwd->will_delay_interval = 0;
+    pwd->payload_format_indicator = 0;
+    pwd->message_expiry_interval = 0;
+    pwd->content_type = NULL;
+    pwd->content_type_len = 0;
+    pwd->response_topic = NULL;
+    pwd->response_topic_len = 0;
+    pwd->correlation_data = NULL;
+    pwd->correlation_data_len = 0;
+    pwd->will_user_properties = NULL;
+    pwd->will_user_properties_len = 0;
+    pwd->will_topic = NULL;
+    pwd->will_topic_len = 0;
+    pwd->will_payload = NULL;
+    pwd->will_payload_len = 0;
 
     return 0;
 }

@@ -1,7 +1,6 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <signal.h>
+#include <stdbool.h>
 
 #include <hiredis/hiredis.h>
 #include <hiredis/async.h>
@@ -192,9 +191,9 @@ void mr_send_connect(redisAsyncContext *rctx) {
 
     printf("Connect Packet:\n");
     print_hexdump(pctx->u8v0, pctx->len);
-    char strv[1000] = "";
-    rc = get_hexdump(strv, sizeof(strv) - 1, pctx->u8v0, pctx->len);
-    dzlog_info("Connect Packet:\n%s", strv);
+    char cv[1000] = "";
+    rc = get_hexdump(cv, sizeof(cv) - 1, pctx->u8v0, pctx->len);
+    dzlog_info("Connect Packet:\n%s", cv);
 
 
     rc = mr_unpack_connect_u8v0(pctx);
@@ -290,7 +289,7 @@ int main(void) {
     printf("Activating event loop...\n");
     uv_run(loop, UV_RUN_DEFAULT);
 
-    dzlog_info("hello & goodbye, zlog");
+    dzlog_info("mr_errno: %d", mr_errno);
     zlog_fini();
     return 0;
 }
