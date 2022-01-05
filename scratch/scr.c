@@ -3,6 +3,7 @@
 #include <ctype.h>
 //#include <string.h>
 //#include <stdbool.h>
+#include <jemalloc/jemalloc.h>
 
 
 int mr_make_VBI(uint32_t val32, uint8_t *uint80) {
@@ -100,6 +101,19 @@ int print_hexdump(const uint8_t *u8v, size_t len) {
     return 0;
 }
 
-int main(void) {
-    print_hexdump((uint8_t *)"föobarfooföobarfoo", 21);
+void do_something(size_t i) {
+    // Leak some memory.
+    void *v = malloc(i * 100);
+}
+
+int
+main(int argc, char **argv) {
+    for (size_t i = 0; i < 1000; i++) {
+        do_something(i);
+    }
+
+    // Dump allocator statistics to stderr.
+    malloc_stats_print(NULL, NULL, NULL);
+
+    return 0;
 }
