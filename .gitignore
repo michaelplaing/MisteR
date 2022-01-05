@@ -1,27 +1,8 @@
-# Ignore the stock autoconf/automake output files:
-aclocal.m4
-ar-lib
-autom4te.cache
-compile
-config.guess
-config.h.in
-mister_config.h.in
-config.sub
-configure
-install-sh
-ltmain.sh
-m4/libtool.m4
-m4/ltoptions.m4
-m4/ltsugar.m4
-m4/ltversion.m4
-m4/lt~obsolete.m4
-missing
-depcomp
-**/Makefile.in
-test-driver
-
 # Ignore anything with a tilde, in case people do that
 *~
+
+#ignore local vscode setting
+.vscode/*
 
 # Ignore build/dist dir contents when present:
 build*/*
