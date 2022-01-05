@@ -172,29 +172,29 @@ int print_hexdump(const uint8_t *u8v, const size_t ulen) {
 int get_hexdump(char *cv0, size_t clen, const uint8_t *u8v, size_t ulen) {
     if (!(cv0 && clen >= 70 && u8v && ulen)) return -1;
     int ulines = (ulen - 1) / 16 + 1;
-    if (ulines > 16) ulines = 16; // 16 lines max - TODO: parameterize
+    if (ulines > 16) ulines = 16; // 16 lines max - TODO: parameterize?
     int clines = (clen - 2) / 70 + 1; // trailing \0
     if (ulines > clines) ulines = clines;
     if (ulen > ulines * 16) ulen = ulines * 16;
 
-    char cv[17]; // char vector is our string
-    cv[16] = '\0'; // so needs termination
-    char *pc = cv0; // pointer to next char in the output buffer - increment as we go
+    char cv[17]; // char vector is our reusable string
+    cv[16] = '\0'; // and needs termination
+    char *pc = cv0; // pointer to next position in output buffer cv0 - increment as we go
 
     for (int i = 0; i < ulen; i++) {
         sprintf(pc, "%02hhX ", (uint8_t)u8v[i]); // hex
         pc += 3;
-        cv[i % 16] = isprint((int)u8v[i]) ? u8v[i] : '.'; // char or .
+        cv[i % 16] = isprint((int)u8v[i]) ? u8v[i] : '.'; // printable char or '.'
 
-        if ((i + 1) % 8 == 0 || i + 1 == ulen) { // finished 1st 8 of hex - or done
+        if ((i + 1) % 8 == 0 || i + 1 == ulen) { // finished 8 hex chars - or may be done
             sprintf(pc, " ");
             pc++;
 
-            if ((i + 1) % 16 == 0) { // finished hex so print the string - might be done
+            if ((i + 1) % 16 == 0) { // finished 16 hex chars so print the string - might be done
                 sprintf(pc, "|  %s \n", cv);
                 pc += 21;
             }
-            else if (i + 1 == ulen) { // pad the hex and finish up the leftovers
+            else if (i + 1 == ulen) { // done - pad the hex and finish up the leftovers
                 if ((i + 1) % 16 <= 8) {
                     sprintf(pc, " ");
                     pc++;
@@ -208,6 +208,9 @@ int get_hexdump(char *cv0, size_t clen, const uint8_t *u8v, size_t ulen) {
                 cv[(i + 1) % 16] = '\0'; // short string left over
                 sprintf(pc, "|  %s \n", cv);
                 pc += 3 + (i + 1) % 16 + 2;
+            }
+            else { // not done
+                ; // noop - loop again
             }
         }
     }
