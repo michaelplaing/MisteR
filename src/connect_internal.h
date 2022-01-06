@@ -44,7 +44,7 @@ enum CONNECT_MDATA_FIELDS { // Same order as CONNECT_MDATA_TEMPLATE
     CONNECT_PASSWORD
 };
 
-typedef struct mr_connect_values { // may or may not be useful
+struct mr_connect_values { // may or may not be useful
     const uint8_t packet_type;
     uint32_t remaining_length;
     const uint8_t *protocol_name;
@@ -80,6 +80,6 @@ typedef struct mr_connect_values { // may or may not be useful
     uint8_t *will_payload;
     uint8_t *user_name;
     uint8_t *password;
-} mr_connect_values;
+};
 
 #endif // CONNECT_INTERNAL_H

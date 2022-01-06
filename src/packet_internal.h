@@ -5,14 +5,15 @@
 
 typedef struct mr_mdata {
     const char *name;
-    const bool isprop;
-    const int dtype;
-    Word_t value;           // handles any mdata value including pointers
+    const int dtype;        // data type
+    const uint8_t bp;       // bit position
+    Word_t value;           // for any mdata value including pointers
     bool valloc;            // is value allocated
     size_t vlen;            // for sub-byte values, pointer values, vectors & VBIs
     bool vexists;           // value has been set
     const int link;         // end of range for VBI; byte to stuff for bit mdata
-    const uint8_t xf;       // property prop_id or flag bitpos
+    const int propid;       // property id
+    const int flagid;       // flag id
     const int idx;          // integer position in the mdata vector
     bool ualloc;            // is u8v0 allocated
     size_t u8vlen;
