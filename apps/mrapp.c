@@ -9,6 +9,7 @@
 #include "mister/redismodule.h"
 #include "mister/mister.h"
 #include "mister/connect.h"
+#include "mister/connack.h"
 #include "mister/mrzlog.h"
 #include "mister/will.h"
 #include "mister/util.h"
@@ -256,7 +257,11 @@ void mr_send_connect(redisAsyncContext *rctx) {
     }
 
 */
-    mr_free_connect_pctx(pctx);
+    packet_ctx *connack_pctx;
+    rc = mr_init_connack_pctx(&connack_pctx);
+    printf("connack rc: %d\n", rc);
+    rc = mr_free_connack_pctx(connack_pctx);
+    rc = mr_free_connect_pctx(pctx);
 }
 
 int main(void) {

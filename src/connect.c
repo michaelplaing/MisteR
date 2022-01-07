@@ -92,7 +92,7 @@ static int mr_connect_packet_check(packet_ctx *pctx) {
         return 0;
     }
     else {
-        dzlog_info("Packet Context is not a CONNECT packet");
+        dzlog_error("Packet Context is not a CONNECT packet");
         return -1;
     }
 }

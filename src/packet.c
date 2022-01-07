@@ -11,6 +11,13 @@
 #include "memory_internal.h"
 #include "mister/mrzlog.h"
 
+static char *PTYPE_NAME[] = {   // same order as mqtt_packet_type
+    "", "CONNECT", "CONNACK",   // Note: enum high nibbles are 1-based, hence dummy str
+    "PUBLISH", "PUBACK", "PUBREC", "PUBREL", "PUBCOMP",
+    "SUBSCRIBE", "SUBACK", "UNSUBSCRIBE", "UNSUBACK",
+    "PINGREQ", "PINGRESP", "DISCONNECT", "AUTH"
+};
+
 static const mr_dtype DTYPE_MDATA0[] = { // same order as mr_dtypes enum
 //   dtype idx          pack_fn             unpack_fn           validate_fn         free_fn
     {MR_U8_DTYPE,       mr_pack_u8,         mr_unpack_u8,       NULL,               NULL},
@@ -198,8 +205,6 @@ int mr_pack_mdata_u8v0(packet_ctx *pctx) {
 }
 
 int mr_unpack_mdata_u8v0(packet_ctx *pctx) {
-    int rc;
-
     mr_mdata *mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
         if (!mdata->propid) { // properties are handled separately
@@ -209,16 +214,9 @@ int mr_unpack_mdata_u8v0(packet_ctx *pctx) {
             }
 
             mr_mdata_fn unpack_fn = DTYPE_MDATA0[mdata->dtype].unpack_fn;
-            if (unpack_fn) {
-                rc = unpack_fn(pctx, mdata);
-                if (rc) return -1;
-
-                mr_mdata_fn validate_fn = DTYPE_MDATA0[mdata->dtype].validate_fn;
-                if (validate_fn) {
-                    rc = validate_fn(pctx, mdata);
-                    if (rc) return -1;
-                }
-            }
+            if (unpack_fn && unpack_fn(pctx, mdata)) return -1;
+            mr_mdata_fn validate_fn = DTYPE_MDATA0[mdata->dtype].validate_fn;
+            if (validate_fn && validate_fn(pctx, mdata)) return -1;
         }
     }
 
@@ -301,10 +299,11 @@ int mr_init_packet_context(packet_ctx **ppctx, const mr_mdata *MDATA_TEMPLATE, s
 
     if (mr_malloc((void **)&mdata0, mdata_count * sizeof(mr_mdata))) return -1;
 
-    // copy template
-    memcpy(mdata0, MDATA_TEMPLATE, mdata_count * sizeof(mr_mdata));
-    pctx->mqtt_packet_type = mdata0->value; // always the value of the 0th mdata row
+    memcpy(mdata0, MDATA_TEMPLATE, mdata_count * sizeof(mr_mdata)); // copy template
+
     pctx->mdata0 = mdata0;
+    pctx->mqtt_packet_type = mdata0->value; // always the value of the 0th mdata row
+    pctx->mqtt_packet_name = PTYPE_NAME[pctx->mqtt_packet_type >> 4]; // left nibble is index
     *ppctx = pctx;
     return 0;
 }
@@ -404,8 +403,8 @@ static int mr_validate_str(packet_ctx *pctx, mr_mdata *mdata) {
 
     if (err_pos) {
         dzlog_error(
-            "utf8:: name: %s; value: %s, pos: %d",
-            mdata->name, (char *)mdata->value, err_pos
+            "invalid utf8:: packet: %s; name: %s; value: %s, pos: %d",
+            pctx->mqtt_packet_name, mdata->name, (char *)mdata->value, err_pos
         );
 
         rc = -1;
@@ -500,8 +499,8 @@ static int mr_validate_spv(packet_ctx *pctx, mr_mdata *mdata) {
 
         if (err_pos) {
             dzlog_error(
-                "invalid utf8: string_pair: %d; name: %.*s; pos: %d",
-                i, spv[i].nlen, spv[i].name, err_pos
+                "invalid utf8: packet: %s; string_pair: %d; name: %.*s; pos: %d",
+                pctx->mqtt_packet_name, i, spv[i].nlen, spv[i].name, err_pos
             );
 
             return -1;
@@ -511,8 +510,8 @@ static int mr_validate_spv(packet_ctx *pctx, mr_mdata *mdata) {
 
         if (err_pos) {
             dzlog_error(
-                "invalid utf8: string_pair: %d; value: %.*s; pos: %d",
-                i, spv[i].vlen, spv[i].value, err_pos
+                "invalid utf8: packet: %s; string_pair: %d; value: %.*s; pos: %d",
+                pctx->mqtt_packet_name, i, spv[i].vlen, spv[i].value, err_pos
             );
 
             return -1;
@@ -547,25 +546,40 @@ static int mr_unpack_props(packet_ctx *pctx, mr_mdata *mdata) {
 
     size_t end_pos = pctx->pos + (mdata - 1)->value; // use property_length
     uint8_t *pu8, *pprop_index;
-    int prop_index, rc = 0;
+    int prop_index;
     mr_mdata *prop_mdata;
     mr_mdata_fn unpack_fn;
 
     for (; pctx->pos < end_pos;) {
         pu8 = pctx->u8v0 + pctx->pos++;
         pprop_index = memchr((uint8_t *)mdata->value, *pu8, mdata->vlen);
-        if (!pprop_index) return -1; // not found
+
+        if (!pprop_index) {
+            dzlog_error(
+                "property id not found:: packet: %s; id: %d",
+                pctx->mqtt_packet_name, *pu8
+            );
+
+            return -1;
+        }
+
         prop_index = pprop_index - (uint8_t *)mdata->value;
         prop_mdata = mdata + prop_index + 1;
-        unpack_fn = DTYPE_MDATA0[prop_mdata->dtype].unpack_fn;
 
-        if (unpack_fn) {
-            rc = unpack_fn(pctx, prop_mdata); // increments pctx->pos
-            if (rc) break;
+        if (prop_mdata->vexists && prop_mdata->dtype != MR_SPV_DTYPE) {
+            dzlog_error(
+                "duplicate property value:: packet: %s; name: %s",
+                pctx->mqtt_packet_name, prop_mdata->name
+            );
+
+            return -1;
         }
+
+        unpack_fn = DTYPE_MDATA0[prop_mdata->dtype].unpack_fn;
+        if (unpack_fn && unpack_fn(pctx, prop_mdata)) break;
     }
 
-    return rc;
+    return 0;
 }
 
 static int mr_pack_u8v(packet_ctx *pctx, mr_mdata *mdata) {
