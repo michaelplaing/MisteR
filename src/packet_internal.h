@@ -18,6 +18,8 @@ typedef struct mr_mdata {
     bool ualloc;            // is u8v0 allocated
     size_t u8vlen;
     uint8_t *u8v0;          // packed value
+    bool pvalloc;           // is pvalue allocated?
+    char *pvalue;           // stringified value
 } mr_mdata;
 
 typedef int (*mr_mdata_fn)(struct packet_ctx *pctx, struct mr_mdata *mdata);
@@ -26,6 +28,7 @@ typedef struct mr_dtype {
     const int idx;
     const mr_mdata_fn pack_fn;
     const mr_mdata_fn unpack_fn;
+    const mr_mdata_fn output_fn;
     const mr_mdata_fn validate_fn;
     const mr_mdata_fn free_fn;
 } mr_dtype;
@@ -106,4 +109,8 @@ static int mr_free_spv(packet_ctx *pctx, mr_mdata *mdata);
 
 static int mr_unpack_props(packet_ctx *pctx, mr_mdata *mdata);
 
+int mr_spv_scalar(packet_ctx *pctx, mr_mdata *mdata);
+int mr_spv_hexdump(packet_ctx *pctx, mr_mdata *mdata);
+int mr_spv_string(packet_ctx *pctx, mr_mdata *mdata);
+int mr_spv_spv(packet_ctx *pctx, mr_mdata *mdata);
 #endif // PACK_INTERNAL_H
