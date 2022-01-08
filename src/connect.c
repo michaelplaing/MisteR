@@ -35,7 +35,7 @@ static const uint8_t MRCWP[] = {
     MQTT_PROP_CONTENT_TYPE,
     MQTT_PROP_RESPONSE_TOPIC,
     MQTT_PROP_CORRELATION_DATA,
-    MQTT_PROP_RESPONSE_INFORMATION
+    MQTT_PROP_USER_PROPERTY
 };
 #define MRCWPSZ 7
 
@@ -52,7 +52,7 @@ static const mr_mdata CONNECT_MDATA_TEMPLATE[] = {
     {"will_retain",                 MR_BITS_DTYPE,  5,  0,              false,  1,      true,   CONNECT_MR_FLAGS,               NA,                                     NA,                     CONNECT_WILL_RETAIN,                    false,  0,      NULL},
     {"password_flag",               MR_BITS_DTYPE,  6,  0,              false,  1,      true,   CONNECT_MR_FLAGS,               NA,                                     NA,                     CONNECT_PASSWORD_FLAG,                  false,  0,      NULL},
     {"username_flag",               MR_BITS_DTYPE,  7,  0,              false,  1,      true,   CONNECT_MR_FLAGS,               NA,                                     NA,                     CONNECT_USERNAME_FLAG,                  false,  0,      NULL},
-    {"mr_flags",                    MR_U8_DTYPE,    NA, NA,             false,  1,      true,   NA,                             NA,                                     NA,                     CONNECT_MR_FLAGS,                       false,  0,      NULL},
+    {"mr_flags",                    MR_U8_DTYPE,    NA, 0,              false,  1,      true,   NA,                             NA,                                     NA,                     CONNECT_MR_FLAGS,                       false,  0,      NULL},
     {"keep_alive",                  MR_U16_DTYPE,   NA, 0,              false,  2,      true,   NA,                             NA,                                     NA,                     CONNECT_KEEP_ALIVE,                     false,  0,      NULL},
     {"property_length",             MR_VBI_DTYPE,   NA, 0,              false,  0,      true,   CONNECT_AUTHENTICATION_DATA,    NA,                                     NA,                     CONNECT_PROPERTY_LENGTH,                false,  0,      NULL},
     {"mr_properties",               MR_PROPS_DTYPE, NA, (Word_t)MRCP,   false,  MRCPSZ, true,   NA,                             NA,                                     NA,                     CONNECT_MR_PROPERTIES,                  false,  0,      NULL},
@@ -74,7 +74,7 @@ static const mr_mdata CONNECT_MDATA_TEMPLATE[] = {
     {"content_type",                MR_STR_DTYPE,   NA, (Word_t)NULL,   false,  0,      false,  NA,                             MQTT_PROP_CONTENT_TYPE,                 NA,                     CONNECT_CONTENT_TYPE,                   false,  0,      NULL},
     {"response_topic",              MR_STR_DTYPE,   NA, (Word_t)NULL,   false,  0,      false,  NA,                             MQTT_PROP_RESPONSE_TOPIC,               NA,                     CONNECT_RESPONSE_TOPIC,                 false,  0,      NULL},
     {"correlation_data",            MR_U8V_DTYPE,   NA, (Word_t)NULL,   false,  0,      false,  NA,                             MQTT_PROP_CORRELATION_DATA,             NA,                     CONNECT_CORRELATION_DATA,               false,  0,      NULL},
-    {"will_user_properties",        MR_SPV_DTYPE,   NA, (Word_t)NULL,   false,  0,      false,  NA,                             MQTT_PROP_RESPONSE_INFORMATION,         NA,                     CONNECT_WILL_USER_PROPERTIES,           false,  0,      NULL},
+    {"will_user_properties",        MR_SPV_DTYPE,   NA, (Word_t)NULL,   false,  0,      false,  NA,                             MQTT_PROP_USER_PROPERTY,                NA,                     CONNECT_WILL_USER_PROPERTIES,           false,  0,      NULL},
     {"will_topic",                  MR_STR_DTYPE,   NA, (Word_t)NULL,   false,  0,      false,  NA,                             NA,                                     CONNECT_WILL_FLAG,      CONNECT_WILL_TOPIC,                     false,  0,      NULL},
     {"will_payload",                MR_U8V_DTYPE,   NA, (Word_t)NULL,   false,  0,      false,  NA,                             NA,                                     CONNECT_WILL_FLAG,      CONNECT_WILL_PAYLOAD,                   false,  0,      NULL},
     {"user_name",                   MR_STR_DTYPE,   NA, (Word_t)NULL,   false,  0,      false,  NA,                             NA,                                     CONNECT_USERNAME_FLAG,  CONNECT_USER_NAME,                      false,  0,      NULL},
@@ -85,6 +85,11 @@ static const mr_mdata CONNECT_MDATA_TEMPLATE[] = {
 int mr_init_connect_pctx(packet_ctx **ppctx) {
     size_t mdata_count = sizeof(CONNECT_MDATA_TEMPLATE) / sizeof(mr_mdata);
     return mr_init_packet_context(ppctx, CONNECT_MDATA_TEMPLATE, mdata_count);
+}
+
+int mr_init_unpack_connect_pctx(packet_ctx **ppctx, uint8_t *u8v0, size_t ulen) {
+    size_t mdata_count = sizeof(CONNECT_MDATA_TEMPLATE) / sizeof(mr_mdata);
+    return mr_init_unpack_pctx(ppctx, CONNECT_MDATA_TEMPLATE, mdata_count, u8v0, ulen);
 }
 
 static int mr_connect_packet_check(packet_ctx *pctx) {
@@ -99,14 +104,14 @@ static int mr_connect_packet_check(packet_ctx *pctx) {
 
 int mr_pack_connect_u8v0(packet_ctx *pctx) {
     if (mr_connect_packet_check(pctx)) return -1;
-    return mr_pack_mdata_u8v0(pctx);
+    return mr_pack_pctx_u8v0(pctx);
 }
-
+/* use 'mr_init_unpack_connect_pctx' above
 int mr_unpack_connect_u8v0(packet_ctx *pctx) {
     if (mr_connect_packet_check(pctx)) return -1;
-    return mr_unpack_mdata_u8v0(pctx);
+    return mr_unpack_pctx_u8v0(pctx);
 }
-
+*/
 int mr_free_connect_pctx(packet_ctx *pctx) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_free_packet_context(pctx);

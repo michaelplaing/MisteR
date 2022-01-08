@@ -31,4 +31,6 @@ typedef struct string_pair {
     uint8_t *value;
 } string_pair;
 
+int mr_print_existing_mdata(packet_ctx *pctx);
+
 #endif // PACK_H

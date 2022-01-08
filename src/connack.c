@@ -39,7 +39,7 @@ static const mr_mdata CONNACK_MDATA_TEMPLATE[] = {
     {"remaining_length",                    MR_VBI_DTYPE,   NA, 0,              false,  0,      true,   CONNACK_AUTHENTICATION_DATA,    NA,                                             NA,     CONNACK_REMAINING_LENGTH,                   false,  0,      NULL},
     {"session_present",                     MR_FLAGS_DTYPE, 0,  0,              false,  1,      true,   CONNACK_MR_FLAGS,               NA,                                             NA,     CONNACK_SESSION_PRESENT,                    false,  0,      NULL},
     {"reserved",                            MR_FLAGS_DTYPE, 1,  0,              false,  7,      true,   CONNACK_MR_FLAGS,               NA,                                             NA,     CONNACK_RESERVED,                           false,  0,      NULL},
-    {"mr_flags",                            MR_U8_DTYPE,    NA, NA,             false,  0,      true,   NA,                             NA,                                             NA,     CONNACK_MR_FLAGS,                           false,  0,      NULL},
+    {"mr_flags",                            MR_U8_DTYPE,    NA, 0,              false,  1,      true,   NA,                             NA,                                             NA,     CONNACK_MR_FLAGS,                           false,  0,      NULL},
     {"connect_reason_code",                 MR_U8_DTYPE,    NA, 0,              false,  0,      true,   NA,                             NA,                                             NA,     CONNACK_CONNECT_REASON_CODE,                false,  0,      NULL},
     {"property_length",                     MR_VBI_DTYPE,   NA, 0,              false,  0,      true,   CONNACK_AUTHENTICATION_DATA,    NA,                                             NA,     CONNACK_PROPERTY_LENGTH,                    false,  0,      NULL},
     {"mr_properties",                       MR_PROPS_DTYPE, NA, (Word_t)MRCP,   false,  MRCPSZ, true,   NA,                             NA,                                             NA,     CONNACK_MR_PROPERTIES,                      false,  0,      NULL},
@@ -68,6 +68,11 @@ int mr_init_connack_pctx(packet_ctx **ppctx) {
     return mr_init_packet_context(ppctx, CONNACK_MDATA_TEMPLATE, mdata_count);
 }
 
+int mr_init_unpack_connack_pctx(packet_ctx **ppctx, uint8_t *u8v0, size_t ulen) {
+    size_t mdata_count = sizeof(CONNACK_MDATA_TEMPLATE) / sizeof(mr_mdata);
+    return mr_init_unpack_pctx(ppctx, CONNACK_MDATA_TEMPLATE, mdata_count, u8v0, ulen);
+}
+
 static int mr_connack_packet_check(packet_ctx *pctx) {
     if (pctx->mqtt_packet_type == MQTT_CONNACK) {
         return 0;
@@ -80,14 +85,14 @@ static int mr_connack_packet_check(packet_ctx *pctx) {
 
 int mr_pack_connack_u8v0(packet_ctx *pctx) {
     if (mr_connack_packet_check(pctx)) return -1;
-    return mr_pack_mdata_u8v0(pctx);
+    return mr_pack_pctx_u8v0(pctx);
 }
-
+/*
 int mr_unpack_connack_u8v0(packet_ctx *pctx) {
     if (mr_connack_packet_check(pctx)) return -1;
-    return mr_unpack_mdata_u8v0(pctx);
+    return mr_unpack_pctx_u8v0(pctx);
 }
-
+*/
 int mr_free_connack_pctx(packet_ctx *pctx) {
     if (mr_connack_packet_check(pctx)) return -1;
     return mr_free_packet_context(pctx);

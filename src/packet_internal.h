@@ -42,11 +42,21 @@ enum mr_dtypes {
     MR_FLAGS_DTYPE,
     MR_PROPS_DTYPE
 };
-int mr_validate_u8v(packet_ctx *pctx, int idx);
+
+int mr_init_unpack_pctx(
+    packet_ctx **ppctx,
+    const mr_mdata *MDATA_TEMPLATE, size_t mdata_count,
+    uint8_t *u8v0, size_t ulen
+);
 
 int mr_init_packet_context(
     packet_ctx **ppctx, const mr_mdata *MDATA_TEMPLATE, size_t mdata_count
 );
+
+static int mr_unpack_pctx_u8v0(packet_ctx *pctx);
+int mr_pack_pctx_u8v0(packet_ctx *pctx);
+
+int mr_validate_u8v(packet_ctx *pctx, int idx);
 
 int mr_free_packet_context(packet_ctx *pctx);
 
@@ -63,9 +73,6 @@ int mr_set_vector(packet_ctx *pctx, int idx, void *pvoid, size_t len);
 
 int mr_get_u8v(packet_ctx *pctx, int idx, uint8_t **pu8v0, size_t *plen);
 int mr_get_spv(packet_ctx *pctx, int idx, string_pair **pspv0, size_t *plen);
-
-int mr_pack_mdata_u8v0(packet_ctx *pctx);
-int mr_unpack_mdata_u8v0(packet_ctx *pctx);
 
 static int mr_free_value(packet_ctx *pctx, mr_mdata *mdata);
 

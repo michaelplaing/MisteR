@@ -8,7 +8,8 @@
 #include "mister/mister.h"
 #include "packet_internal.h"
 #include "util_internal.h"
-#include "memory_internal.h"
+#include "will_internal.h"
+#include "mister/memory.h"
 #include "mister/mrzlog.h"
 
 static char *PTYPE_NAME[] = {   // same order as mqtt_packet_type
@@ -31,6 +32,49 @@ static const mr_dtype DTYPE_MDATA0[] = { // same order as mr_dtypes enum
     {MR_FLAGS_DTYPE,    mr_pack_u8,         mr_unpack_incr1,    NULL,               NULL},
     {MR_PROPS_DTYPE,    NULL,               mr_unpack_props,    NULL,               NULL}
 };
+
+int mr_print_existing_mdata(packet_ctx *pctx) {
+    printf("mdata for packet: %s\n", pctx->mqtt_packet_name);
+
+    mr_mdata *mdata = pctx->mdata0;
+    for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
+        if (!mdata->vexists) continue;
+
+        switch (mdata->dtype) {
+            case MR_U8_DTYPE:
+            case MR_U16_DTYPE:
+            case MR_U32_DTYPE:
+            case MR_VBI_DTYPE:
+            case MR_BITS_DTYPE:
+            case MR_FLAGS_DTYPE:
+                printf("    %s: %u\n", mdata->name, (uint32_t)mdata->value);
+                break;
+            case MR_U8V_DTYPE:
+            case MR_PROPS_DTYPE:
+                printf("    %s\n        ", mdata->name);
+                size_t len = mdata->vlen > 16 ? 16 : mdata->vlen;
+                print_hexdump((uint8_t *)mdata->value, len);
+                break;
+            case MR_STR_DTYPE:
+                printf("    %s: %.*s\n", mdata->name, (int)mdata->vlen, (char *)mdata->value);
+                break;
+            case MR_SPV_DTYPE:
+                printf("    %s\n", mdata->name);
+                string_pair *spv = (string_pair *)mdata->value;
+
+                for (int i = 0; i < mdata->vlen; i++) {
+                    printf(
+                        "        name: %.*s; value: %.*s\n",
+                        spv[i].nlen, spv[i].name, spv[i].vlen, spv[i].value
+                    );
+                }
+
+                break;
+        }
+    }
+
+    return 0;
+}
 
 int mr_validate_u8v(packet_ctx *pctx, int idx) { // use when u8v is validated like an str
     int rc = 0;
@@ -161,7 +205,7 @@ int mr_reset_value(packet_ctx *pctx, int idx) {
 //  into its allocated buffer using its packing function
 //  then allocate pctx->u8v0 and catenate mdata buffers in it
 //  free each mdata buffer if allocated
-int mr_pack_mdata_u8v0(packet_ctx *pctx) {
+int mr_pack_pctx_u8v0(packet_ctx *pctx) {
     int rc;
     mr_mdata_fn pack_fn;
     mr_mdata *mdata = pctx->mdata0 + pctx->mdata_count - 1;
@@ -204,7 +248,23 @@ int mr_pack_mdata_u8v0(packet_ctx *pctx) {
     return 0;
 }
 
-int mr_unpack_mdata_u8v0(packet_ctx *pctx) {
+int mr_init_unpack_pctx(
+    packet_ctx **ppctx,
+    const mr_mdata *MDATA_TEMPLATE, size_t mdata_count,
+    uint8_t *u8v0, size_t ulen
+) {
+    if (mr_init_packet_context(ppctx, MDATA_TEMPLATE, mdata_count)) return -1;
+    packet_ctx *pctx = *ppctx;
+    pctx->u8v0 = u8v0;
+    pctx->len = ulen;
+    pctx->ualloc = false;
+    if (mr_unpack_pctx_u8v0(pctx)) return -1;
+    pctx->u8v0 = NULL; // dereference
+    pctx->len = 0;
+    return 0;
+}
+
+static int mr_unpack_pctx_u8v0(packet_ctx *pctx) {
     mr_mdata *mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
         if (!mdata->propid) { // properties are handled separately
@@ -414,23 +474,21 @@ static int mr_validate_str(packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_pack_spv(packet_ctx *pctx, mr_mdata *mdata) {
-    uint8_t propid = mdata->propid; // string_pair vectors are always properties
     string_pair *spv = (string_pair *)mdata->value;
-    size_t u8vlen = 0;
 
+    mdata->u8vlen = 0;
     for (int i = 0; i < mdata->vlen; i++) {
-        u8vlen += 1 + 2 + spv[i].nlen + 2 + spv[i].vlen;
+        mdata->u8vlen += 1 + 2 + spv[i].nlen + 2 + spv[i].vlen;
     }
 
     if (mr_malloc((void **)&mdata->u8v0, mdata->u8vlen)) return -1;
 
     mdata->ualloc = true;
-    mdata->u8vlen = u8vlen;
     uint8_t *pu8 = mdata->u8v0;
     uint16_t u16;
 
     for (int i = 0; i < mdata->vlen; i++) {
-        *pu8++ = propid;
+        *pu8++ = mdata->propid;
         // name
         u16 = spv[i].nlen;
         *pu8++ = (u16 >> 8) & 0xFF;
@@ -539,11 +597,19 @@ static int mr_free_spv(packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_unpack_props(packet_ctx *pctx, mr_mdata *mdata) {
+    dzlog_debug(
+        "mr_unpack_props:: packet: %s; name: %s",
+        pctx->mqtt_packet_name, mdata->name
+    );
+
+    mdata->vexists = true;
+
+/*
     if (mdata->flagid) {
         mr_mdata *flag_mdata = pctx->mdata0 + mdata->flagid;
         if (!flag_mdata->value) return 0;
     }
-
+*/
     size_t end_pos = pctx->pos + (mdata - 1)->value; // use property_length
     uint8_t *pu8, *pprop_index;
     int prop_index;
@@ -556,11 +622,17 @@ static int mr_unpack_props(packet_ctx *pctx, mr_mdata *mdata) {
 
         if (!pprop_index) {
             dzlog_error(
-                "property id not found:: packet: %s; id: %d",
-                pctx->mqtt_packet_name, *pu8
+                "property id not found:: packet: %s; name: %s; propid: %d",
+                pctx->mqtt_packet_name, mdata->name, *pu8
             );
 
             return -1;
+        }
+        else {
+            dzlog_debug(
+                "mr_unpack_props:: packet: %s; name: %s; propid: %d",
+                pctx->mqtt_packet_name, mdata->name, *pu8
+            );
         }
 
         prop_index = pprop_index - (uint8_t *)mdata->value;
@@ -587,7 +659,7 @@ static int mr_pack_u8v(packet_ctx *pctx, mr_mdata *mdata) {
     uint8_t propid = mdata->propid;
     if (propid) u8vlen++;
 
-    if (mr_malloc((void **)&mdata->u8v0, mdata->u8vlen)) return -1;
+    if (mr_malloc((void **)&mdata->u8v0, u8vlen)) return -1;
 
     mdata->ualloc = true;
     mdata->u8vlen = u8vlen;
@@ -597,7 +669,7 @@ static int mr_pack_u8v(packet_ctx *pctx, mr_mdata *mdata) {
     uint16_t u16 = mdata->vlen;
     *pu8++ = (u16 >> 8) & 0xFF;
     *pu8++ = u16 & 0xFF;
-    memcpy(pu8, (uint8_t *)mdata->value, mdata->vlen);
+    memcpy(pu8, (uint8_t *)mdata->value, u16);
     return 0;
 }
 

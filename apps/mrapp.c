@@ -13,6 +13,7 @@
 #include "mister/mrzlog.h"
 #include "mister/will.h"
 #include "mister/util.h"
+#include "mister/memory.h"
 
 void mrPingreqCallback(redisAsyncContext *rctx, void *reply_void, void *private_data_void) {
     REDISMODULE_NOT_USED(rctx);
@@ -188,16 +189,25 @@ void mr_send_connect(redisAsyncContext *rctx) {
         return;
     }
 
+    mr_print_existing_mdata(pctx);
     mr_pack_connect_u8v0(pctx);
 
     printf("Connect Packet:\n");
     print_hexdump(pctx->u8v0, pctx->len);
-    char cv[1000] = "";
-    rc = get_hexdump(cv, sizeof(cv) - 1, pctx->u8v0, pctx->len);
-    dzlog_info("Connect Packet:\n%s", cv);
+    // char cv[1000] = "";
+    // rc = get_hexdump(cv, sizeof(cv) - 1, pctx->u8v0, pctx->len);
+    // dzlog_info("Connect Packet:\n%s", cv);
+    size_t len = pctx->len;
+    uint8_t *u8v0;
+    rc = mr_malloc((void **)&u8v0, len);
+    memcpy(u8v0, pctx->u8v0, len);
+    rc = mr_free_connect_pctx(pctx);
+    rc = mr_init_unpack_connect_pctx(&pctx, u8v0, len);
+    rc = mr_free(u8v0);
+    printf("unpack_connect rc: %d\n", rc);
+    mr_print_existing_mdata(pctx);
+    rc = mr_free_connect_pctx(pctx);
 
-
-    rc = mr_unpack_connect_u8v0(pctx);
 /*
     uint8_t type = 0;
     rc = mr_get_connect_packet_type(pctx, &type);
@@ -257,11 +267,18 @@ void mr_send_connect(redisAsyncContext *rctx) {
     }
 
 */
+/*
+    printf("connack\n");
     packet_ctx *connack_pctx;
-    rc = mr_init_connack_pctx(&connack_pctx);
-    printf("connack rc: %d\n", rc);
+    mr_init_connack_pctx(&connack_pctx);
+    rc = mr_pack_connack_u8v0(connack_pctx);
+    printf("pack rc: %d\n", rc);
+    print_hexdump(connack_pctx->u8v0, connack_pctx->len);
+    rc = mr_unpack_connack_u8v0(pctx);
+    printf("unpack rc: %d\n", rc);
     rc = mr_free_connack_pctx(connack_pctx);
-    rc = mr_free_connect_pctx(pctx);
+*/
+
 }
 
 int main(void) {
@@ -287,13 +304,13 @@ int main(void) {
     puts("Preparing to send mr connect\n");
     mr_send_connect(rctx);
     puts("MisteR CONNECT sent\n");
-
+/*
     mrSendPingreq(rctx);
     printf("MisteR PINGREQ sent - will terminate when PINGRESP is handled\n");
 
     printf("Activating event loop...\n");
     uv_run(loop, UV_RUN_DEFAULT);
-
+*/
     dzlog_info("mr_errno: %d", mr_errno);
     zlog_fini();
     return 0;

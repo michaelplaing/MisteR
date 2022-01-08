@@ -25,6 +25,10 @@ int mr_set_will_values(packet_ctx *pctx, mr_will_data *pwd) {
         mr_reset_will_values(pctx);
         return -1;
     }
+    if (mr_set_scalar(pctx, CONNECT_WILL_PROPERTY_LENGTH, 0)) { // sets vexists = true
+        mr_reset_will_values(pctx);
+        return -1;
+    }
     if (mr_set_scalar(pctx, CONNECT_WILL_DELAY_INTERVAL, pwd->will_delay_interval)) {
         mr_reset_will_values(pctx);
         return -1;
@@ -67,6 +71,7 @@ int mr_set_will_values(packet_ctx *pctx, mr_will_data *pwd) {
         mr_reset_will_values(pctx);
         return -1;
     }
+
 
     return 0;
 }
