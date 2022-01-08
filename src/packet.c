@@ -25,8 +25,8 @@ static const mr_dtype DTYPE_MDATA0[] = { // same order as mr_dtypes enum
     {MR_U16_DTYPE,      mr_pack_u16,        mr_unpack_u16,      NULL,               NULL},
     {MR_U32_DTYPE,      mr_pack_u32,        mr_unpack_u32,      NULL,               NULL},
     {MR_VBI_DTYPE,      mr_pack_VBI,        mr_unpack_VBI,      NULL,               NULL},
-    {MR_U8V_DTYPE,      mr_pack_u8v,        mr_unpack_u8v,      NULL,               mr_free_value},
     {MR_BITS_DTYPE,     mr_pack_bits,       mr_unpack_bits,     NULL,               NULL},
+    {MR_U8V_DTYPE,      mr_pack_u8v,        mr_unpack_u8v,      NULL,               mr_free_value},
     {MR_STR_DTYPE,      mr_pack_str,        mr_unpack_str,      mr_validate_str,    mr_free_value},
     {MR_SPV_DTYPE,      mr_pack_spv,        mr_unpack_spv,      mr_validate_spv,    mr_free_spv},
     {MR_FLAGS_DTYPE,    mr_pack_u8,         mr_unpack_incr1,    NULL,               NULL},
@@ -51,9 +51,8 @@ int mr_print_existing_mdata(packet_ctx *pctx) {
                 break;
             case MR_U8V_DTYPE:
             case MR_PROPS_DTYPE:
-                printf("    %s\n        ", mdata->name);
-                size_t len = mdata->vlen > 16 ? 16 : mdata->vlen;
-                print_hexdump((uint8_t *)mdata->value, len);
+                printf("    %s\n", mdata->name);
+                print_hexdump((uint8_t *)mdata->value, mdata->vlen);
                 break;
             case MR_STR_DTYPE:
                 printf("    %s: %.*s\n", mdata->name, (int)mdata->vlen, (char *)mdata->value);

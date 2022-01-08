@@ -267,17 +267,23 @@ void mr_send_connect(redisAsyncContext *rctx) {
     }
 
 */
-/*
+
     printf("connack\n");
     packet_ctx *connack_pctx;
     mr_init_connack_pctx(&connack_pctx);
     rc = mr_pack_connack_u8v0(connack_pctx);
     printf("pack rc: %d\n", rc);
     print_hexdump(connack_pctx->u8v0, connack_pctx->len);
-    rc = mr_unpack_connack_u8v0(pctx);
-    printf("unpack rc: %d\n", rc);
+
+    len = connack_pctx->len;
+    rc = mr_malloc((void **)&u8v0, len);
+    memcpy(u8v0, connack_pctx->u8v0, len);
     rc = mr_free_connack_pctx(connack_pctx);
-*/
+    rc = mr_init_unpack_connack_pctx(&connack_pctx, u8v0, len);
+    rc = mr_free(u8v0);
+    printf("unpack_connack rc: %d\n", rc);
+    mr_print_existing_mdata(connack_pctx);
+    rc = mr_free_connack_pctx(connack_pctx);
 
 }
 
