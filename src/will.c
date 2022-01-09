@@ -42,11 +42,11 @@ int mr_set_will_values(packet_ctx *pctx, mr_will_data *pwd) {
         return -1;
     }
 
-    if (mr_set_vector(pctx, CONNECT_CONTENT_TYPE, pwd->content_type, pwd->content_type_len)) {
+    if (mr_set_vector(pctx, CONNECT_CONTENT_TYPE, pwd->content_type, strlen(pwd->content_type))) {
         mr_reset_will_values(pctx);
         return -1;
     }
-    if (mr_set_vector(pctx, CONNECT_RESPONSE_TOPIC, pwd->response_topic, pwd->response_topic_len)) {
+    if (mr_set_vector(pctx, CONNECT_RESPONSE_TOPIC, pwd->response_topic, strlen(pwd->response_topic))) {
         mr_reset_will_values(pctx);
         return -1;
     }
@@ -58,7 +58,7 @@ int mr_set_will_values(packet_ctx *pctx, mr_will_data *pwd) {
         mr_reset_will_values(pctx);
         return -1;
     }
-    if (mr_set_vector(pctx, CONNECT_WILL_TOPIC, pwd->will_topic, pwd->will_topic_len)) {
+    if (mr_set_vector(pctx, CONNECT_WILL_TOPIC, pwd->will_topic, strlen(pwd->will_topic))) {
         mr_reset_will_values(pctx);
         return -1;
     }
@@ -85,15 +85,12 @@ int mr_clear_will_data(mr_will_data *pwd) {
     pwd->payload_format_indicator = 0;
     pwd->message_expiry_interval = 0;
     pwd->content_type = NULL;
-    pwd->content_type_len = 0;
     pwd->response_topic = NULL;
-    pwd->response_topic_len = 0;
     pwd->correlation_data = NULL;
     pwd->correlation_data_len = 0;
     pwd->will_user_properties = NULL;
     pwd->will_user_properties_len = 0;
     pwd->will_topic = NULL;
-    pwd->will_topic_len = 0;
     pwd->will_payload = NULL;
     pwd->will_payload_len = 0;
 
@@ -132,11 +129,11 @@ int mr_get_will_data_from_values(packet_ctx *pctx, mr_will_data *pwd) {
     if (mr_get_u32(pctx, CONNECT_MESSAGE_EXPIRY_INTERVAL, &pwd->message_expiry_interval))
         pwd->message_expiry_interval = 0;
 
-    if (mr_get_u8v(pctx, CONNECT_CONTENT_TYPE, &pwd->content_type, &pwd->content_type_len)) {
-        pwd->content_type = NULL; pwd->content_type_len = 0;
+    if (mr_get_str(pctx, CONNECT_CONTENT_TYPE, &pwd->content_type)) {
+        pwd->content_type = NULL;
     }
-    if (mr_get_u8v(pctx, CONNECT_RESPONSE_TOPIC, &pwd->response_topic, &pwd->response_topic_len)) {
-        pwd->response_topic = NULL; pwd->response_topic_len = 0;
+    if (mr_get_str(pctx, CONNECT_RESPONSE_TOPIC, &pwd->response_topic)) {
+        pwd->response_topic = NULL;
     }
     if (mr_get_u8v(pctx, CONNECT_CORRELATION_DATA, &pwd->correlation_data, &pwd->correlation_data_len)) {
         pwd->correlation_data = NULL; pwd->correlation_data_len = 0;
@@ -144,8 +141,8 @@ int mr_get_will_data_from_values(packet_ctx *pctx, mr_will_data *pwd) {
     if (mr_get_spv(pctx, CONNECT_WILL_USER_PROPERTIES, &pwd->will_user_properties, &pwd->will_user_properties_len)) {
         pwd->will_user_properties = NULL; pwd->will_user_properties_len = 0;
     }
-    if (mr_get_u8v(pctx, CONNECT_WILL_TOPIC, &pwd->will_topic, &pwd->will_topic_len)) {
-        pwd->will_topic = NULL; pwd->will_topic_len = 0;
+    if (mr_get_str(pctx, CONNECT_WILL_TOPIC, &pwd->will_topic)) {
+        pwd->will_topic = NULL;
     }
     if (mr_get_u8v(pctx, CONNECT_WILL_PAYLOAD, &pwd->will_payload, &pwd->will_payload_len)) {
         pwd->will_payload = NULL; pwd->will_payload_len = 0;
@@ -232,8 +229,8 @@ static int mr_validate_message_expiry_interval(mr_will_data *pwd) {
 
 static int mr_validate_content_type(mr_will_data *pwd) {
     if (!pwd->will_flag) {
-        if (pwd->content_type || pwd->content_type_len) {
-            dzlog_error("will_flag false but content_type is not NULL or its len > 0");
+        if (pwd->content_type) {
+            dzlog_error("will_flag false but content_type is not NULL");
             return -1;
         }
         else {
@@ -241,18 +238,13 @@ static int mr_validate_content_type(mr_will_data *pwd) {
         }
     }
 
-    if (!pwd->content_type && pwd->content_type_len) { // mr_set_vector makes len 0 if pointer is NULL
-        dzlog_error("content_type is NULL but its len > 0");
-        return -1;
-    }
-
     if (pwd->content_type) {
-        int err_pos = utf8val(pwd->content_type, pwd->content_type_len);
+        int err_pos = utf8val((uint8_t *)pwd->content_type, strlen(pwd->content_type));
 
         if (err_pos) {
             dzlog_error(
-                "utf8 validation failed for content_type: %.*s, pos: %d",
-                (int)pwd->content_type_len, (char *)pwd->content_type, err_pos
+                "utf8 validation failed for content_type: %s, pos: %d",
+                (char *)pwd->content_type, err_pos
             );
 
             return -1;
@@ -264,8 +256,8 @@ static int mr_validate_content_type(mr_will_data *pwd) {
 
 static int mr_validate_response_topic(mr_will_data *pwd) {
     if (!pwd->will_flag) {
-        if (pwd->response_topic || pwd->response_topic_len) {
-            dzlog_error("will_flag false but response_topic is not NULL or its len > 0");
+        if (pwd->response_topic) {
+            dzlog_error("will_flag false but response_topic is not NULL");
             return -1;
         }
         else {
@@ -273,18 +265,13 @@ static int mr_validate_response_topic(mr_will_data *pwd) {
         }
     }
 
-    if (!pwd->response_topic && pwd->response_topic_len) { // mr_set_vector makes len 0 if pointer is NULL
-        dzlog_error("response_topic is NULL but its len > 0");
-        return -1;
-    }
-
     if (pwd->response_topic) {
-        int err_pos = utf8val(pwd->response_topic, pwd->response_topic_len);
+        int err_pos = utf8val((uint8_t *)pwd->response_topic, strlen(pwd->response_topic));
 
         if (err_pos) {
             dzlog_error(
-                "utf8 validation failed for response_topic: %.*s, pos: %d",
-                (int)pwd->response_topic_len, (char *)pwd->response_topic, err_pos
+                "utf8 validation failed for response_topic: %s, pos: %d",
+                (char *)pwd->response_topic, err_pos
             );
 
             return -1;
@@ -332,23 +319,21 @@ static int mr_validate_will_user_properties(mr_will_data *pwd) {
     string_pair *spv = pwd->will_user_properties;
 
     for (int i = 0; i < pwd->will_user_properties_len; i++) {
-        int err_pos = utf8val(spv[i].name, spv[i].nlen);
+        int err_pos = utf8val((uint8_t *)spv[i].name, strlen(spv[i].name));
 
         if (err_pos) {
             dzlog_error(
-                "invalid utf8: string_pair: %d; name: %.*s; pos: %d",
-                i, spv[i].nlen, spv[i].name, err_pos
+                "invalid utf8: string_pair: %d; name: %s; pos: %d", i, spv[i].name, err_pos
             );
 
             return -1;
         }
 
-        err_pos = utf8val(spv[i].value, spv[i].vlen);
+        err_pos = utf8val((uint8_t *)spv[i].value, strlen(spv[i].value));
 
         if (err_pos) {
             dzlog_error(
-                "invalid utf8: string_pair: %d; value: %.*s; pos: %d",
-                i, spv[i].nlen, spv[i].value, err_pos
+                "invalid utf8: string_pair: %d; value: %s; pos: %d", i, spv[i].value, err_pos
             );
 
             return -1;
@@ -360,8 +345,8 @@ static int mr_validate_will_user_properties(mr_will_data *pwd) {
 
 static int mr_validate_will_topic(mr_will_data *pwd) {
     if (!pwd->will_flag) {
-        if (pwd->will_topic || pwd->will_topic_len) {
-            dzlog_error("will_flag false but will_topic is not NULL or its len > 0");
+        if (pwd->will_topic) {
+            dzlog_error("will_flag false but will_topic is not NULL");
             return -1;
         }
         else {
@@ -369,17 +354,12 @@ static int mr_validate_will_topic(mr_will_data *pwd) {
         }
     }
 
-    if (!(pwd->will_topic && pwd->will_topic_len)) {
-        dzlog_error("will_topic is missing and must have len > 0");
-        return -1;
-    }
-
-    int err_pos = utf8val(pwd->will_topic, pwd->will_topic_len);
+    int err_pos = utf8val((uint8_t *)pwd->will_topic, strlen(pwd->will_topic));
 
     if (err_pos) {
         dzlog_error(
-            "utf8 validation failed for will_topic: %.*s, pos: %d",
-            (int)pwd->will_topic_len, (char *)pwd->will_topic, err_pos
+            "utf8 validation failed for will_topic: %s, pos: %d",
+            (char *)pwd->will_topic, err_pos
         );
 
         return -1;

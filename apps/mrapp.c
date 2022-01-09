@@ -107,7 +107,7 @@ void mr_send_connect(redisAsyncContext *rctx) {
     printf("get_clean_start: %u\n", clean_start);
     char *foo = "fööl";
     char *bar = "barr";
-    string_pair foobar = {strlen(foo), (uint8_t *)foo, strlen(bar), (uint8_t *)bar};
+    string_pair foobar = {foo, bar};
     string_pair spv0[] = {foobar, foobar};
     size_t sp_count = sizeof(spv0) / sizeof(string_pair);
     // mr_set_connect_user_properties(pctx, spv0, sp_count);
@@ -120,10 +120,7 @@ void mr_send_connect(redisAsyncContext *rctx) {
         printf("user_properties:\n");
 
         for (int i = 0; i < myspvlen; i++, pmysp++) {
-            printf (
-                "  name: %.*s; value: %.*s\n",
-                pmysp->nlen, pmysp->name, pmysp->vlen, pmysp->value
-            );
+            printf ("  name: %s; value: %s\n", pmysp->name, pmysp->value);
         }
     }
 
@@ -160,24 +157,20 @@ void mr_send_connect(redisAsyncContext *rctx) {
     mr_will_data wd;
     rc = mr_clear_will_data(&wd);
     wd.will_flag = true;
-    uint8_t will_topicv[] = {'T'};
-    wd.will_topic = will_topicv;
-    wd.will_topic_len = 1;
+    wd.will_topic = "T";
     wd.payload_format_indicator = 1;
     uint8_t will_payloadv[] = {'P'};
     wd.will_payload = will_payloadv;
     wd.will_payload_len = 1;
-    wd.content_type = (uint8_t *)"CT";
-    wd.content_type_len = 2;
-    wd.response_topic = (uint8_t *)"RT";
-    wd.response_topic_len = 2;
+    wd.content_type = "CT";
+    wd.response_topic = "RT";
     uint8_t correlation_datav[] = {0xFF};
     wd.correlation_data = correlation_datav;
     wd.correlation_data_len = 1;
 
     char *foo = "föö";
     char *bar = "bår";
-    string_pair foobar = {strlen(foo), (uint8_t *)foo, strlen(bar), (uint8_t *)bar};
+    string_pair foobar = {foo, bar};
     string_pair spv[] = {foobar, foobar};
     wd.will_user_properties = spv;
     wd.will_user_properties_len = sizeof(spv) / sizeof(string_pair);
@@ -252,7 +245,7 @@ void mr_send_connect(redisAsyncContext *rctx) {
         printf("user_properties:\n");
 
         for (int i = 0; i < myspvlen; i++, pmysp++) {
-            printf("  name: %.*s; value: %.*s\n", pmysp->nlen, pmysp->name, pmysp->vlen, pmysp->value);
+            printf("  name: %s; value: %s\n", pmysp->name, pmysp->value);
         }
     }
 

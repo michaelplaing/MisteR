@@ -74,6 +74,7 @@ int mr_get_u32(packet_ctx *pctx, int idx, uint32_t *pu32);
 
 int mr_set_vector(packet_ctx *pctx, int idx, void *pvoid, size_t len);
 
+int mr_get_str(packet_ctx *pctx, int idx, char **pcv0);
 int mr_get_u8v(packet_ctx *pctx, int idx, uint8_t **pu8v0, size_t *plen);
 int mr_get_spv(packet_ctx *pctx, int idx, string_pair **pspv0, size_t *plen);
 
@@ -109,8 +110,8 @@ static int mr_free_spv(packet_ctx *pctx, mr_mdata *mdata);
 
 static int mr_unpack_props(packet_ctx *pctx, mr_mdata *mdata);
 
-int mr_spv_scalar(packet_ctx *pctx, mr_mdata *mdata);
-int mr_spv_hexdump(packet_ctx *pctx, mr_mdata *mdata);
-int mr_spv_string(packet_ctx *pctx, mr_mdata *mdata);
-int mr_spv_spv(packet_ctx *pctx, mr_mdata *mdata);
+int mr_out_scalar(packet_ctx *pctx, mr_mdata *mdata);
+int mr_out_hexdump(packet_ctx *pctx, mr_mdata *mdata);
+int mr_out_string(packet_ctx *pctx, mr_mdata *mdata);
+int mr_out_spv(packet_ctx *pctx, mr_mdata *mdata);
 #endif // PACK_INTERNAL_H

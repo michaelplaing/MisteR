@@ -21,19 +21,19 @@ static char *PTYPE_NAME[] = {   // same order as mqtt_packet_type
 
 static const mr_dtype DTYPE_MDATA0[] = { // same order as mr_dtypes enum
 //   dtype idx          pack_fn             unpack_fn           output_fn           validate_fn         free_fn
-    {MR_U8_DTYPE,       mr_pack_u8,         mr_unpack_u8,       mr_spv_scalar,   NULL,               NULL},
-    {MR_U16_DTYPE,      mr_pack_u16,        mr_unpack_u16,      mr_spv_scalar,   NULL,               NULL},
-    {MR_U32_DTYPE,      mr_pack_u32,        mr_unpack_u32,      mr_spv_scalar,   NULL,               NULL},
-    {MR_VBI_DTYPE,      mr_pack_VBI,        mr_unpack_VBI,      mr_spv_scalar,   NULL,               NULL},
-    {MR_BITS_DTYPE,     mr_pack_bits,       mr_unpack_bits,     mr_spv_scalar,   NULL,               NULL},
-    {MR_U8V_DTYPE,      mr_pack_u8v,        mr_unpack_u8v,      mr_spv_hexdump,  NULL,               mr_free_value},
-    {MR_STR_DTYPE,      mr_pack_str,        mr_unpack_str,      mr_spv_string,   mr_validate_str,    mr_free_value},
-    {MR_SPV_DTYPE,      mr_pack_spv,        mr_unpack_spv,      mr_spv_spv,      mr_validate_spv,    mr_free_spv},
-    {MR_FLAGS_DTYPE,    mr_pack_u8,         mr_unpack_incr1,    mr_spv_scalar,   NULL,               NULL},
-    {MR_PROPS_DTYPE,    NULL,               mr_unpack_props,    mr_spv_hexdump,  NULL,               NULL}
+    {MR_U8_DTYPE,       mr_pack_u8,         mr_unpack_u8,       mr_out_scalar,   NULL,               NULL},
+    {MR_U16_DTYPE,      mr_pack_u16,        mr_unpack_u16,      mr_out_scalar,   NULL,               NULL},
+    {MR_U32_DTYPE,      mr_pack_u32,        mr_unpack_u32,      mr_out_scalar,   NULL,               NULL},
+    {MR_VBI_DTYPE,      mr_pack_VBI,        mr_unpack_VBI,      mr_out_scalar,   NULL,               NULL},
+    {MR_BITS_DTYPE,     mr_pack_bits,       mr_unpack_bits,     mr_out_scalar,   NULL,               NULL},
+    {MR_U8V_DTYPE,      mr_pack_u8v,        mr_unpack_u8v,      mr_out_hexdump,  NULL,               mr_free_value},
+    {MR_STR_DTYPE,      mr_pack_str,        mr_unpack_str,      mr_out_string,   mr_validate_str,    mr_free_value},
+    {MR_SPV_DTYPE,      mr_pack_spv,        mr_unpack_spv,      mr_out_spv,      mr_validate_spv,    mr_free_spv},
+    {MR_FLAGS_DTYPE,    mr_pack_u8,         mr_unpack_incr1,    mr_out_scalar,   NULL,               NULL},
+    {MR_PROPS_DTYPE,    NULL,               mr_unpack_props,    mr_out_hexdump,  NULL,               NULL}
 };
 
-int mr_spv_scalar(packet_ctx *pctx, mr_mdata *mdata) {
+static int mr_out_scalar(packet_ctx *pctx, mr_mdata *mdata) {
     char *pvalue;
     if (asprintf(&pvalue, "%u", (uint32_t)mdata->value)) return -1;
     mdata->pvalloc = true;
@@ -41,7 +41,7 @@ int mr_spv_scalar(packet_ctx *pctx, mr_mdata *mdata) {
     return 0;
 }
 
-int mr_spv_hexdump(packet_ctx *pctx, mr_mdata *mdata) {
+static int mr_out_hexdump(packet_ctx *pctx, mr_mdata *mdata) {
     char cv[mdata->vlen * 5 + 70];
     if (get_hexdump(cv, sizeof(cv), (uint8_t *)mdata->value, mdata->vlen)) return -1;
     char *pvalue;
@@ -52,15 +52,16 @@ int mr_spv_hexdump(packet_ctx *pctx, mr_mdata *mdata) {
     return 0;
 }
 
-int mr_spv_string(packet_ctx *pctx, mr_mdata *mdata) {
+static int mr_out_string(packet_ctx *pctx, mr_mdata *mdata) {
     char *pvalue;
-    if (mr_malloc((void **)&pvalue, mdata->vlen + 1)) return -1;
-    strncpy(pvalue, (char *)mdata->value, mdata->vlen);
-    pvalue[mdata->vlen] = '\0';
+    size_t vlen = strlen((char *)mdata->value);
+    if (mr_malloc((void **)&pvalue, vlen + 1)) return -1;
+    strcpy(pvalue, (char *)mdata->value);
+    pvalue[vlen] = '\0';
     return 0;
 }
 
-int mr_spv_spv(packet_ctx *pctx, mr_mdata *mdata) {
+static int mr_out_spv(packet_ctx *pctx, mr_mdata *mdata) {
     return 0;
 }
 
@@ -93,10 +94,7 @@ int mr_print_existing_mdata(packet_ctx *pctx) {
                 string_pair *spv = (string_pair *)mdata->value;
 
                 for (int i = 0; i < mdata->vlen; i++) {
-                    printf(
-                        "        name: %.*s; value: %.*s\n",
-                        spv[i].nlen, spv[i].name, spv[i].vlen, spv[i].value
-                    );
+                    printf("        name: %s; value: %s\n", spv[i].name, spv[i].value);
                 }
 
                 break;
@@ -192,6 +190,18 @@ static int mr_get_vector(packet_ctx *pctx, int idx, Word_t *ppvoid, size_t *plen
     }
     else {
         rc = -1;
+    }
+
+    return rc;
+}
+
+int mr_get_str(packet_ctx *pctx, int idx, char **pcv0) {
+    Word_t pvoid;
+    size_t len;
+    int rc = mr_get_vector(pctx, idx, &pvoid, &len);
+
+    if (!rc) {
+        *pcv0 = (char *)pvoid;
     }
 
     return rc;
@@ -508,7 +518,7 @@ static int mr_pack_spv(packet_ctx *pctx, mr_mdata *mdata) {
 
     mdata->u8vlen = 0;
     for (int i = 0; i < mdata->vlen; i++) {
-        mdata->u8vlen += 1 + 2 + spv[i].nlen + 2 + spv[i].vlen;
+        mdata->u8vlen += 1 + 2 + strlen(spv[i].name) + 2 + strlen(spv[i].value);
     }
 
     if (mr_malloc((void **)&mdata->u8v0, mdata->u8vlen)) return -1;
@@ -520,13 +530,13 @@ static int mr_pack_spv(packet_ctx *pctx, mr_mdata *mdata) {
     for (int i = 0; i < mdata->vlen; i++) {
         *pu8++ = mdata->propid;
         // name
-        u16 = spv[i].nlen;
+        u16 = strlen(spv[i].name);
         *pu8++ = (u16 >> 8) & 0xFF;
         *pu8++ = u16 & 0xFF;
         memcpy(pu8, spv[i].name, u16);
         pu8 += u16;
         // value
-        u16 = spv[i].vlen;
+        u16 = strlen(spv[i].value);
         *pu8++ = (u16 >> 8) & 0xFF;
         *pu8++ = u16 & 0xFF;
         memcpy(pu8, spv[i].value, u16);
@@ -542,18 +552,20 @@ static int mr_unpack_spv(packet_ctx *pctx, mr_mdata *mdata) {
     uint16_t u16v[] = {u8v[0], u8v[1]}; u8v += 2;
     size_t nlen = (u16v[0] << 8) + u16v[1];
 
-    uint8_t *name;
-    if (mr_malloc((void **)&name, nlen)) return -1;
+    char *name;
+    if (mr_malloc((void **)&name, nlen + 1)) return -1;
 
     memcpy(name, u8v, nlen); u8v += nlen;
+    name[nlen] = '\0';
 
     u16v[0] = u8v[0]; u16v[1] = u8v[1]; u8v += 2;
     size_t vlen = (u16v[0] << 8) + u16v[1];
 
-    uint8_t *value;
-    if (mr_malloc((void **)&value, vlen)) return -1;
+    char *value;
+    if (mr_malloc((void **)&value, vlen + 1)) return -1;
 
     memcpy(value, u8v, vlen); u8v += vlen;
+    value[vlen] = '\0';
 
     string_pair *spv0, *psp;
 
@@ -568,9 +580,7 @@ static int mr_unpack_spv(packet_ctx *pctx, mr_mdata *mdata) {
 
     mdata->value = (Word_t)spv0;
     psp = spv0 + mdata->vlen;
-    psp->nlen = nlen;
     psp->name = name;
-    psp->vlen = vlen;
     psp->value = value;
     mdata->vlen++;
     mdata->vexists = true;
@@ -583,23 +593,23 @@ static int mr_validate_spv(packet_ctx *pctx, mr_mdata *mdata) {
     string_pair *spv = (string_pair *)mdata->value;
 
     for (int i = 0; i < mdata->vlen; i++) { // utf8val returns error position
-        int err_pos = utf8val(spv[i].name, spv[i].nlen);
+        int err_pos = utf8val((uint8_t *)spv[i].name, strlen(spv[i].name));
 
         if (err_pos) {
             dzlog_error(
-                "invalid utf8: packet: %s; string_pair: %d; name: %.*s; pos: %d",
-                pctx->mqtt_packet_name, i, spv[i].nlen, spv[i].name, err_pos
+                "invalid utf8: packet: %s; string_pair: %d; name: %s; pos: %d",
+                pctx->mqtt_packet_name, i, spv[i].name, err_pos
             );
 
             return -1;
         }
 
-        err_pos = utf8val(spv[i].value, spv[i].vlen);
+        err_pos = utf8val((uint8_t *)spv[i].value, strlen(spv[i].value));
 
         if (err_pos) {
             dzlog_error(
-                "invalid utf8: packet: %s; string_pair: %d; value: %.*s; pos: %d",
-                pctx->mqtt_packet_name, i, spv[i].vlen, spv[i].value, err_pos
+                "invalid utf8: packet: %s; string_pair: %d; value: %s; pos: %d",
+                pctx->mqtt_packet_name, i, spv[i].value, err_pos
             );
 
             return -1;

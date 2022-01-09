@@ -112,6 +112,20 @@ int utf8val(const uint8_t *u8v, size_t len) {
     return 0;
 }
 
+int mr_bytecount_VBI(uint32_t u32) {
+    if (u32 >> (7 * 4)) { // overflow: too big for 4 bytes
+        return -1;
+    }
+
+    int i = 0;
+    do {
+        u32 = u32 >> 7;
+        i++;
+    } while (u32);
+
+    return i;
+}
+
 int mr_make_VBI(uint32_t u32, uint8_t *u8v0) {
     if (u32 >> (7 * 4)) { // overflow: too big for 4 bytes
         return -1;
