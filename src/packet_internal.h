@@ -59,7 +59,7 @@ int mr_init_packet_context(
 static int mr_unpack_pctx_u8v0(packet_ctx *pctx);
 int mr_pack_pctx_u8v0(packet_ctx *pctx);
 
-int mr_validate_u8utf8(packet_ctx *pctx, int idx);
+int mr_validate_u8vutf8(packet_ctx *pctx, int idx);
 
 int mr_free_packet_context(packet_ctx *pctx);
 

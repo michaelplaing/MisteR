@@ -97,3 +97,8 @@ int mr_free_connack_pctx(packet_ctx *pctx) {
     if (mr_connack_packet_check(pctx)) return -1;
     return mr_free_packet_context(pctx);
 }
+
+int mr_connack_mdata_dump(packet_ctx *pctx) {
+    if (mr_connack_packet_check(pctx)) return -1;
+    return mr_mdata_dump(pctx);
+}

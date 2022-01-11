@@ -206,7 +206,6 @@ void mr_send_connect(redisAsyncContext *rctx) {
     printf("unpack_connect rc: %d\n", rc);
     rc = mr_connect_mdata_dump(pctx);
     puts(pctx->mdata_dump);
-    print_hexdump((uint8_t *)pctx->mdata_dump, strlen(pctx->mdata_dump) + 1);
     rc = mr_free_connect_pctx(pctx);
 
 /*
@@ -283,7 +282,7 @@ void mr_send_connect(redisAsyncContext *rctx) {
     rc = mr_init_unpack_connack_pctx(&connack_pctx, u8v0, len);
     rc = mr_free(u8v0);
     printf("unpack_connack rc: %d\n", rc);
-    rc = mr_connect_mdata_dump(pctx);
+    rc = mr_connack_mdata_dump(pctx);
     puts(pctx->mdata_dump);
     rc = mr_free_connack_pctx(connack_pctx);
 

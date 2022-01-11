@@ -116,7 +116,7 @@ int mr_mdata_dump(packet_ctx *pctx) {
     return 0;
 }
 
-int mr_validate_u8utf8(packet_ctx *pctx, int idx) {
+int mr_validate_u8vutf8(packet_ctx *pctx, int idx) {
     int rc = 0;
     mr_mdata *mdata = pctx->mdata0 + idx;
     int err_pos = utf8val((uint8_t *)mdata->value, mdata->vlen); // returns error position
