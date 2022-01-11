@@ -106,7 +106,7 @@ void do_something(size_t i) {
     void *v = malloc(i * 100);
 }
 
-void compress_spaces(char *dst) {
+void compress_spaces_orig(char *dst) {
     char *d = dst;
     char *s = dst;
     bool bs = true;
@@ -135,8 +135,26 @@ void compress_spaces(char *dst) {
     }
 }
 
-int
-main(int argc, char **argv) {
+void compress_spaces_tweak(char *dst) {
+    char *d = dst;
+    char *s = dst;
+    bool bs = true;
+
+    for ( ; *s; s++) {
+        if (*s == ' ' && bs) continue;
+        bs = *s == ' ';
+        *d++ = *s;
+    }
+
+    if (*dst && *(d - 1) == ' ') {
+        *(d - 1) = '\0';
+    }
+    else {
+        *d = '\0';
+    }
+}
+
+int main(int argc, char **argv) {
 /*
     for (size_t i = 0; i < 1000; i++) {
         do_something(i);
@@ -147,11 +165,11 @@ main(int argc, char **argv) {
 */
     char cv[] = "        foo                     bar          ";
     int l1 = strlen(cv);
-    compress_spaces(cv);
+    compress_spaces_tweak(cv);
     int l2 = strlen(cv);
     printf("l1: %d; l2: %d, cv: '%s'\n", l1, l2, cv);
-    char nv[] = "a";
-    compress_spaces(nv);
+    char nv[] = "";
+    compress_spaces_tweak(nv);
     printf("nv: '%s'\n", nv);
     return 0;
 }

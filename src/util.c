@@ -239,22 +239,12 @@ void compress_spaces(char *dst) {
     bool bs = true;
 
     for ( ; *s; s++) {
-        if (*s == ' ') {
-            if (bs) {
-                ;
-            }
-            else {
-                bs = true;
-                *d++ = ' ';
-            }
-        }
-        else {
-            bs = false;
-            *d++ = *s;
-        }
+        if (*s == ' ' && bs) continue; // only increment source s
+        bs = *s == ' '; // is source s a space or not (for next round)
+        *d++ = *s; // set dest d to source s then increment both
     }
 
-    if (*dst && *(d - 1) == ' ') {
+    if (*dst && *(d - 1) == ' ') { // trailing space to overwrite?
         *(d - 1) = '\0';
     }
     else {
