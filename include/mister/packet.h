@@ -16,6 +16,7 @@ struct mr_mdata;
 typedef struct packet_ctx {
     uint8_t mqtt_packet_type;
     char *mqtt_packet_name;
+    char *mdata_dump;
     uint8_t *u8v0;
     bool ualloc;
     size_t len;

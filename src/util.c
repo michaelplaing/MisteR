@@ -232,3 +232,32 @@ int get_hexdump(char *cv0, size_t clen, const uint8_t *u8v, size_t ulen) {
     *pc = '\0';
     return 0;
 }
+
+void compress_spaces(char *dst) {
+    char *d = dst;
+    char *s = dst;
+    bool bs = true;
+
+    for ( ; *s; s++) {
+        if (*s == ' ') {
+            if (bs) {
+                ;
+            }
+            else {
+                bs = true;
+                *d++ = ' ';
+            }
+        }
+        else {
+            bs = false;
+            *d++ = *s;
+        }
+    }
+
+    if (*dst && *(d - 1) == ' ') {
+        *(d - 1) = '\0';
+    }
+    else {
+        *d = '\0';
+    }
+}

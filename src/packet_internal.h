@@ -63,22 +63,25 @@ int mr_validate_u8v(packet_ctx *pctx, int idx);
 
 int mr_free_packet_context(packet_ctx *pctx);
 
-int mr_reset_value(packet_ctx *pctx, int idx); // scalar or vector
+int mr_reset_scalar(packet_ctx *pctx, int idx);
+int mr_reset_vector(packet_ctx *pctx, int idx);
 
 int mr_set_scalar(packet_ctx *pctx, int idx, Word_t value);
 
-int mr_get_boolean(packet_ctx *pctx, int idx, bool *pboolean);
-int mr_get_u8(packet_ctx *pctx, int idx, uint8_t *pu8);
-int mr_get_u16(packet_ctx *pctx, int idx, uint16_t *pu16);
-int mr_get_u32(packet_ctx *pctx, int idx, uint32_t *pu32);
+static int mr_get_scalar(packet_ctx *pctx, int idx, Word_t *pvalue, bool *pexists);
+int mr_get_boolean(packet_ctx *pctx, int idx, bool *pboolean, bool *pexists);
+int mr_get_u8(packet_ctx *pctx, int idx, uint8_t *pu8, bool *pexists);
+int mr_get_u16(packet_ctx *pctx, int idx, uint16_t *pu16, bool *pexists);
+int mr_get_u32(packet_ctx *pctx, int idx, uint32_t *pu32, bool *pexists);
 
 int mr_set_vector(packet_ctx *pctx, int idx, void *pvoid, size_t len);
 
-int mr_get_str(packet_ctx *pctx, int idx, char **pcv0);
-int mr_get_u8v(packet_ctx *pctx, int idx, uint8_t **pu8v0, size_t *plen);
-int mr_get_spv(packet_ctx *pctx, int idx, string_pair **pspv0, size_t *plen);
+static int mr_get_vector(packet_ctx *pctx, int idx, Word_t *ppvoid, size_t *plen, bool *pexists);
+int mr_get_str(packet_ctx *pctx, int idx, char **pcv0, bool *pexists);
+int mr_get_u8v(packet_ctx *pctx, int idx, uint8_t **pu8v0, size_t *plen, bool *pexists);
+int mr_get_spv(packet_ctx *pctx, int idx, string_pair **pspv0, size_t *plen, bool *pexists);
 
-static int mr_free_value(packet_ctx *pctx, mr_mdata *mdata);
+static int mr_free_vector(packet_ctx *pctx, mr_mdata *mdata);
 
 static int mr_pack_u8(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_unpack_u8(packet_ctx *pctx, mr_mdata *mdata);
@@ -110,8 +113,8 @@ static int mr_free_spv(packet_ctx *pctx, mr_mdata *mdata);
 
 static int mr_unpack_props(packet_ctx *pctx, mr_mdata *mdata);
 
-int mr_out_scalar(packet_ctx *pctx, mr_mdata *mdata);
-int mr_out_hexdump(packet_ctx *pctx, mr_mdata *mdata);
-int mr_out_string(packet_ctx *pctx, mr_mdata *mdata);
-int mr_out_spv(packet_ctx *pctx, mr_mdata *mdata);
+static int mr_out_scalar(packet_ctx *pctx, mr_mdata *mdata);
+static int mr_out_hexdump(packet_ctx *pctx, mr_mdata *mdata);
+static int mr_out_string(packet_ctx *pctx, mr_mdata *mdata);
+static int mr_out_spv(packet_ctx *pctx, mr_mdata *mdata);
 #endif // PACK_INTERNAL_H

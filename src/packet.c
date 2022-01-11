@@ -26,8 +26,8 @@ static const mr_dtype DTYPE_MDATA0[] = { // same order as mr_dtypes enum
     {MR_U32_DTYPE,      mr_pack_u32,        mr_unpack_u32,      mr_out_scalar,   NULL,               NULL},
     {MR_VBI_DTYPE,      mr_pack_VBI,        mr_unpack_VBI,      mr_out_scalar,   NULL,               NULL},
     {MR_BITS_DTYPE,     mr_pack_bits,       mr_unpack_bits,     mr_out_scalar,   NULL,               NULL},
-    {MR_U8V_DTYPE,      mr_pack_u8v,        mr_unpack_u8v,      mr_out_hexdump,  NULL,               mr_free_value},
-    {MR_STR_DTYPE,      mr_pack_str,        mr_unpack_str,      mr_out_string,   mr_validate_str,    mr_free_value},
+    {MR_U8V_DTYPE,      mr_pack_u8v,        mr_unpack_u8v,      mr_out_hexdump,  NULL,               mr_free_vector},
+    {MR_STR_DTYPE,      mr_pack_str,        mr_unpack_str,      mr_out_string,   mr_validate_str,    mr_free_vector},
     {MR_SPV_DTYPE,      mr_pack_spv,        mr_unpack_spv,      mr_out_spv,      mr_validate_spv,    mr_free_spv},
     {MR_FLAGS_DTYPE,    mr_pack_u8,         mr_unpack_incr1,    mr_out_scalar,   NULL,               NULL},
     {MR_PROPS_DTYPE,    NULL,               mr_unpack_props,    mr_out_hexdump,  NULL,               NULL}
@@ -42,8 +42,10 @@ static int mr_out_scalar(packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_out_hexdump(packet_ctx *pctx, mr_mdata *mdata) {
-    char cv[mdata->vlen * 5 + 70];
-    if (get_hexdump(cv, sizeof(cv), (uint8_t *)mdata->value, mdata->vlen)) return -1;
+    char cv[100];
+    size_t len = mdata->vlen > 16 ? 16 : mdata->vlen;
+    if (get_hexdump(cv, sizeof(cv), (uint8_t *)mdata->value, len)) return -1;
+    compress_spaces(cv);
     char *pvalue;
     if (mr_malloc((void **)&pvalue, strlen(cv) + 1)) return -1;
     strcpy(pvalue, cv);
@@ -58,10 +60,55 @@ static int mr_out_string(packet_ctx *pctx, mr_mdata *mdata) {
     if (mr_malloc((void **)&pvalue, vlen + 1)) return -1;
     strcpy(pvalue, (char *)mdata->value);
     pvalue[vlen] = '\0';
+    mdata->pvalloc = true;
     return 0;
 }
 
 static int mr_out_spv(packet_ctx *pctx, mr_mdata *mdata) {
+    char *pvalue;
+    size_t sz = 1;
+    string_pair *spv = (string_pair *)mdata->value;
+
+    for (int i = 0; i < mdata->vlen; i++) {
+        sz += strlen(spv[i].name) + 1 + strlen(spv[i].value) + 1;
+    }
+
+    if (mr_malloc((void **) &pvalue, sz)) return -1;
+
+    *pvalue = '\0';
+    for (int i = 0; i < mdata->vlen; i++) {
+        strcat(pvalue, spv[i].name);
+        strcat(pvalue, ":");
+        strcat(pvalue, spv[i].value);
+        strcat(pvalue, ";");
+    }
+
+    pvalue[sz] = '\0';
+    mdata->pvalloc = true;
+    return 0;
+}
+
+int mr_mdata_dump(packet_ctx *pctx) {
+    size_t len = 1;
+    mr_mdata *mdata = pctx->mdata0;
+    for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
+        if (mdata->vexists) {
+            mr_mdata_fn output_fn = DTYPE_MDATA0[mdata->dtype].output_fn;
+            if (output_fn(pctx, mdata)) return -1;
+            len += strlen(mdata->pvalue);
+        }
+    }
+
+    char *pc;
+    if (mr_malloc((void **)&pc, len)) return -1;
+
+    *pc = '\0';
+    mdata = pctx->mdata0;
+    for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
+        if (mdata->vexists) strcat(pc, mdata->pvalue);
+    }
+
+    pctx->mdata_dump = pc;
     return 0;
 }
 
@@ -83,14 +130,14 @@ int mr_print_existing_mdata(packet_ctx *pctx) {
                 break;
             case MR_U8V_DTYPE:
             case MR_PROPS_DTYPE:
-                printf("    %s\n", mdata->name);
+                printf("    %s:\n", mdata->name);
                 print_hexdump((uint8_t *)mdata->value, mdata->vlen);
                 break;
             case MR_STR_DTYPE:
-                printf("    %s: %.*s\n", mdata->name, (int)mdata->vlen, (char *)mdata->value);
+                printf("    %s: %s\n", mdata->name, (char *)mdata->value);
                 break;
             case MR_SPV_DTYPE:
-                printf("    %s\n", mdata->name);
+                printf("    %s:\n", mdata->name);
                 string_pair *spv = (string_pair *)mdata->value;
 
                 for (int i = 0; i < mdata->vlen; i++) {
@@ -120,120 +167,95 @@ int mr_set_scalar(packet_ctx *pctx, int idx, Word_t value) {
     return rc;
 }
 
-static int mr_get_scalar(packet_ctx *pctx, int idx, Word_t *pvalue) {
-    int rc;
+static int mr_get_scalar(packet_ctx *pctx, int idx, Word_t *pvalue, bool *pexists) {
     mr_mdata *mdata = pctx->mdata0 + idx;
-
-    if (mdata->vexists) {
-        *pvalue = mdata->value;
-        rc = 0;
-    }
-    else {
-        rc = -1;
-    }
-
-    return rc;
+    *pvalue = mdata->value;
+    *pexists = mdata->vexists;
+    return 0;
 }
 
-int mr_get_boolean(packet_ctx *pctx, int idx, bool *pboolean) {
+int mr_get_boolean(packet_ctx *pctx, int idx, bool *pboolean, bool *pexists) {
     Word_t value;
-    int rc = mr_get_scalar(pctx, idx, &value);
-    if (!rc) *pboolean = (bool)value;
-    return rc;
+    mr_get_scalar(pctx, idx, &value, pexists);
+    *pboolean = (bool)value;
+    return 0;
 }
 
-int mr_get_u8(packet_ctx *pctx, int idx, uint8_t *pu8) {
+int mr_get_u8(packet_ctx *pctx, int idx, uint8_t *pu8, bool *pexists) {
     Word_t value;
-    int rc = mr_get_scalar(pctx, idx, &value);
-    if (!rc) *pu8 = (uint8_t)value;
-    return rc;
+    mr_get_scalar(pctx, idx, &value, pexists);
+    *pu8 = (uint8_t)value;
+    return 0;
 }
 
-int mr_get_u16(packet_ctx *pctx, int idx, uint16_t *pu16) {
+int mr_get_u16(packet_ctx *pctx, int idx, uint16_t *pu16, bool *pexists) {
     Word_t value;
-    int rc = mr_get_scalar(pctx, idx, &value);
-    if (!rc) *pu16 = (uint16_t)value;
-    return rc;
+    mr_get_scalar(pctx, idx, &value, pexists);
+    *pu16 = (uint16_t)value;
+    return 0;
 }
 
-int mr_get_u32(packet_ctx *pctx, int idx, uint32_t *pu32) {
+int mr_get_u32(packet_ctx *pctx, int idx, uint32_t *pu32, bool *pexists) {
     Word_t value;
-    int rc = mr_get_scalar(pctx, idx, &value);
-    if (!rc) *pu32 = (uint32_t)value;
-    return rc;
+    mr_get_scalar(pctx, idx, &value, pexists);
+    *pu32 = (uint32_t)value;
+    return 0;
 }
 
 int mr_set_vector(packet_ctx *pctx, int idx, void *pvoid, size_t len) {
+    if (mr_reset_vector(pctx, idx)) return -1;
     int rc = 0;
     mr_mdata *mdata = pctx->mdata0 + idx;
-    mr_mdata_fn validate_fn = DTYPE_MDATA0[mdata->dtype].validate_fn;
     mdata->value = (Word_t)pvoid;
     mdata->vexists = mdata->value ? true : false;
     mdata->vlen = mdata->value ? len : 0;
 
+    mr_mdata_fn validate_fn = DTYPE_MDATA0[mdata->dtype].validate_fn;
     if (validate_fn && mdata->value) {
         rc = validate_fn(pctx, mdata);
-        if (rc) mr_reset_value(pctx, idx);
+        if (rc) mr_reset_vector(pctx, idx);
     }
 
     return rc;
 }
 
-static int mr_get_vector(packet_ctx *pctx, int idx, Word_t *ppvoid, size_t *plen) {
-    int rc;
+static int mr_get_vector(packet_ctx *pctx, int idx, Word_t *ppvoid, size_t *plen, bool *pexists) {
     mr_mdata *mdata = pctx->mdata0 + idx;
-
-    if (mdata->vexists) {
-        *ppvoid = mdata->value; // for a vector, value is a pointer to something
-        *plen = mdata->vlen;
-        rc = 0;
-    }
-    else {
-        rc = -1;
-    }
-
-    return rc;
+    *ppvoid = mdata->value; // for a vector, value is a pointer to something or NULL
+    *plen = mdata->vlen;
+    *pexists = mdata->vexists;
+    return 0;
 }
 
-int mr_get_str(packet_ctx *pctx, int idx, char **pcv0) {
+int mr_get_str(packet_ctx *pctx, int idx, char **pcv0, bool *pexists) {
     Word_t pvoid;
     size_t len;
-    int rc = mr_get_vector(pctx, idx, &pvoid, &len);
-
-    if (!rc) {
-        *pcv0 = (char *)pvoid;
-    }
-
-    return rc;
+    mr_get_vector(pctx, idx, &pvoid, &len, pexists);
+    *pcv0 = (char *)pvoid;
+    return 0;
 }
 
-int mr_get_u8v(packet_ctx *pctx, int idx, uint8_t **pu8v0, size_t *plen) {
+int mr_get_u8v(packet_ctx *pctx, int idx, uint8_t **pu8v0, size_t *plen, bool *pexists) {
     Word_t pvoid;
-    size_t len;
-    int rc = mr_get_vector(pctx, idx, &pvoid, &len);
-
-    if (!rc) {
-        *pu8v0 = (uint8_t *)pvoid;
-        *plen = len;
-    }
-
-    return rc;
+    mr_get_vector(pctx, idx, &pvoid, plen, pexists);
+    *pu8v0 = (uint8_t *)pvoid;
+    return 0;
 }
 
-int mr_get_spv(packet_ctx *pctx, int idx, string_pair **pspv0, size_t *plen) {
+int mr_get_spv(packet_ctx *pctx, int idx, string_pair **pspv0, size_t *plen, bool *pexists) {
     Word_t pvoid;
-    size_t len;
-    int rc = mr_get_vector(pctx, idx, &pvoid, &len);
-
-    if (!rc) {
-        *pspv0 = (string_pair *)pvoid;
-        *plen = len;
-    }
-
-    return rc;
+    mr_get_vector(pctx, idx, &pvoid, plen, pexists);
+    *pspv0 = (string_pair *)pvoid;
+    return 0;
 }
 
-int mr_reset_value(packet_ctx *pctx, int idx) {
+int mr_reset_vector(packet_ctx *pctx, int idx) {
+    mr_mdata *mdata = pctx->mdata0 + idx;
+    mr_mdata_fn free_fn = DTYPE_MDATA0[mdata->dtype].free_fn;
+    return free_fn(pctx, mdata);
+}
+
+int mr_reset_scalar(packet_ctx *pctx, int idx) {
     mr_mdata *mdata = pctx->mdata0 + idx;
     mdata->value = 0;
     mdata->vexists = false;
@@ -362,8 +384,8 @@ static int mr_unpack_VBI(packet_ctx *pctx, mr_mdata *mdata) {
     return 0;
  }
 
-static int mr_free_value(packet_ctx *pctx, mr_mdata *mdata) {
-    free((void *)mdata->value);
+static int mr_free_vector(packet_ctx *pctx, mr_mdata *mdata) {
+    if (mdata->valloc && !mr_free((void *)mdata->value)) return -1;
     mdata->value = (Word_t)NULL;
     mdata->valloc = false;
     mdata->vexists = false;
@@ -375,15 +397,13 @@ int mr_free_packet_context(packet_ctx *pctx) {
     mr_mdata_fn free_fn;
     mr_mdata *mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; i++, mdata++) {
-        if (mdata->ualloc) free((void *)mdata->u8v0);
-
-        if (mdata->valloc) {
-            free_fn = DTYPE_MDATA0[mdata->dtype].free_fn;
-            if (free_fn) free_fn(pctx, mdata);
-        }
+        if (mdata->ualloc) mr_free((void *)mdata->u8v0);
+        free_fn = DTYPE_MDATA0[mdata->dtype].free_fn;
+        if (mdata->valloc && free_fn) free_fn(pctx, mdata);
     }
 
     if (pctx->ualloc) free(pctx->u8v0);
+    free(pctx->mdata_dump);
     free(pctx);
 
     return 0;
@@ -499,12 +519,13 @@ static int mr_unpack_str(packet_ctx *pctx, mr_mdata *mdata) {
 
 static int mr_validate_str(packet_ctx *pctx, mr_mdata *mdata) {
     int rc = 0;
-    int err_pos = utf8val((uint8_t *)mdata->value, mdata->vlen); // returns error position
+    char *pc = (char *)mdata->value;
+    int err_pos = utf8val((uint8_t *)pc, strlen(pc)); // returns error position
 
     if (err_pos) {
         dzlog_error(
             "invalid utf8:: packet: %s; name: %s; value: %s, pos: %d",
-            pctx->mqtt_packet_name, mdata->name, (char *)mdata->value, err_pos
+            pctx->mqtt_packet_name, mdata->name, pc, err_pos
         );
 
         rc = -1;
@@ -695,7 +716,8 @@ static int mr_unpack_props(packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_pack_u8v(packet_ctx *pctx, mr_mdata *mdata) {
-    size_t u8vlen = 2 + mdata->vlen;
+    int istr = mdata->dtype == MR_STR_DTYPE ? 1 : 0;
+    size_t u8vlen = 2 + mdata->vlen - istr;
     uint8_t propid = mdata->propid;
     if (propid) u8vlen++;
 
@@ -706,7 +728,7 @@ static int mr_pack_u8v(packet_ctx *pctx, mr_mdata *mdata) {
 
     uint8_t *pu8 = mdata->u8v0;
     if (propid) *pu8++ = propid;
-    uint16_t u16 = mdata->vlen;
+    uint16_t u16 = mdata->vlen - istr;
     *pu8++ = (u16 >> 8) & 0xFF;
     *pu8++ = u16 & 0xFF;
     memcpy(pu8, (uint8_t *)mdata->value, u16);
@@ -714,19 +736,22 @@ static int mr_pack_u8v(packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_unpack_u8v(packet_ctx *pctx, mr_mdata *mdata) {
+    int istr = mdata->dtype == MR_STR_DTYPE ? 1 : 0;
     uint8_t *u8v = pctx->u8v0 + pctx->pos;
     uint16_t u16v[] = {u8v[0], u8v[1]}; u8v += 2;
-    size_t vlen = (u16v[0] << 8) + u16v[1];
+    size_t ulen = (u16v[0] << 8) + u16v[1];
+    size_t vlen = ulen + istr;
 
     uint8_t *value;
     if (mr_malloc((void **)&value, vlen)) return -1;
 
-    memcpy(value, u8v, vlen);
+    memcpy(value, u8v, ulen);
+    if (istr) value[vlen] = '\0';
     mdata->value = (Word_t)value;
     mdata->vlen = vlen;
     mdata->vexists = true;
     mdata->valloc = true;
-    pctx->pos += 2 + vlen;
+    pctx->pos += 2 + ulen;
     return 0;
 }
 

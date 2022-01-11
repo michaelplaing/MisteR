@@ -106,14 +106,52 @@ void do_something(size_t i) {
     void *v = malloc(i * 100);
 }
 
+void compress_spaces(char *dst) {
+    char *d = dst;
+    char *s = dst;
+    bool bs = true;
+
+    for ( ; *s; s++) {
+        if (*s == ' ') {
+            if (bs) {
+                ;
+            }
+            else {
+                bs = true;
+                *d++ = ' ';
+            }
+        }
+        else {
+            bs = false;
+            *d++ = *s;
+        }
+    }
+
+    if (*dst && *(d - 1) == ' ') {
+        *(d - 1) = '\0';
+    }
+    else {
+        *d = '\0';
+    }
+}
+
 int
 main(int argc, char **argv) {
+/*
     for (size_t i = 0; i < 1000; i++) {
         do_something(i);
     }
 
     // Dump allocator statistics to stderr.
     malloc_stats_print(NULL, NULL, NULL);
-
+*/
+    char cv[] = "        foo                     bar          ";
+    int l1 = strlen(cv);
+    compress_spaces(cv);
+    int l2 = strlen(cv);
+    printf("l1: %d; l2: %d, cv: '%s'\n", l1, l2, cv);
+    char nv[] = "a";
+    compress_spaces(nv);
+    printf("nv: '%s'\n", nv);
     return 0;
 }
