@@ -166,7 +166,7 @@ int mr_get_VBI(uint32_t *pu32, uint8_t *u8v) {
 int print_hexdump(const uint8_t *u8v, const size_t ulen) {
     if (!(u8v && ulen)) return -1;
     int ulines = (ulen - 1) / 16 + 1;
-    if (ulines > 16) ulines = 16; // 16 lines max - TODO: parameterize
+    if (ulines > 40) ulines = 40; // 40 lines max - TODO: parameterize
     size_t clen = ulines * 70 + 1; // trailing 0
     char *pc = calloc(clen, 1);
     if (!pc) return -1;
@@ -177,7 +177,7 @@ int print_hexdump(const uint8_t *u8v, const size_t ulen) {
         return rc;
     }
     else {
-        printf("%s", pc);
+        printf("%s\n", pc);
         free(pc);
         return 0;
     }
@@ -186,7 +186,7 @@ int print_hexdump(const uint8_t *u8v, const size_t ulen) {
 int get_hexdump(char *cv0, size_t clen, const uint8_t *u8v, size_t ulen) {
     if (!(cv0 && clen >= 70 && u8v && ulen)) return -1;
     int ulines = (ulen - 1) / 16 + 1;
-    if (ulines > 16) ulines = 16; // 16 lines max - TODO: parameterize?
+    if (ulines > 40) ulines = 40; // 40 lines max - TODO: parameterize?
     int clines = (clen - 2) / 70 + 1; // trailing \0
     if (ulines > clines) ulines = clines;
     if (ulen > ulines * 16) ulen = ulines * 16;
@@ -229,7 +229,7 @@ int get_hexdump(char *cv0, size_t clen, const uint8_t *u8v, size_t ulen) {
         }
     }
 
-    *pc = '\0';
+    *(pc - 1) = '\0'; // replace trailing '\n'
     return 0;
 }
 

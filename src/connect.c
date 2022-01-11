@@ -117,6 +117,11 @@ int mr_free_connect_pctx(packet_ctx *pctx) {
     return mr_free_packet_context(pctx);
 }
 
+int mr_connect_mdata_dump(packet_ctx *pctx) {
+    if (mr_connect_packet_check(pctx)) return -1;
+    return mr_mdata_dump(pctx);
+}
+
 //    const uint8_t packet_type;
 int mr_get_connect_packet_type(packet_ctx *pctx, uint8_t *pu8, bool *pexists) {
     if (mr_connect_packet_check(pctx)) return -1;

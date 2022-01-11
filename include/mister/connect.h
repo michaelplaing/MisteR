@@ -8,6 +8,7 @@ int mr_init_connect_pctx(packet_ctx **ppctx);
 int mr_pack_connect_u8v0(packet_ctx *pctx);
 // int mr_unpack_connect_u8v0(packet_ctx *pctx); use 'mr_init_unpack_connect_pctx'
 int mr_free_connect_pctx(packet_ctx *pctx);
+int mr_connect_mdata_dump(packet_ctx *pctx);
 
 int mr_get_connect_packet_type(packet_ctx *pctx, uint8_t *pu8, bool *pexists);
 int mr_get_connect_remaining_length(packet_ctx *pctx, uint32_t *pu32, bool *pexists);

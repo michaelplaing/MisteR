@@ -59,9 +59,15 @@ int mr_init_packet_context(
 static int mr_unpack_pctx_u8v0(packet_ctx *pctx);
 int mr_pack_pctx_u8v0(packet_ctx *pctx);
 
-int mr_validate_u8v(packet_ctx *pctx, int idx);
+int mr_validate_u8utf8(packet_ctx *pctx, int idx);
 
 int mr_free_packet_context(packet_ctx *pctx);
+
+static int mr_output_scalar(packet_ctx *pctx, mr_mdata *mdata);
+static int mr_output_hexdump(packet_ctx *pctx, mr_mdata *mdata);
+static int mr_output_string(packet_ctx *pctx, mr_mdata *mdata);
+static int mr_output_spv(packet_ctx *pctx, mr_mdata *mdata);
+int mr_mdata_dump(packet_ctx *pctx);
 
 int mr_reset_scalar(packet_ctx *pctx, int idx);
 int mr_reset_vector(packet_ctx *pctx, int idx);
@@ -113,8 +119,8 @@ static int mr_free_spv(packet_ctx *pctx, mr_mdata *mdata);
 
 static int mr_unpack_props(packet_ctx *pctx, mr_mdata *mdata);
 
-static int mr_out_scalar(packet_ctx *pctx, mr_mdata *mdata);
-static int mr_out_hexdump(packet_ctx *pctx, mr_mdata *mdata);
-static int mr_out_string(packet_ctx *pctx, mr_mdata *mdata);
-static int mr_out_spv(packet_ctx *pctx, mr_mdata *mdata);
+static int mr_output_scalar(packet_ctx *pctx, mr_mdata *mdata);
+static int mr_output_hexdump(packet_ctx *pctx, mr_mdata *mdata);
+static int mr_output_string(packet_ctx *pctx, mr_mdata *mdata);
+static int mr_output_spv(packet_ctx *pctx, mr_mdata *mdata);
 #endif // PACK_INTERNAL_H
