@@ -5,7 +5,7 @@
 
 int mr_init_unpack_connect_pctx(packet_ctx **ppctx, uint8_t *u8v0, size_t ulen);
 int mr_init_connect_pctx(packet_ctx **ppctx);
-int mr_pack_connect_u8v0(packet_ctx *pctx);
+int mr_pack_connect_packet(packet_ctx *pctx);
 // int mr_unpack_connect_u8v0(packet_ctx *pctx); use 'mr_init_unpack_connect_pctx'
 int mr_free_connect_pctx(packet_ctx *pctx);
 int mr_connect_mdata_dump(packet_ctx *pctx);

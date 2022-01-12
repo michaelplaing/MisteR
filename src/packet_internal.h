@@ -26,6 +26,7 @@ typedef int (*mr_mdata_fn)(struct packet_ctx *pctx, struct mr_mdata *mdata);
 
 typedef struct mr_dtype {
     const int idx;
+    const char *name;
     const mr_mdata_fn count_fn;
     const mr_mdata_fn pack_fn;
     const mr_mdata_fn unpack_fn;
@@ -47,7 +48,7 @@ enum mr_dtypes {
     MR_PROPS_DTYPE
 };
 
-int mr_init_unpack_pctx(
+int mr_init_unpack_packet(
     packet_ctx **ppctx,
     const mr_mdata *MDATA_TEMPLATE, size_t mdata_count,
     uint8_t *u8v0, size_t ulen
@@ -57,8 +58,8 @@ int mr_init_packet_context(
     packet_ctx **ppctx, const mr_mdata *MDATA_TEMPLATE, size_t mdata_count
 );
 
-static int mr_unpack_pctx_u8v0(packet_ctx *pctx);
-int mr_pack_pctx_u8v0(packet_ctx *pctx);
+static int mr_unpack_packet(packet_ctx *pctx);
+int mr_pack_packet(packet_ctx *pctx);
 
 int mr_validate_u8vutf8(packet_ctx *pctx, int idx);
 
@@ -116,6 +117,7 @@ static int mr_pack_u8v(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_unpack_u8v(packet_ctx *pctx, mr_mdata *mdata);
 
 static int mr_pack_bits(packet_ctx *pctx, mr_mdata *mdata);
+static int mr_pack_incr1(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_unpack_bits(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_unpack_incr1(packet_ctx *pctx, mr_mdata *mdata);
 

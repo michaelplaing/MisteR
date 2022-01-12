@@ -188,8 +188,7 @@ void mr_send_connect(redisAsyncContext *rctx) {
     rc = mr_connect_mdata_dump(pctx);
     puts(pctx->mdata_dump);
 
-    // mr_print_existing_mdata(pctx);
-    mr_pack_connect_u8v0(pctx);
+    mr_pack_connect_packet(pctx);
 
     printf("Connect Packet:\n");
     print_hexdump(pctx->u8v0, pctx->len);

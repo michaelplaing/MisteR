@@ -52,7 +52,7 @@ static const mr_mdata CONNECT_MDATA_TEMPLATE[] = {
     {"will_retain",                 MR_BITS_DTYPE,  5,  0,              false,  1,      true,   CONNECT_MR_FLAGS,               NA,                                     NA,                     CONNECT_WILL_RETAIN,                    false,  0,      NULL,   false,      NULL},
     {"password_flag",               MR_BITS_DTYPE,  6,  0,              false,  1,      true,   CONNECT_MR_FLAGS,               NA,                                     NA,                     CONNECT_PASSWORD_FLAG,                  false,  0,      NULL,   false,      NULL},
     {"username_flag",               MR_BITS_DTYPE,  7,  0,              false,  1,      true,   CONNECT_MR_FLAGS,               NA,                                     NA,                     CONNECT_USERNAME_FLAG,                  false,  0,      NULL,   false,      NULL},
-    {"mr_flags",                    MR_U8_DTYPE,    NA, 0,              false,  1,      true,   NA,                             NA,                                     NA,                     CONNECT_MR_FLAGS,                       false,  0,      NULL,   false,      NULL},
+    {"mr_flags",                    MR_FLAGS_DTYPE, NA, 0,              false,  1,      true,   NA,                             NA,                                     NA,                     CONNECT_MR_FLAGS,                       false,  0,      NULL,   false,      NULL},
     {"keep_alive",                  MR_U16_DTYPE,   NA, 0,              false,  2,      true,   NA,                             NA,                                     NA,                     CONNECT_KEEP_ALIVE,                     false,  0,      NULL,   false,      NULL},
     {"property_length",             MR_VBI_DTYPE,   NA, 0,              false,  0,      true,   CONNECT_AUTHENTICATION_DATA,    NA,                                     NA,                     CONNECT_PROPERTY_LENGTH,                false,  0,      NULL,   false,      NULL},
     {"mr_properties",               MR_PROPS_DTYPE, NA, (Word_t)MRCP,   false,  MRCPSZ, true,   NA,                             NA,                                     NA,                     CONNECT_MR_PROPERTIES,                  false,  0,      NULL,   false,      NULL},
@@ -89,7 +89,7 @@ int mr_init_connect_pctx(packet_ctx **ppctx) {
 
 int mr_init_unpack_connect_pctx(packet_ctx **ppctx, uint8_t *u8v0, size_t ulen) {
     size_t mdata_count = sizeof(CONNECT_MDATA_TEMPLATE) / sizeof(mr_mdata);
-    return mr_init_unpack_pctx(ppctx, CONNECT_MDATA_TEMPLATE, mdata_count, u8v0, ulen);
+    return mr_init_unpack_packet(ppctx, CONNECT_MDATA_TEMPLATE, mdata_count, u8v0, ulen);
 }
 
 static int mr_connect_packet_check(packet_ctx *pctx) {
@@ -102,14 +102,14 @@ static int mr_connect_packet_check(packet_ctx *pctx) {
     }
 }
 
-int mr_pack_connect_u8v0(packet_ctx *pctx) {
+int mr_pack_connect_packet(packet_ctx *pctx) {
     if (mr_connect_packet_check(pctx)) return -1;
-    return mr_pack_pctx_u8v0(pctx);
+    return mr_pack_packet(pctx);
 }
 /* use 'mr_init_unpack_connect_pctx' above
 int mr_unpack_connect_u8v0(packet_ctx *pctx) {
     if (mr_connect_packet_check(pctx)) return -1;
-    return mr_unpack_pctx_u8v0(pctx);
+    return mr_unpack_packet(pctx);
 }
 */
 int mr_free_connect_pctx(packet_ctx *pctx) {
