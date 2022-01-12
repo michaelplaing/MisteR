@@ -26,6 +26,7 @@ typedef int (*mr_mdata_fn)(struct packet_ctx *pctx, struct mr_mdata *mdata);
 
 typedef struct mr_dtype {
     const int idx;
+    const mr_mdata_fn count_fn;
     const mr_mdata_fn pack_fn;
     const mr_mdata_fn unpack_fn;
     const mr_mdata_fn output_fn;
@@ -89,22 +90,28 @@ int mr_get_spv(packet_ctx *pctx, int idx, string_pair **pspv0, size_t *plen, boo
 
 static int mr_free_vector(packet_ctx *pctx, mr_mdata *mdata);
 
+static int mr_count_u8(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_pack_u8(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_unpack_u8(packet_ctx *pctx, mr_mdata *mdata);
 
+static int mr_count_u16(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_pack_u16(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_unpack_u16(packet_ctx *pctx, mr_mdata *mdata);
 
+static int mr_count_u32(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_pack_u32(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_unpack_u32(packet_ctx *pctx, mr_mdata *mdata);
 
+static int mr_count_str(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_pack_str(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_unpack_str(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_validate_str(packet_ctx *pctx, mr_mdata *mdata);
 
+static int mr_count_VBI(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_pack_VBI(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_unpack_VBI(packet_ctx *pctx, mr_mdata *mdata);
 
+static int mr_count_u8v(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_pack_u8v(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_unpack_u8v(packet_ctx *pctx, mr_mdata *mdata);
 
@@ -112,6 +119,7 @@ static int mr_pack_bits(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_unpack_bits(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_unpack_incr1(packet_ctx *pctx, mr_mdata *mdata);
 
+static int mr_count_spv(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_pack_spv(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_unpack_spv(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_validate_spv(packet_ctx *pctx, mr_mdata *mdata);

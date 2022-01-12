@@ -233,21 +233,50 @@ int get_hexdump(char *cv0, size_t clen, const uint8_t *u8v, size_t ulen) {
     return 0;
 }
 
-void compress_spaces(char *dst) {
-    char *d = dst;
-    char *s = dst;
+void compress_spaces_lines(char *cv) {
+    if (!*cv) return;
+    size_t slen = strlen(cv);
+    char *d = cv;
+    char *s = cv;
     bool bs = true;
 
     for ( ; *s; s++) {
-        if (*s == ' ' && bs) continue; // only increment source s
-        bs = *s == ' '; // is source s a space or not (for next round)
-        *d++ = *s; // set dest d to source s then increment both
+        if (*s == ' ' && bs) continue;
+        bs = *s == ' ';
+        *d++ = *s;
     }
 
-    if (*dst && *(d - 1) == ' ') { // trailing space to overwrite?
-        *(d - 1) = '\0';
-    }
-    else {
+    *d = '\0';
+
+    for (d--; *d == ' ' || *d == '\n'; d--) {
         *d = '\0';
     }
+
+    char result[slen + 1];
+    for (int i = 0; i <= slen; i++) result[i] = '\0';
+    d = result;
+    s = cv;
+    size_t replace = 0, compress = slen - strlen(cv);
+
+    for (int i = 0; *s && replace < compress; i++, s++) {
+        if (*s == '\n') {
+            if (replace + 1 < compress && i && *(s - 1) != ' ') {
+                *d++ = ' ';
+                replace++;
+            }
+
+            *d++ = '/';
+            replace++;
+
+            if (replace + 1 < compress && *(s + 1) != ' ') {
+                *d++ = ' ';
+                replace++;
+            }
+        }
+        else {
+            *d++ = *s;
+        }
+    }
+
+    strlcpy(cv, result, slen);
 }

@@ -135,9 +135,10 @@ void compress_spaces_orig(char *dst) {
     }
 }
 
-void compress_spaces_tweak(char *dst) {
-    char *d = dst;
-    char *s = dst;
+void compress_spaces_tweak(char *cv, size_t slen) {
+    if (!*cv) return;
+    char *d = cv;
+    char *s = cv;
     bool bs = true;
 
     for ( ; *s; s++) {
@@ -146,10 +147,61 @@ void compress_spaces_tweak(char *dst) {
         *d++ = *s;
     }
 
-    if (*dst && *(d - 1) == ' ') {
-        *(d - 1) = '\0';
+    *d = '\0';
+
+    for (d--; *d == ' ' || *d == '\n'; d--) {
+        *d = '\0';
     }
-    else {
+
+    char res[slen + 1];
+    for (int i = 0; i <= slen; i++) res[i] = '\0';
+    d = res;
+    s = cv;
+    size_t repl = 0, comp = slen - strlen(cv);
+
+    for (int i = 0; *s && repl < comp; i++, s++) {
+        if (*s == '\n') {
+            if (repl + 1 < comp && i && *(s - 1) != ' ') {
+                *d++ = ' ';
+                repl++;
+            }
+
+            *d++ = '/';
+            repl++;
+
+            if (repl + 1 < comp && *(s + 1) != ' ') {
+                *d++ = ' ';
+                repl++;
+            }
+        }
+        else {
+            *d++ = *s;
+        }
+    }
+
+    strlcpy(cv, res, slen);
+}
+
+void compress_lines0(char *dst) {
+    char *d = dst;
+
+    for ( ; *d; d++) {
+        if (*d == '\n') *d = '/';
+    }
+
+    for (d--; *d == '/' || *d == ' '; d--) { // trim trailing
+        *d = '\0';
+    }
+}
+
+void compress_lines1(char *dst) {
+    char *d = dst;
+
+    for ( ; *d; d++) {
+        if (*d == '\n') *d = '/';
+    }
+
+    for (d--; *d == '/' || *d == ' '; d--) { // trim trailing
         *d = '\0';
     }
 }
@@ -163,13 +215,15 @@ int main(int argc, char **argv) {
     // Dump allocator statistics to stderr.
     malloc_stats_print(NULL, NULL, NULL);
 */
-    char cv[] = "        foo                     bar          ";
+    char cv[] = "        foo          \nboo           bar     \n     ";
     int l1 = strlen(cv);
-    compress_spaces_tweak(cv);
+    //compress_lines0(cv);
+    //printf("compressed lines: '%s'\n", cv);
+    compress_spaces_tweak(cv, l1);
     int l2 = strlen(cv);
     printf("l1: %d; l2: %d, cv: '%s'\n", l1, l2, cv);
     char nv[] = "";
-    compress_spaces_tweak(nv);
+    compress_spaces_tweak(nv, 0);
     printf("nv: '%s'\n", nv);
     return 0;
 }
