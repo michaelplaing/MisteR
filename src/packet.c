@@ -118,7 +118,6 @@ int mr_mdata_dump(packet_ctx *pctx) {
 }
 
 int mr_validate_u8vutf8(packet_ctx *pctx, int idx) {
-    int rc = 0;
     mr_mdata *mdata = pctx->mdata0 + idx;
     int err_pos = utf8val((uint8_t *)mdata->value, mdata->vlen); // returns error position
 
@@ -128,10 +127,10 @@ int mr_validate_u8vutf8(packet_ctx *pctx, int idx) {
             pctx->mqtt_packet_name, mdata->name, err_pos
         );
 
-        rc = -1;
+        return -1;
     }
 
-    return rc;
+    return 0;
 }
 
 int mr_set_scalar(packet_ctx *pctx, int idx, Word_t value) {
@@ -241,37 +240,28 @@ int mr_reset_scalar(packet_ctx *pctx, int idx) {
 }
 
 int mr_pack_packet(packet_ctx *pctx) {
-    if (pctx->ualloc && mr_free(pctx->u8v0)) return -1;
+    if (pctx->u8valloc && mr_free(pctx->u8v0)) return -1;
     mr_mdata_fn count_fn, pack_fn;
     mr_mdata *mdata = pctx->mdata0 + pctx->mdata_count - 1; // last one
 
     for (int i = pctx->mdata_count - 1; i > -1; mdata--, i--) { // go in reverse for VBIs
         if (mdata->vexists) {
-            count_fn = DTYPE_MDATA0[mdata->dtype].count_fn; // NUL -> 0 byte count
-            // set mdata->u8vlen (needed for VBIs) & increment pctx->len
+            count_fn = DTYPE_MDATA0[mdata->dtype].count_fn; // NULL == 0 byte count
             if (count_fn && count_fn(pctx, mdata)) return -1;
+            pctx->u8vlen += mdata->u8vlen;
         }
     }
 
-    if (mr_malloc((void **)&pctx->u8v0, pctx->len)) return -1;
+    if (mr_malloc((void **)&pctx->u8v0, pctx->u8vlen)) return -1;
 
-    pctx->ualloc = true;
-    pctx->pos = 0;
+    pctx->u8valloc = true;
+    pctx->u8vpos = 0;
 
     mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
         if (mdata->vexists) {
             pack_fn = DTYPE_MDATA0[mdata->dtype].pack_fn;
-
-            if (pack_fn) { // increment pctx->pos
-                if (pack_fn(pctx, mdata)) return -1;
-            }
-            else {
-                dzlog_error(
-                    "missing pack_fn:: packet: %s; name: %s; data_type: %s",
-                    pctx->mqtt_packet_name, mdata->name, DTYPE_MDATA0[mdata->dtype].name
-                );
-            }
+            if (pack_fn && pack_fn(pctx, mdata)) return -1; // each pack_fn increments pctx->u8vpos
         }
     }
 
@@ -283,14 +273,14 @@ int mr_init_unpack_packet(
     const mr_mdata *MDATA_TEMPLATE, size_t mdata_count,
     uint8_t *u8v0, size_t ulen
 ) {
-    if (mr_init_packet_context(ppctx, MDATA_TEMPLATE, mdata_count)) return -1;
+    if (mr_init_packet(ppctx, MDATA_TEMPLATE, mdata_count)) return -1;
     packet_ctx *pctx = *ppctx;
     pctx->u8v0 = u8v0;
-    pctx->len = ulen;
-    pctx->ualloc = false;
+    pctx->u8vlen = ulen;
+    pctx->u8valloc = false;
     if (mr_unpack_packet(pctx)) return -1;
     pctx->u8v0 = NULL; // dereference
-    pctx->len = 0;
+    pctx->u8vlen = 0;
     return 0;
 }
 
@@ -328,7 +318,6 @@ static int mr_count_VBI(packet_ctx *pctx, mr_mdata *mdata) {
     int rc = mr_bytecount_VBI(u32);
     if (rc < 0) return rc;
     mdata->u8vlen = rc;
-    pctx->len += mdata->u8vlen;
     return 0;
 }
 
@@ -337,19 +326,19 @@ static int mr_pack_VBI(packet_ctx *pctx, mr_mdata *mdata) {
     uint8_t u8v[5];
     int rc = mr_make_VBI(u32, u8v);
     if (rc < 0) return rc;
-    memcpy(pctx->u8v0 + pctx->pos, u8v, mdata->u8vlen);
-    pctx->pos += mdata->u8vlen;
+    memcpy(pctx->u8v0 + pctx->u8vpos, u8v, mdata->u8vlen);
+    pctx->u8vpos += mdata->u8vlen;
     return 0;
 }
 
 static int mr_unpack_VBI(packet_ctx *pctx, mr_mdata *mdata) {
     uint32_t u32;
-    int rc = mr_get_VBI(&u32, pctx->u8v0 + pctx->pos);
+    int rc = mr_get_VBI(&u32, pctx->u8v0 + pctx->u8vpos);
     if (rc < 0) return rc;
     mdata->value = u32;
     mdata->vlen = rc;
     mdata->vexists = true;
-    pctx->pos += rc;
+    pctx->u8vpos += rc;
     return 0;
  }
 
@@ -366,19 +355,18 @@ int mr_free_packet_context(packet_ctx *pctx) {
     mr_mdata_fn free_fn;
     mr_mdata *mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; i++, mdata++) {
-        if (mdata->ualloc) mr_free((void *)mdata->u8v0);
         free_fn = DTYPE_MDATA0[mdata->dtype].free_fn;
-        if (mdata->valloc && free_fn) free_fn(pctx, mdata);
+        if (mdata->valloc && free_fn && free_fn(pctx, mdata)) return -1;
     }
 
-    if (pctx->ualloc) free(pctx->u8v0);
+    if (pctx->u8valloc) free(pctx->u8v0);
     free(pctx->mdata_dump);
     free(pctx);
 
     return 0;
 }
 
-int mr_init_packet_context(packet_ctx **ppctx, const mr_mdata *MDATA_TEMPLATE, size_t mdata_count) {
+int mr_init_packet(packet_ctx **ppctx, const mr_mdata *MDATA_TEMPLATE, size_t mdata_count) {
     packet_ctx *pctx;
 
     if (mr_calloc((void **)&pctx, 1, sizeof(packet_ctx))) return -1;
@@ -388,7 +376,7 @@ int mr_init_packet_context(packet_ctx **ppctx, const mr_mdata *MDATA_TEMPLATE, s
 
     if (mr_malloc((void **)&mdata0, mdata_count * sizeof(mr_mdata))) return -1;
 
-    memcpy(mdata0, MDATA_TEMPLATE, mdata_count * sizeof(mr_mdata)); // copy template
+    memcpy(mdata0, MDATA_TEMPLATE, mdata_count * sizeof(mr_mdata));
 
     pctx->mdata0 = mdata0;
     pctx->mqtt_packet_type = mdata0->value; // always the value of the 0th mdata row
@@ -399,73 +387,70 @@ int mr_init_packet_context(packet_ctx **ppctx, const mr_mdata *MDATA_TEMPLATE, s
 
 static int mr_count_u8(packet_ctx *pctx, mr_mdata *mdata) {
     mdata->u8vlen = mdata->propid ? 2 : 1;
-    pctx->len += mdata->u8vlen;
     return 0;
 }
 
 static int mr_pack_u8(packet_ctx *pctx, mr_mdata *mdata) {
     uint8_t propid = mdata->propid;
-    if (propid) pctx->u8v0[pctx->pos++] = propid;
-    pctx->u8v0[pctx->pos++] = mdata->value;
+    if (propid) pctx->u8v0[pctx->u8vpos++] = propid;
+    pctx->u8v0[pctx->u8vpos++] = mdata->value;
     return 0;
 }
 
 static int mr_unpack_u8(packet_ctx *pctx, mr_mdata *mdata) {
     mdata->vexists = true;
     mdata->vlen = 1;
-    mdata->value = pctx->u8v0[pctx->pos++];
+    mdata->value = pctx->u8v0[pctx->u8vpos++];
     return 0;
 }
 
 static int mr_count_u16(packet_ctx *pctx, mr_mdata *mdata) {
     mdata->u8vlen = mdata->propid ? 3 : 2;
-    pctx->len += mdata->u8vlen;
     return 0;
 }
 
 static int mr_pack_u16(packet_ctx *pctx, mr_mdata *mdata) {
     uint8_t propid = mdata->propid;
-    if (propid) pctx->u8v0[pctx->pos++] = propid;
+    if (propid) pctx->u8v0[pctx->u8vpos++] = propid;
     uint16_t u16 = mdata->value;
-    pctx->u8v0[pctx->pos++] = (u16 >> 8) & 0xFF;
-    pctx->u8v0[pctx->pos++] = u16 & 0xFF;
+    pctx->u8v0[pctx->u8vpos++] = (u16 >> 8) & 0xFF;
+    pctx->u8v0[pctx->u8vpos++] = u16 & 0xFF;
     return 0;
 }
 
 static int mr_unpack_u16(packet_ctx *pctx, mr_mdata *mdata) {
     mdata->vlen = 2;
     mdata->vexists = true;
-    uint8_t *u8v = pctx->u8v0 + pctx->pos;
+    uint8_t *u8v = pctx->u8v0 + pctx->u8vpos;
     uint16_t u16v[] = {u8v[0], u8v[1]};
     mdata->value = (u16v[0] << 8) + u16v[1];
-    pctx->pos += 2;
+    pctx->u8vpos += 2;
     return 0;
 }
 
 static int mr_count_u32(packet_ctx *pctx, mr_mdata *mdata) {
     mdata->u8vlen = mdata->propid ? 5 : 4;
-    pctx->len += mdata->u8vlen;
     return 0;
 }
 
 static int mr_pack_u32(packet_ctx *pctx, mr_mdata *mdata) {
     uint8_t propid = mdata->propid;
-    if (propid) pctx->u8v0[pctx->pos++] = propid;
+    if (propid) pctx->u8v0[pctx->u8vpos++] = propid;
     uint32_t u32 = mdata->value;
-    pctx->u8v0[pctx->pos++] = (u32 >> 24) & 0xFF;
-    pctx->u8v0[pctx->pos++] = (u32 >> 16) & 0xFF;
-    pctx->u8v0[pctx->pos++] = (u32 >> 8) & 0xFF;
-    pctx->u8v0[pctx->pos++] = u32 & 0xFF;
+    pctx->u8v0[pctx->u8vpos++] = (u32 >> 24) & 0xFF;
+    pctx->u8v0[pctx->u8vpos++] = (u32 >> 16) & 0xFF;
+    pctx->u8v0[pctx->u8vpos++] = (u32 >> 8) & 0xFF;
+    pctx->u8v0[pctx->u8vpos++] = u32 & 0xFF;
     return 0;
 }
 
 static int mr_unpack_u32(packet_ctx *pctx, mr_mdata *mdata) {
     mdata->vlen = 4;
-    uint8_t *u8v = pctx->u8v0 + pctx->pos;
+    uint8_t *u8v = pctx->u8v0 + pctx->u8vpos;
     uint32_t u32v[] = {u8v[0], u8v[1], u8v[2], u8v[3]};
     mdata->value = (u32v[0] << 24) + (u32v[1] << 16) + (u32v[2] << 8) + u32v[3];
     mdata->vexists = true;
-    pctx->pos += 4;
+    pctx->u8vpos += 4;
     return 0;
 }
 
@@ -506,7 +491,6 @@ static int mr_count_spv(packet_ctx *pctx, mr_mdata *mdata) { // spv's are proper
         mdata->u8vlen += 1 + 2 + strlen(spv[i].name) + 2 + strlen(spv[i].value);
     }
 
-    pctx->len += mdata->u8vlen;
     return 0;
 }
 
@@ -515,26 +499,26 @@ static int mr_pack_spv(packet_ctx *pctx, mr_mdata *mdata) {
     uint16_t u16;
 
     for (int i = 0; i < mdata->vlen; i++) {
-        pctx->u8v0[pctx->pos++] = mdata->propid;
+        pctx->u8v0[pctx->u8vpos++] = mdata->propid;
         // name
         u16 = strlen(spv[i].name);
-        pctx->u8v0[pctx->pos++] = (u16 >> 8) & 0xFF;
-        pctx->u8v0[pctx->pos++] = u16 & 0xFF;
-        memcpy(pctx->u8v0 + pctx->pos, spv[i].name, u16);
-        pctx->pos += u16;
+        pctx->u8v0[pctx->u8vpos++] = (u16 >> 8) & 0xFF;
+        pctx->u8v0[pctx->u8vpos++] = u16 & 0xFF;
+        memcpy(pctx->u8v0 + pctx->u8vpos, spv[i].name, u16);
+        pctx->u8vpos += u16;
         // value
         u16 = strlen(spv[i].value);
-        pctx->u8v0[pctx->pos++] = (u16 >> 8) & 0xFF;
-        pctx->u8v0[pctx->pos++] = u16 & 0xFF;
-        memcpy(pctx->u8v0 + pctx->pos, spv[i].value, u16);
-        pctx->pos += u16;
+        pctx->u8v0[pctx->u8vpos++] = (u16 >> 8) & 0xFF;
+        pctx->u8v0[pctx->u8vpos++] = u16 & 0xFF;
+        memcpy(pctx->u8v0 + pctx->u8vpos, spv[i].value, u16);
+        pctx->u8vpos += u16;
     }
 
     return 0;
 }
 
 static int mr_unpack_spv(packet_ctx *pctx, mr_mdata *mdata) {
-    uint8_t *u8v = pctx->u8v0 + pctx->pos;
+    uint8_t *u8v = pctx->u8v0 + pctx->u8vpos;
 
     uint16_t u16v[] = {u8v[0], u8v[1]}; u8v += 2;
     size_t nlen = (u16v[0] << 8) + u16v[1];
@@ -572,7 +556,7 @@ static int mr_unpack_spv(packet_ctx *pctx, mr_mdata *mdata) {
     mdata->vlen++;
     mdata->vexists = true;
     mdata->valloc = true;
-    pctx->pos += 2 + nlen + 2 + vlen;
+    pctx->u8vpos += 2 + nlen + 2 + vlen;
     return 0;
 }
 
@@ -631,20 +615,14 @@ static int mr_unpack_props(packet_ctx *pctx, mr_mdata *mdata) {
 
     mdata->vexists = true;
 
-/*
-    if (mdata->flagid) {
-        mr_mdata *flag_mdata = pctx->mdata0 + mdata->flagid;
-        if (!flag_mdata->value) return 0;
-    }
-*/
-    size_t end_pos = pctx->pos + (mdata - 1)->value; // use property_length
+    size_t end_pos = pctx->u8vpos + (mdata - 1)->value; // use property_length
     uint8_t *pu8, *pprop_index;
     int prop_index;
     mr_mdata *prop_mdata;
     mr_mdata_fn unpack_fn;
 
-    for (; pctx->pos < end_pos;) {
-        pu8 = pctx->u8v0 + pctx->pos++;
+    for (; pctx->u8vpos < end_pos;) {
+        pu8 = pctx->u8v0 + pctx->u8vpos++;
         pprop_index = memchr((uint8_t *)mdata->value, *pu8, mdata->vlen);
 
         if (!pprop_index) {
@@ -685,25 +663,24 @@ static int mr_count_u8v(packet_ctx *pctx, mr_mdata *mdata) {
     int istr = mdata->dtype == MR_STR_DTYPE ? 1 : 0;
     mdata->u8vlen = 2 + mdata->vlen - istr;
     if (mdata->propid) mdata->u8vlen++;
-    pctx->len += mdata->u8vlen;
     return 0;
 }
 
 static int mr_pack_u8v(packet_ctx *pctx, mr_mdata *mdata) {
     int istr = mdata->dtype == MR_STR_DTYPE ? 1 : 0;
     uint8_t propid = mdata->propid;
-    if (propid) pctx->u8v0[pctx->pos++] = propid;
+    if (propid) pctx->u8v0[pctx->u8vpos++] = propid;
     uint16_t u16 = mdata->vlen - istr;
-    pctx->u8v0[pctx->pos++] = (u16 >> 8) & 0xFF;
-    pctx->u8v0[pctx->pos++] = u16 & 0xFF;
-    memcpy(pctx->u8v0 + pctx->pos, (uint8_t *)mdata->value, u16);
-    pctx->pos += u16;
+    pctx->u8v0[pctx->u8vpos++] = (u16 >> 8) & 0xFF;
+    pctx->u8v0[pctx->u8vpos++] = u16 & 0xFF;
+    memcpy(pctx->u8v0 + pctx->u8vpos, (uint8_t *)mdata->value, u16);
+    pctx->u8vpos += u16;
     return 0;
 }
 
 static int mr_unpack_u8v(packet_ctx *pctx, mr_mdata *mdata) {
     int istr = mdata->dtype == MR_STR_DTYPE ? 1 : 0;
-    uint8_t *u8v = pctx->u8v0 + pctx->pos;
+    uint8_t *u8v = pctx->u8v0 + pctx->u8vpos;
     uint16_t u16v[] = {u8v[0], u8v[1]}; u8v += 2;
     size_t ulen = (u16v[0] << 8) + u16v[1];
     size_t vlen = ulen + istr;
@@ -717,7 +694,7 @@ static int mr_unpack_u8v(packet_ctx *pctx, mr_mdata *mdata) {
     mdata->vlen = vlen;
     mdata->vexists = true;
     mdata->valloc = true;
-    pctx->pos += 2 + ulen;
+    pctx->u8vpos += 2 + ulen;
     return 0;
 }
 
@@ -726,9 +703,9 @@ static const uint8_t BIT_MASKS[] = {
     0x00, 0x01, 0x03, 0x07, 0x0F, 0x1F, 0x3F, 0x7F
 };
 
-static int mr_pack_bits(packet_ctx *pctx, mr_mdata *mdata) { // don't advance pctx->pos
+static int mr_pack_bits(packet_ctx *pctx, mr_mdata *mdata) { // don't advance pctx->u8vpos
     uint8_t bitpos = mdata->bp;
-    uint8_t *pu8 = pctx->u8v0 + pctx->pos;
+    uint8_t *pu8 = pctx->u8v0 + pctx->u8vpos;
 
     *pu8 &= ~(BIT_MASKS[mdata->vlen] << bitpos);
 
@@ -741,13 +718,13 @@ static int mr_pack_bits(packet_ctx *pctx, mr_mdata *mdata) { // don't advance pc
 }
 
 static int mr_pack_incr1(packet_ctx *pctx, mr_mdata *mdata) { // now advance - bits all packed
-    pctx->pos++;
+    pctx->u8vpos++;
     return 0;
 }
 
-static int mr_unpack_bits(packet_ctx *pctx, mr_mdata *mdata) { // don't advance pctx->pos
+static int mr_unpack_bits(packet_ctx *pctx, mr_mdata *mdata) { // don't advance pctx->u8vpos
     uint8_t bitpos = mdata->bp;
-    uint8_t *pu8 = pctx->u8v0 + pctx->pos;
+    uint8_t *pu8 = pctx->u8v0 + pctx->u8vpos;
     mdata->value = *pu8 >> bitpos & BIT_MASKS[mdata->vlen];
     mdata->vexists = true;
     return 0;
@@ -756,6 +733,6 @@ static int mr_unpack_bits(packet_ctx *pctx, mr_mdata *mdata) { // don't advance 
 static int mr_unpack_incr1(packet_ctx *pctx, mr_mdata *mdata) { // now advance - bits all unpacked
     mdata->vexists = true;
     mdata->vlen = 1;
-    pctx->pos++;
+    pctx->u8vpos++;
     return 0;
 }

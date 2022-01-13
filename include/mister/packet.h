@@ -18,9 +18,9 @@ typedef struct packet_ctx {
     char *mqtt_packet_name;
     char *mdata_dump;
     uint8_t *u8v0;
-    bool ualloc;
-    size_t len;
-    size_t pos;
+    bool u8valloc;
+    size_t u8vlen;
+    size_t u8vpos;
     struct mr_mdata *mdata0;
     size_t mdata_count;
 } packet_ctx;

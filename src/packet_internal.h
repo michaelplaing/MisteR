@@ -9,17 +9,15 @@ typedef struct mr_mdata {
     const uint8_t bp;       // bit position
     Word_t value;           // for any mdata value including pointers
     bool valloc;            // is value allocated
-    size_t vlen;            // for sub-byte values, pointer values, vectors & VBIs
+    size_t vlen;            // for sub-byte values and vectors
     bool vexists;           // value has been set
     const int link;         // end of range for VBI; byte to stuff for bit mdata
-    const int propid;       // property id
-    const int flagid;       // flag id
+    const int propid;       // property id if any
+    const int flagid;       // flag id if any
     const int idx;          // integer position in the mdata vector
-    bool ualloc;            // is u8v0 allocated
-    size_t u8vlen;
-    uint8_t *u8v0;          // packed value
+    size_t u8vlen;          // byte count of packed value as a uint8_t vector
     bool pvalloc;           // is pvalue allocated?
-    char *pvalue;           // stringified value
+    char *pvalue;           // stringified printable value
 } mr_mdata;
 
 typedef int (*mr_mdata_fn)(struct packet_ctx *pctx, struct mr_mdata *mdata);
@@ -54,7 +52,7 @@ int mr_init_unpack_packet(
     uint8_t *u8v0, size_t ulen
 );
 
-int mr_init_packet_context(
+int mr_init_packet(
     packet_ctx **ppctx, const mr_mdata *MDATA_TEMPLATE, size_t mdata_count
 );
 

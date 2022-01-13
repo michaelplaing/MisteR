@@ -40,54 +40,54 @@ static const uint8_t MRCWP[] = {
 #define MRCWPSZ 7
 
 static const mr_mdata CONNECT_MDATA_TEMPLATE[] = {
-//   name                           dtype           bp  value           valloc  vlen    vexists link                            propid                                  flagid                  idx                                     ualloc  u8vlen  u8v0    pvalloc     pvalue
-    {"packet_type",                 MR_U8_DTYPE,    NA, MQTT_CONNECT,   false,  1,      true,   NA,                             NA,                                     NA,                     CONNECT_PACKET_TYPE,                    false,  0,      NULL,   false,      NULL},
-    {"remaining_length",            MR_VBI_DTYPE,   NA, 0,              false,  0,      true,   CONNECT_PASSWORD,               NA,                                     NA,                     CONNECT_REMAINING_LENGTH,               false,  0,      NULL,   false,      NULL},
-    {"protocol_name",               MR_U8V_DTYPE,   NA, (Word_t)PNM,    false,  PNMSZ,  true,   NA,                             NA,                                     NA,                     CONNECT_PROTOCOL_NAME,                  false,  0,      NULL,   false,      NULL},
-    {"protocol_version",            MR_U8_DTYPE,    NA, PROTO_VERSION,  false,  1,      true,   NA,                             NA,                                     NA,                     CONNECT_PROTOCOL_VERSION,               false,  0,      NULL,   false,      NULL},
-    {"reserved",                    MR_BITS_DTYPE,  0,  0,              false,  1,      true,   CONNECT_MR_FLAGS,               NA,                                     NA,                     CONNECT_RESERVED,                       false,  0,      NULL,   false,      NULL},
-    {"clean_start",                 MR_BITS_DTYPE,  1,  0,              false,  1,      true,   CONNECT_MR_FLAGS,               NA,                                     NA,                     CONNECT_CLEAN_START,                    false,  0,      NULL,   false,      NULL},
-    {"will_flag",                   MR_BITS_DTYPE,  2,  0,              false,  1,      true,   CONNECT_MR_FLAGS,               NA,                                     NA,                     CONNECT_WILL_FLAG,                      false,  0,      NULL,   false,      NULL},
-    {"will_qos",                    MR_BITS_DTYPE,  3,  0,              false,  2,      true,   CONNECT_MR_FLAGS,               NA,                                     NA,                     CONNECT_WILL_QOS,                       false,  0,      NULL,   false,      NULL},
-    {"will_retain",                 MR_BITS_DTYPE,  5,  0,              false,  1,      true,   CONNECT_MR_FLAGS,               NA,                                     NA,                     CONNECT_WILL_RETAIN,                    false,  0,      NULL,   false,      NULL},
-    {"password_flag",               MR_BITS_DTYPE,  6,  0,              false,  1,      true,   CONNECT_MR_FLAGS,               NA,                                     NA,                     CONNECT_PASSWORD_FLAG,                  false,  0,      NULL,   false,      NULL},
-    {"username_flag",               MR_BITS_DTYPE,  7,  0,              false,  1,      true,   CONNECT_MR_FLAGS,               NA,                                     NA,                     CONNECT_USERNAME_FLAG,                  false,  0,      NULL,   false,      NULL},
-    {"mr_flags",                    MR_FLAGS_DTYPE, NA, 0,              false,  1,      true,   NA,                             NA,                                     NA,                     CONNECT_MR_FLAGS,                       false,  0,      NULL,   false,      NULL},
-    {"keep_alive",                  MR_U16_DTYPE,   NA, 0,              false,  2,      true,   NA,                             NA,                                     NA,                     CONNECT_KEEP_ALIVE,                     false,  0,      NULL,   false,      NULL},
-    {"property_length",             MR_VBI_DTYPE,   NA, 0,              false,  0,      true,   CONNECT_AUTHENTICATION_DATA,    NA,                                     NA,                     CONNECT_PROPERTY_LENGTH,                false,  0,      NULL,   false,      NULL},
-    {"mr_properties",               MR_PROPS_DTYPE, NA, (Word_t)MRCP,   false,  MRCPSZ, true,   NA,                             NA,                                     NA,                     CONNECT_MR_PROPERTIES,                  false,  0,      NULL,   false,      NULL},
-    {"session_expiry_interval",     MR_U32_DTYPE,   NA, 0,              false,  0,      false,  NA,                             MQTT_PROP_SESSION_EXPIRY_INTERVAL,      NA,                     CONNECT_SESSION_EXPIRY_INTERVAL,        false,  0,      NULL,   false,      NULL},
-    {"receive_maximum",             MR_U16_DTYPE,   NA, 0,              false,  0,      false,  NA,                             MQTT_PROP_RECEIVE_MAXIMUM,              NA,                     CONNECT_RECEIVE_MAXIMUM,                false,  0,      NULL,   false,      NULL},
-    {"maximum_packet_size",         MR_U32_DTYPE,   NA, 0,              false,  0,      false,  NA,                             MQTT_PROP_MAXIMUM_PACKET_SIZE,          NA,                     CONNECT_MAXIMUM_PACKET_SIZE,            false,  0,      NULL,   false,      NULL},
-    {"topic_alias_maximum",         MR_U16_DTYPE,   NA, 0,              false,  0,      false,  NA,                             MQTT_PROP_TOPIC_ALIAS_MAXIMUM,          NA,                     CONNECT_TOPIC_ALIAS_MAXIMUM,            false,  0,      NULL,   false,      NULL},
-    {"request_response_information",MR_U8_DTYPE,    NA, 0,              false,  0,      false,  NA,                             MQTT_PROP_REQUEST_RESPONSE_INFORMATION, NA,                     CONNECT_REQUEST_RESPONSE_INFORMATION,   false,  0,      NULL,   false,      NULL},
-    {"request_problem_information", MR_U8_DTYPE,    NA, 0,              false,  0,      false,  NA,                             MQTT_PROP_REQUEST_PROBLEM_INFORMATION,  NA,                     CONNECT_REQUEST_PROBLEM_INFORMATION,    false,  0,      NULL,   false,      NULL},
-    {"user_properties",             MR_SPV_DTYPE,   NA, (Word_t)NULL,   false,  0,      false,  NA,                             MQTT_PROP_USER_PROPERTY,                NA,                     CONNECT_USER_PROPERTIES,                false,  0,      NULL,   false,      NULL},
-    {"authentication_method",       MR_STR_DTYPE,   NA, (Word_t)NULL,   false,  0,      false,  NA,                             MQTT_PROP_AUTHENTICATION_METHOD,        NA,                     CONNECT_AUTHENTICATION_METHOD,          false,  0,      NULL,   false,      NULL},
-    {"authentication_data",         MR_U8V_DTYPE,   NA, (Word_t)NULL,   false,  0,      false,  NA,                             MQTT_PROP_AUTHENTICATION_DATA,          NA,                     CONNECT_AUTHENTICATION_DATA,            false,  0,      NULL,   false,      NULL},
-    {"client_identifier",           MR_STR_DTYPE,   NA, (Word_t)"",     false,  1,      true,   NA,                             NA,                                     NA,                     CONNECT_CLIENT_IDENTIFIER,              false,  0,      NULL,   false,      NULL},
-    {"will_property_length",        MR_VBI_DTYPE,   NA, 0,              false,  0,      false,  CONNECT_WILL_USER_PROPERTIES,   NA,                                     CONNECT_WILL_FLAG,      CONNECT_WILL_PROPERTY_LENGTH,           false,  0,      NULL,   false,      NULL},
-    {"mr_will_properties",          MR_PROPS_DTYPE, NA, (Word_t)MRCWP,  false,  MRCWPSZ,false,  NA,                             NA,                                     CONNECT_WILL_FLAG,      CONNECT_MR_WILL_PROPERTIES,             false,  0,      NULL,   false,      NULL},
-    {"will_delay_interval",         MR_U32_DTYPE,   NA, 0,              false,  0,      false,  NA,                             MQTT_PROP_WILL_DELAY_INTERVAL,          NA,                     CONNECT_WILL_DELAY_INTERVAL,            false,  0,      NULL,   false,      NULL},
-    {"payload_format_indicator",    MR_U8_DTYPE,    NA, 0,              false,  0,      false,  NA,                             MQTT_PROP_PAYLOAD_FORMAT_INDICATOR,     NA,                     CONNECT_PAYLOAD_FORMAT_INDICATOR,       false,  0,      NULL,   false,      NULL},
-    {"message_expiry_interval",     MR_U32_DTYPE,   NA, 0,              false,  0,      false,  NA,                             MQTT_PROP_MESSAGE_EXPIRY_INTERVAL,      NA,                     CONNECT_MESSAGE_EXPIRY_INTERVAL,        false,  0,      NULL,   false,      NULL},
-    {"content_type",                MR_STR_DTYPE,   NA, (Word_t)NULL,   false,  0,      false,  NA,                             MQTT_PROP_CONTENT_TYPE,                 NA,                     CONNECT_CONTENT_TYPE,                   false,  0,      NULL,   false,      NULL},
-    {"response_topic",              MR_STR_DTYPE,   NA, (Word_t)NULL,   false,  0,      false,  NA,                             MQTT_PROP_RESPONSE_TOPIC,               NA,                     CONNECT_RESPONSE_TOPIC,                 false,  0,      NULL,   false,      NULL},
-    {"correlation_data",            MR_U8V_DTYPE,   NA, (Word_t)NULL,   false,  0,      false,  NA,                             MQTT_PROP_CORRELATION_DATA,             NA,                     CONNECT_CORRELATION_DATA,               false,  0,      NULL,   false,      NULL},
-    {"will_user_properties",        MR_SPV_DTYPE,   NA, (Word_t)NULL,   false,  0,      false,  NA,                             MQTT_PROP_USER_PROPERTY,                NA,                     CONNECT_WILL_USER_PROPERTIES,           false,  0,      NULL,   false,      NULL},
-    {"will_topic",                  MR_STR_DTYPE,   NA, (Word_t)NULL,   false,  0,      false,  NA,                             NA,                                     CONNECT_WILL_FLAG,      CONNECT_WILL_TOPIC,                     false,  0,      NULL,   false,      NULL},
-    {"will_payload",                MR_U8V_DTYPE,   NA, (Word_t)NULL,   false,  0,      false,  NA,                             NA,                                     CONNECT_WILL_FLAG,      CONNECT_WILL_PAYLOAD,                   false,  0,      NULL,   false,      NULL},
-    {"user_name",                   MR_STR_DTYPE,   NA, (Word_t)NULL,   false,  0,      false,  NA,                             NA,                                     CONNECT_USERNAME_FLAG,  CONNECT_USER_NAME,                      false,  0,      NULL,   false,      NULL},
-    {"password",                    MR_U8V_DTYPE,   NA, (Word_t)NULL,   false,  0,      false,  NA,                             NA,                                     CONNECT_PASSWORD_FLAG,  CONNECT_PASSWORD,                       false,  0,      NULL,   false,      NULL}
-//   name                           dtype           bp  value           valloc  vlen    vexists link                            propid                                  flagid                  idx                                     ualloc  u8vlen  u8v0    spvalloc    spv
+//   name                           dtype           bp  value           valloc  vlen    vexists link                            propid                                  flagid                  idx                                     u8vlen  pvalloc     pvalue
+    {"packet_type",                 MR_U8_DTYPE,    NA, MQTT_CONNECT,   false,  NA,     true,   NA,                             NA,                                     NA,                     CONNECT_PACKET_TYPE,                    0,      false,      NULL},
+    {"remaining_length",            MR_VBI_DTYPE,   NA, 0,              false,  NA,     true,   CONNECT_PASSWORD,               NA,                                     NA,                     CONNECT_REMAINING_LENGTH,               0,      false,      NULL},
+    {"protocol_name",               MR_U8V_DTYPE,   NA, (Word_t)PNM,    false,  PNMSZ,  true,   NA,                             NA,                                     NA,                     CONNECT_PROTOCOL_NAME,                  0,      false,      NULL},
+    {"protocol_version",            MR_U8_DTYPE,    NA, PROTO_VERSION,  false,  NA,     true,   NA,                             NA,                                     NA,                     CONNECT_PROTOCOL_VERSION,               0,      false,      NULL},
+    {"reserved",                    MR_BITS_DTYPE,  0,  0,              false,  1,      true,   CONNECT_MR_FLAGS,               NA,                                     NA,                     CONNECT_RESERVED,                       0,      false,      NULL},
+    {"clean_start",                 MR_BITS_DTYPE,  1,  0,              false,  1,      true,   CONNECT_MR_FLAGS,               NA,                                     NA,                     CONNECT_CLEAN_START,                    0,      false,      NULL},
+    {"will_flag",                   MR_BITS_DTYPE,  2,  0,              false,  1,      true,   CONNECT_MR_FLAGS,               NA,                                     NA,                     CONNECT_WILL_FLAG,                      0,      false,      NULL},
+    {"will_qos",                    MR_BITS_DTYPE,  3,  0,              false,  2,      true,   CONNECT_MR_FLAGS,               NA,                                     NA,                     CONNECT_WILL_QOS,                       0,      false,      NULL},
+    {"will_retain",                 MR_BITS_DTYPE,  5,  0,              false,  1,      true,   CONNECT_MR_FLAGS,               NA,                                     NA,                     CONNECT_WILL_RETAIN,                    0,      false,      NULL},
+    {"password_flag",               MR_BITS_DTYPE,  6,  0,              false,  1,      true,   CONNECT_MR_FLAGS,               NA,                                     NA,                     CONNECT_PASSWORD_FLAG,                  0,      false,      NULL},
+    {"username_flag",               MR_BITS_DTYPE,  7,  0,              false,  1,      true,   CONNECT_MR_FLAGS,               NA,                                     NA,                     CONNECT_USERNAME_FLAG,                  0,      false,      NULL},
+    {"mr_flags",                    MR_FLAGS_DTYPE, NA, 0,              false,  1,      true,   NA,                             NA,                                     NA,                     CONNECT_MR_FLAGS,                       0,      false,      NULL},
+    {"keep_alive",                  MR_U16_DTYPE,   NA, 0,              false,  2,      true,   NA,                             NA,                                     NA,                     CONNECT_KEEP_ALIVE,                     0,      false,      NULL},
+    {"property_length",             MR_VBI_DTYPE,   NA, 0,              false,  NA,     true,   CONNECT_AUTHENTICATION_DATA,    NA,                                     NA,                     CONNECT_PROPERTY_LENGTH,                0,      false,      NULL},
+    {"mr_properties",               MR_PROPS_DTYPE, NA, (Word_t)MRCP,   false,  MRCPSZ, true,   NA,                             NA,                                     NA,                     CONNECT_MR_PROPERTIES,                  0,      false,      NULL},
+    {"session_expiry_interval",     MR_U32_DTYPE,   NA, 0,              false,  NA,     false,  NA,                             MQTT_PROP_SESSION_EXPIRY_INTERVAL,      NA,                     CONNECT_SESSION_EXPIRY_INTERVAL,        0,      false,      NULL},
+    {"receive_maximum",             MR_U16_DTYPE,   NA, 0,              false,  NA,     false,  NA,                             MQTT_PROP_RECEIVE_MAXIMUM,              NA,                     CONNECT_RECEIVE_MAXIMUM,                0,      false,      NULL},
+    {"maximum_packet_size",         MR_U32_DTYPE,   NA, 0,              false,  NA,     false,  NA,                             MQTT_PROP_MAXIMUM_PACKET_SIZE,          NA,                     CONNECT_MAXIMUM_PACKET_SIZE,            0,      false,      NULL},
+    {"topic_alias_maximum",         MR_U16_DTYPE,   NA, 0,              false,  NA,     false,  NA,                             MQTT_PROP_TOPIC_ALIAS_MAXIMUM,          NA,                     CONNECT_TOPIC_ALIAS_MAXIMUM,            0,      false,      NULL},
+    {"request_response_information",MR_U8_DTYPE,    NA, 0,              false,  NA,     false,  NA,                             MQTT_PROP_REQUEST_RESPONSE_INFORMATION, NA,                     CONNECT_REQUEST_RESPONSE_INFORMATION,   0,      false,      NULL},
+    {"request_problem_information", MR_U8_DTYPE,    NA, 0,              false,  NA,     false,  NA,                             MQTT_PROP_REQUEST_PROBLEM_INFORMATION,  NA,                     CONNECT_REQUEST_PROBLEM_INFORMATION,    0,      false,      NULL},
+    {"user_properties",             MR_SPV_DTYPE,   NA, (Word_t)NULL,   false,  0,      false,  NA,                             MQTT_PROP_USER_PROPERTY,                NA,                     CONNECT_USER_PROPERTIES,                0,      false,      NULL},
+    {"authentication_method",       MR_STR_DTYPE,   NA, (Word_t)NULL,   false,  0,      false,  NA,                             MQTT_PROP_AUTHENTICATION_METHOD,        NA,                     CONNECT_AUTHENTICATION_METHOD,          0,      false,      NULL},
+    {"authentication_data",         MR_U8V_DTYPE,   NA, (Word_t)NULL,   false,  0,      false,  NA,                             MQTT_PROP_AUTHENTICATION_DATA,          NA,                     CONNECT_AUTHENTICATION_DATA,            0,      false,      NULL},
+    {"client_identifier",           MR_STR_DTYPE,   NA, (Word_t)"",     false,  1,      true,   NA,                             NA,                                     NA,                     CONNECT_CLIENT_IDENTIFIER,              0,      false,      NULL},
+    {"will_property_length",        MR_VBI_DTYPE,   NA, 0,              false,  NA,     false,  CONNECT_WILL_USER_PROPERTIES,   NA,                                     CONNECT_WILL_FLAG,      CONNECT_WILL_PROPERTY_LENGTH,           0,      false,      NULL},
+    {"mr_will_properties",          MR_PROPS_DTYPE, NA, (Word_t)MRCWP,  false,  MRCWPSZ,false,  NA,                             NA,                                     CONNECT_WILL_FLAG,      CONNECT_MR_WILL_PROPERTIES,             0,      false,      NULL},
+    {"will_delay_interval",         MR_U32_DTYPE,   NA, 0,              false,  NA,     false,  NA,                             MQTT_PROP_WILL_DELAY_INTERVAL,          NA,                     CONNECT_WILL_DELAY_INTERVAL,            0,      false,      NULL},
+    {"payload_format_indicator",    MR_U8_DTYPE,    NA, 0,              false,  NA,     false,  NA,                             MQTT_PROP_PAYLOAD_FORMAT_INDICATOR,     NA,                     CONNECT_PAYLOAD_FORMAT_INDICATOR,       0,      false,      NULL},
+    {"message_expiry_interval",     MR_U32_DTYPE,   NA, 0,              false,  NA,     false,  NA,                             MQTT_PROP_MESSAGE_EXPIRY_INTERVAL,      NA,                     CONNECT_MESSAGE_EXPIRY_INTERVAL,        0,      false,      NULL},
+    {"content_type",                MR_STR_DTYPE,   NA, (Word_t)NULL,   false,  0,      false,  NA,                             MQTT_PROP_CONTENT_TYPE,                 NA,                     CONNECT_CONTENT_TYPE,                   0,      false,      NULL},
+    {"response_topic",              MR_STR_DTYPE,   NA, (Word_t)NULL,   false,  0,      false,  NA,                             MQTT_PROP_RESPONSE_TOPIC,               NA,                     CONNECT_RESPONSE_TOPIC,                 0,      false,      NULL},
+    {"correlation_data",            MR_U8V_DTYPE,   NA, (Word_t)NULL,   false,  0,      false,  NA,                             MQTT_PROP_CORRELATION_DATA,             NA,                     CONNECT_CORRELATION_DATA,               0,      false,      NULL},
+    {"will_user_properties",        MR_SPV_DTYPE,   NA, (Word_t)NULL,   false,  0,      false,  NA,                             MQTT_PROP_USER_PROPERTY,                NA,                     CONNECT_WILL_USER_PROPERTIES,           0,      false,      NULL},
+    {"will_topic",                  MR_STR_DTYPE,   NA, (Word_t)NULL,   false,  0,      false,  NA,                             NA,                                     CONNECT_WILL_FLAG,      CONNECT_WILL_TOPIC,                     0,      false,      NULL},
+    {"will_payload",                MR_U8V_DTYPE,   NA, (Word_t)NULL,   false,  0,      false,  NA,                             NA,                                     CONNECT_WILL_FLAG,      CONNECT_WILL_PAYLOAD,                   0,      false,      NULL},
+    {"user_name",                   MR_STR_DTYPE,   NA, (Word_t)NULL,   false,  0,      false,  NA,                             NA,                                     CONNECT_USERNAME_FLAG,  CONNECT_USER_NAME,                      0,      false,      NULL},
+    {"password",                    MR_U8V_DTYPE,   NA, (Word_t)NULL,   false,  0,      false,  NA,                             NA,                                     CONNECT_PASSWORD_FLAG,  CONNECT_PASSWORD,                       0,      false,      NULL}
+//   name                           dtype           bp  value           valloc  vlen    vexists link                            propid                                  flagid                  idx                                     u8vlen  spvalloc    spv
 };
 
-int mr_init_connect_pctx(packet_ctx **ppctx) {
+int mr_init_connect_packet(packet_ctx **ppctx) {
     size_t mdata_count = sizeof(CONNECT_MDATA_TEMPLATE) / sizeof(mr_mdata);
-    return mr_init_packet_context(ppctx, CONNECT_MDATA_TEMPLATE, mdata_count);
+    return mr_init_packet(ppctx, CONNECT_MDATA_TEMPLATE, mdata_count);
 }
 
-int mr_init_unpack_connect_pctx(packet_ctx **ppctx, uint8_t *u8v0, size_t ulen) {
+int mr_init_unpack_connect_packet(packet_ctx **ppctx, uint8_t *u8v0, size_t ulen) {
     size_t mdata_count = sizeof(CONNECT_MDATA_TEMPLATE) / sizeof(mr_mdata);
     return mr_init_unpack_packet(ppctx, CONNECT_MDATA_TEMPLATE, mdata_count, u8v0, ulen);
 }
@@ -106,13 +106,13 @@ int mr_pack_connect_packet(packet_ctx *pctx) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_pack_packet(pctx);
 }
-/* use 'mr_init_unpack_connect_pctx' above
+/* use 'mr_init_unpack_connect_packet' above
 int mr_unpack_connect_u8v0(packet_ctx *pctx) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_unpack_packet(pctx);
 }
 */
-int mr_free_connect_pctx(packet_ctx *pctx) {
+int mr_free_connect_packet(packet_ctx *pctx) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_free_packet_context(pctx);
 }
@@ -122,37 +122,37 @@ int mr_connect_mdata_dump(packet_ctx *pctx) {
     return mr_mdata_dump(pctx);
 }
 
-//    const uint8_t packet_type;
+// const uint8_t packet_type;
 int mr_get_connect_packet_type(packet_ctx *pctx, uint8_t *pu8, bool *pexists) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_get_u8(pctx, CONNECT_PACKET_TYPE, pu8, pexists);
 }
 
-//    uint32_t remaining_length;
+// uint32_t remaining_length;
 int mr_get_connect_remaining_length(packet_ctx *pctx, uint32_t *pu32, bool *pexists) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_get_u32(pctx, CONNECT_REMAINING_LENGTH, pu32, pexists);
 }
 
-//    const uint8_t *protocol_name;
+// const uint8_t *protocol_name;
 int mr_get_connect_protocol_name(packet_ctx *pctx, uint8_t **pu8v0, size_t *plen, bool *pexists) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_get_u8v(pctx, CONNECT_PROTOCOL_NAME, pu8v0, plen, pexists);
 }
 
-//    const uint8_t protocol_version;
+// const uint8_t protocol_version;
 int mr_get_connect_protocol_version(packet_ctx *pctx, uint8_t *pu8, bool *pexists) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_get_u8(pctx, CONNECT_PROTOCOL_VERSION, pu8, pexists);
 }
 
-//    const bool reserved;
+// const bool reserved;
 int mr_get_connect_reserved(packet_ctx *pctx, bool *pboolean, bool *pexists) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_get_boolean(pctx, CONNECT_RESERVED, pboolean, pexists);
 }
 
-//    bool clean_start;
+// bool clean_start;
 int mr_set_connect_clean_start(packet_ctx *pctx, bool boolean) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_set_scalar(pctx, CONNECT_CLEAN_START, boolean);
@@ -168,39 +168,39 @@ int mr_reset_connect_clean_start(packet_ctx *pctx) {
     return mr_reset_scalar(pctx, CONNECT_CLEAN_START);
 }
 
-//    bool will_flag;
+// bool will_flag;
 int mr_get_connect_will_flag(packet_ctx *pctx, bool *pboolean, bool *pexists) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_get_boolean(pctx, CONNECT_WILL_FLAG, pboolean, pexists);
 }
 
-//    uint8_t will_qos;
+// uint8_t will_qos;
 int mr_get_connect_will_qos(packet_ctx *pctx, uint8_t *pu8, bool *pexists) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_get_u8(pctx, CONNECT_WILL_QOS, pu8, pexists);
 }
 
-//    bool will_retain;
+// bool will_retain;
 int mr_get_connect_will_retain(packet_ctx *pctx, bool *pboolean, bool *pexists) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_get_boolean(pctx, CONNECT_WILL_RETAIN, pboolean, pexists);
 }
 
-//    bool password_flag;
+// bool password_flag;
 
 int mr_get_connect_password_flag(packet_ctx *pctx, bool *pboolean, bool *pexists) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_get_boolean(pctx, CONNECT_PASSWORD_FLAG, pboolean, pexists);
 }
 
-//    bool username_flag;
+// bool username_flag;
 
 int mr_get_connect_username_flag(packet_ctx *pctx, bool *pboolean, bool *pexists) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_get_boolean(pctx, CONNECT_USERNAME_FLAG, pboolean, pexists);
 }
 
-//    uint16_t keep_alive;
+// uint16_t keep_alive;
 int mr_set_connect_keep_alive(packet_ctx *pctx, uint16_t u16) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_set_scalar(pctx, CONNECT_KEEP_ALIVE, u16);
@@ -216,13 +216,13 @@ int mr_reset_connect_keep_alive(packet_ctx *pctx) {
     return mr_reset_scalar(pctx, CONNECT_KEEP_ALIVE);
 }
 
-//    uint32_t property_length;
+// uint32_t property_length;
 int mr_get_connect_property_length(packet_ctx *pctx, uint32_t *pu32, bool *pexists) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_get_u32(pctx, CONNECT_PROPERTY_LENGTH, pu32, pexists);
 }
 
-//    uint32_t session_expiry;
+// uint32_t session_expiry_interval;
 int mr_set_connect_session_expiry_interval(packet_ctx *pctx, uint32_t u32) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_set_scalar(pctx, CONNECT_SESSION_EXPIRY_INTERVAL, u32);
@@ -238,7 +238,7 @@ int mr_reset_connect_session_expiry_interval(packet_ctx *pctx) {
     return mr_reset_scalar(pctx, CONNECT_SESSION_EXPIRY_INTERVAL);
 }
 
-//    uint16_t receive_maximum;
+// uint16_t receive_maximum;
 int mr_set_connect_receive_maximum(packet_ctx *pctx, uint16_t u16) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_set_scalar(pctx, CONNECT_RECEIVE_MAXIMUM, u16);
@@ -254,7 +254,7 @@ int mr_reset_connect_receive_maximum(packet_ctx *pctx) {
     return mr_reset_scalar(pctx, CONNECT_RECEIVE_MAXIMUM);
 }
 
-//    uint32_t maximum_packet_size;
+// uint32_t maximum_packet_size;
 int mr_set_connect_maximum_packet_size(packet_ctx *pctx, uint32_t u32) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_set_scalar(pctx, CONNECT_MAXIMUM_PACKET_SIZE, u32);
@@ -270,7 +270,7 @@ int mr_reset_connect_maximum_packet_size(packet_ctx *pctx) {
     return mr_reset_scalar(pctx, CONNECT_MAXIMUM_PACKET_SIZE);
 }
 
-//    uint16_t topic_alias_maximum;
+// uint16_t topic_alias_maximum;
 int mr_set_connect_topic_alias_maximum(packet_ctx *pctx, uint16_t u16) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_set_scalar(pctx, CONNECT_TOPIC_ALIAS_MAXIMUM, u16);
@@ -286,7 +286,7 @@ int mr_reset_connect_topic_alias_maximum(packet_ctx *pctx) {
     return mr_reset_scalar(pctx, CONNECT_TOPIC_ALIAS_MAXIMUM);
 }
 
-//    uint8_t request_response_information;
+// uint8_t request_response_information;
 int mr_set_connect_request_response_information(packet_ctx *pctx, uint8_t u8) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_set_scalar(pctx, CONNECT_REQUEST_RESPONSE_INFORMATION, u8);
@@ -302,7 +302,7 @@ int mr_reset_connect_request_response_information(packet_ctx *pctx) {
     return mr_reset_scalar(pctx, CONNECT_REQUEST_RESPONSE_INFORMATION);
 }
 
-//    uint8_t request_problem_information;
+// uint8_t request_problem_information;
 int mr_set_connect_request_problem_information(packet_ctx *pctx, uint8_t u8) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_set_scalar(pctx, CONNECT_REQUEST_PROBLEM_INFORMATION, u8);
@@ -318,7 +318,7 @@ int mr_reset_connect_request_problem_information(packet_ctx *pctx) {
     return mr_reset_scalar(pctx, CONNECT_REQUEST_PROBLEM_INFORMATION);
 }
 
-//    string_pair *user_properties;
+// string_pair *user_properties;
 int mr_set_connect_user_properties(packet_ctx *pctx, string_pair *spv0, size_t len) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_set_vector(pctx, CONNECT_USER_PROPERTIES, spv0, len);
@@ -334,7 +334,7 @@ int mr_reset_connect_user_properties(packet_ctx *pctx) {
     return mr_reset_vector(pctx, CONNECT_USER_PROPERTIES);
 }
 
-//    char *authentication_method;
+// char *authentication_method;
 int mr_set_connect_authentication_method(packet_ctx *pctx, char *cv0) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_set_vector(pctx, CONNECT_AUTHENTICATION_METHOD, cv0, strlen(cv0) + 1);
@@ -350,7 +350,7 @@ int mr_reset_connect_authentication_method(packet_ctx *pctx) {
     return mr_reset_vector(pctx, CONNECT_AUTHENTICATION_METHOD);
 }
 
-//    uint8_t *authentication_data;
+// uint8_t *authentication_data;
 int mr_set_connect_authentication_data(packet_ctx *pctx, uint8_t *u8v0, size_t len) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_set_vector(pctx, CONNECT_AUTHENTICATION_DATA, u8v0, len);
@@ -366,7 +366,7 @@ int mr_reset_connect_authentication_data(packet_ctx *pctx) {
     return mr_reset_vector(pctx, CONNECT_AUTHENTICATION_DATA);
 }
 
-//    char *client_identifier;
+// char *client_identifier;
 int mr_set_connect_client_identifier(packet_ctx *pctx, char *cv0) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_set_vector(pctx, CONNECT_CLIENT_IDENTIFIER, cv0, strlen(cv0) + 1);
@@ -382,67 +382,67 @@ int mr_reset_connect_client_identifier(packet_ctx *pctx) {
     return mr_reset_vector(pctx, CONNECT_CLIENT_IDENTIFIER);
 }
 
-//    uint32_t will_property_length;
+// uint32_t will_property_length;
 int mr_get_connect_will_property_length(packet_ctx *pctx, uint32_t *pu32, bool *pexists) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_get_u32(pctx, CONNECT_WILL_PROPERTY_LENGTH, pu32, pexists);
 }
 
-//    uint32_t will_delay_interval;
+// uint32_t will_delay_interval;
 int mr_get_connect_will_delay_interval(packet_ctx *pctx, uint32_t *pu32, bool *pexists) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_get_u32(pctx, CONNECT_WILL_DELAY_INTERVAL, pu32, pexists);
 }
 
-//    uint8_t payload_format_indicator;
+// uint8_t payload_format_indicator;
 int mr_get_connect_payload_format_indicator(packet_ctx *pctx, uint8_t *pu8, bool *pexists) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_get_u8(pctx, CONNECT_PAYLOAD_FORMAT_INDICATOR, pu8, pexists);
 }
 
-//    uint32_t message_expiry_interval;
+// uint32_t message_expiry_interval;
 int mr_get_connect_message_expiry_interval(packet_ctx *pctx, uint32_t *pu32, bool *pexists) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_get_u32(pctx, CONNECT_MESSAGE_EXPIRY_INTERVAL, pu32, pexists);
 }
 
-//    char *content_type;
+// char *content_type;
 int mr_get_connect_content_type(packet_ctx *pctx, char **pcv0, bool *pexists) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_get_str(pctx, CONNECT_CONTENT_TYPE, pcv0, pexists);
 }
 
-//    char *response_topic;
+// char *response_topic;
 int mr_get_connect_response_topic(packet_ctx *pctx, char **pcv0, bool *pexists) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_get_str(pctx, CONNECT_RESPONSE_TOPIC, pcv0, pexists);
 }
 
-//    uint8_t *correlation_data;
+// uint8_t *correlation_data;
 int mr_get_connect_correlation_data(packet_ctx *pctx, uint8_t **pu8v0, size_t *plen, bool *pexists) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_get_u8v(pctx, CONNECT_CORRELATION_DATA, pu8v0, plen, pexists);
 }
 
-//    string_pair *will_user_properties;
+// string_pair *will_user_properties;
 int mr_get_connect_will_user_properties(packet_ctx *pctx, string_pair **pspv0, size_t *plen, bool *pexists) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_get_spv(pctx, CONNECT_WILL_USER_PROPERTIES, pspv0, plen, pexists);
 }
 
-//    char *will_topic;
+// char *will_topic;
 int mr_get_connect_will_topic(packet_ctx *pctx, char **pcv0, bool *pexists) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_get_str(pctx, CONNECT_WILL_TOPIC, pcv0, pexists);
 }
 
-//    uint8_t *will_payload;
+// uint8_t *will_payload;
 int mr_get_connect_will_payload(packet_ctx *pctx, uint8_t **pu8v0, size_t *plen, bool *pexists) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_get_u8v(pctx, CONNECT_WILL_PAYLOAD, pu8v0, plen, pexists);
 }
 
-//    char *user_name;
+// char *user_name;
 int mr_set_connect_user_name(packet_ctx *pctx, char *cv0) {
     if (mr_connect_packet_check(pctx)) return -1;
     int rc = mr_set_vector(pctx, CONNECT_USER_NAME, cv0, strlen(cv0) + 1);
@@ -463,7 +463,7 @@ int mr_reset_connect_user_name(packet_ctx *pctx) {
     return rc;
 }
 
-//    uint8_t *password;
+// uint8_t *password;
 int mr_set_connect_password(packet_ctx *pctx, uint8_t *u8v0, size_t len) {
     if (mr_connect_packet_check(pctx)) return -1;
     int rc = mr_set_vector(pctx, CONNECT_PASSWORD, u8v0, len);

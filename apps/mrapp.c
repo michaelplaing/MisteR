@@ -101,7 +101,7 @@ void mrConnectCallback(redisAsyncContext *rctx, void *reply_void, void *private_
 
 void mr_send_connect(redisAsyncContext *rctx) {
     packet_ctx *pctx;
-    int rc = mr_init_connect_pctx(&pctx);
+    int rc = mr_init_connect_packet(&pctx);
     /*
     // mr_set_connect_clean_start(pctx, true);
     // mr_set_connect_will_qos(pctx, 3);
@@ -191,21 +191,21 @@ void mr_send_connect(redisAsyncContext *rctx) {
     mr_pack_connect_packet(pctx);
 
     printf("Connect Packet:\n");
-    print_hexdump(pctx->u8v0, pctx->len);
+    print_hexdump(pctx->u8v0, pctx->u8vlen);
     // char cv[1000] = "";
-    // rc = get_hexdump(cv, sizeof(cv) - 1, pctx->u8v0, pctx->len);
+    // rc = get_hexdump(cv, sizeof(cv) - 1, pctx->u8v0, pctx->u8vlen);
     // dzlog_info("Connect Packet:\n%s", cv);
-    size_t len = pctx->len;
+    size_t len = pctx->u8vlen;
     uint8_t *u8v0;
     rc = mr_malloc((void **)&u8v0, len);
     memcpy(u8v0, pctx->u8v0, len);
-    rc = mr_free_connect_pctx(pctx);
-    rc = mr_init_unpack_connect_pctx(&pctx, u8v0, len);
+    rc = mr_free_connect_packet(pctx);
+    rc = mr_init_unpack_connect_packet(&pctx, u8v0, len);
     rc = mr_free(u8v0);
     printf("unpack_connect rc: %d\n", rc);
     rc = mr_connect_mdata_dump(pctx);
     puts(pctx->mdata_dump);
-    rc = mr_free_connect_pctx(pctx);
+    rc = mr_free_connect_packet(pctx);
 
 /*
     uint8_t type = 0;
@@ -269,21 +269,21 @@ void mr_send_connect(redisAsyncContext *rctx) {
 
     printf("connack\n");
     packet_ctx *connack_pctx;
-    mr_init_connack_pctx(&connack_pctx);
-    rc = mr_pack_connack_u8v0(connack_pctx);
+    mr_init_connack_packet(&connack_pctx);
+    rc = mr_pack_connack_packet(connack_pctx);
     printf("pack rc: %d\n", rc);
-    print_hexdump(connack_pctx->u8v0, connack_pctx->len);
+    print_hexdump(connack_pctx->u8v0, connack_pctx->u8vlen);
 
-    len = connack_pctx->len;
+    len = connack_pctx->u8vlen;
     rc = mr_malloc((void **)&u8v0, len);
     memcpy(u8v0, connack_pctx->u8v0, len);
-    rc = mr_free_connack_pctx(connack_pctx);
-    rc = mr_init_unpack_connack_pctx(&connack_pctx, u8v0, len);
+    rc = mr_free_connack_packet(connack_pctx);
+    rc = mr_init_unpack_connack_packet(&connack_pctx, u8v0, len);
     rc = mr_free(u8v0);
     printf("unpack_connack rc: %d\n", rc);
-    rc = mr_connack_mdata_dump(pctx);
-    puts(pctx->mdata_dump);
-    rc = mr_free_connack_pctx(connack_pctx);
+    rc = mr_connack_mdata_dump(connack_pctx);
+    puts(connack_pctx->mdata_dump);
+    rc = mr_free_connack_packet(connack_pctx);
 
 }
 
