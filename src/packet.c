@@ -252,13 +252,12 @@ int mr_reset_scalar(packet_ctx *pctx, int idx) {
 
 int mr_pack_packet(packet_ctx *pctx) {
     if (pctx->u8valloc && mr_free(pctx->u8v0)) return -1;
-    mr_mdata_fn count_fn, pack_fn;
+    mr_mdata_fn vbi_count_fn = DTYPE_MDATA0[MR_VBI_DTYPE].count_fn;
     mr_mdata *mdata = pctx->mdata0 + pctx->mdata_count - 1; // last one
 
     for (int i = pctx->mdata_count - 1; i > -1; mdata--, i--) { // go in reverse for VBIs
         if (mdata->vexists) {
-            count_fn = DTYPE_MDATA0[mdata->dtype].count_fn; // NULL == 0 byte count
-            if (count_fn && count_fn(pctx, mdata)) return -1;
+            if (mdata->dtype == MR_VBI_DTYPE && vbi_count_fn(pctx, mdata)) return -1;
             pctx->u8vlen += mdata->u8vlen;
         }
     }
@@ -271,7 +270,7 @@ int mr_pack_packet(packet_ctx *pctx) {
     mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
         if (mdata->vexists) {
-            pack_fn = DTYPE_MDATA0[mdata->dtype].pack_fn;
+            mr_mdata_fn pack_fn = DTYPE_MDATA0[mdata->dtype].pack_fn;
             if (pack_fn && pack_fn(pctx, mdata)) return -1; // each pack_fn increments pctx->u8vpos
         }
     }
@@ -376,7 +375,6 @@ int mr_free_packet_context(packet_ctx *pctx) {
     if (pctx->u8valloc) free(pctx->u8v0);
     free(pctx->mdata_dump);
     free(pctx);
-
     return 0;
 }
 
@@ -391,7 +389,6 @@ int mr_init_packet(packet_ctx **ppctx, const mr_mdata *MDATA_TEMPLATE, size_t md
     if (mr_malloc((void **)&mdata0, mdata_count * sizeof(mr_mdata))) return -1;
 
     memcpy(mdata0, MDATA_TEMPLATE, mdata_count * sizeof(mr_mdata));
-
     pctx->mdata0 = mdata0;
     pctx->mqtt_packet_type = mdata0->value; // always the value of the 0th mdata row
     pctx->mqtt_packet_name = PTYPE_NAME[pctx->mqtt_packet_type >> 4]; // left nibble is index
@@ -517,32 +514,27 @@ static int mr_unpack_spv(packet_ctx *pctx, mr_mdata *mdata) {
     uint8_t *u8v = pctx->u8v0 + pctx->u8vpos;
 
     uint16_t u16v[] = {u8v[0], u8v[1]}; u8v += 2;
-    size_t nlen = (u16v[0] << 8) + u16v[1];
-
+    size_t namelen = (u16v[0] << 8) + u16v[1];
     char *name;
-    if (mr_malloc((void **)&name, nlen + 1)) return -1;
-
-    memcpy(name, u8v, nlen); u8v += nlen;
-    name[nlen] = '\0';
+    if (mr_malloc((void **)&name, namelen + 1)) return -1;
+    memcpy(name, u8v, namelen); u8v += namelen;
+    name[namelen] = '\0';
 
     u16v[0] = u8v[0]; u16v[1] = u8v[1]; u8v += 2;
-    size_t vlen = (u16v[0] << 8) + u16v[1];
-
+    size_t valuelen = (u16v[0] << 8) + u16v[1];
     char *value;
-    if (mr_malloc((void **)&value, vlen + 1)) return -1;
-
-    memcpy(value, u8v, vlen); u8v += vlen;
-    value[vlen] = '\0';
+    if (mr_malloc((void **)&value, valuelen + 1)) return -1;
+    memcpy(value, u8v, valuelen); u8v += valuelen;
+    value[valuelen] = '\0';
 
     string_pair *spv0, *psp;
-
     if (mdata->valloc) {
         spv0 = (string_pair *)mdata->value;
         if (mr_realloc((void **)&spv0, (mdata->vlen + 1) * sizeof(string_pair))) return -1;
     }
     else {
         if (mr_malloc((void **)&spv0, sizeof(string_pair))) return -1;
-        mdata->vlen = 0; // increment below
+        mdata->vlen = 0; // incremented below
     }
 
     mdata->value = (Word_t)spv0;
@@ -552,7 +544,8 @@ static int mr_unpack_spv(packet_ctx *pctx, mr_mdata *mdata) {
     mdata->vlen++;
     mdata->vexists = true;
     mdata->valloc = true;
-    pctx->u8vpos += 1 + 2 + nlen + 2 + vlen; // string_pairs are always properties
+    mdata->u8vlen = 1 + 2 + namelen + 2 + valuelen;
+    pctx->u8vpos += 2 + namelen + 2 + valuelen; // propid has already been consumed
     return 0;
 }
 
