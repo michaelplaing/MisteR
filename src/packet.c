@@ -246,7 +246,6 @@ int mr_reset_scalar(packet_ctx *pctx, int idx) {
     mr_mdata *mdata = pctx->mdata0 + idx;
     mdata->value = 0;
     mdata->vexists = false;
-    mdata->vlen = 0;
     return 0;
 }
 
@@ -282,12 +281,12 @@ int mr_pack_packet(packet_ctx *pctx) {
 int mr_init_unpack_packet(
     packet_ctx **ppctx,
     const mr_mdata *MDATA_TEMPLATE, size_t mdata_count,
-    uint8_t *u8v0, size_t ulen
+    uint8_t *u8v0, size_t u8vlen
 ) {
     if (mr_init_packet(ppctx, MDATA_TEMPLATE, mdata_count)) return -1;
     packet_ctx *pctx = *ppctx;
     pctx->u8v0 = u8v0;
-    pctx->u8vlen = ulen;
+    pctx->u8vlen = u8vlen;
     pctx->u8valloc = false;
     if (mr_unpack_packet(pctx)) return -1;
     pctx->u8v0 = NULL; // dereference
@@ -359,6 +358,7 @@ static int mr_free_vector(packet_ctx *pctx, mr_mdata *mdata) {
     mdata->valloc = false;
     mdata->vexists = false;
     mdata->vlen = 0;
+    mdata->u8vlen = 0;
     return 0;
 }
 
@@ -405,7 +405,6 @@ static int mr_pack_u8(packet_ctx *pctx, mr_mdata *mdata) {
 
 static int mr_unpack_u8(packet_ctx *pctx, mr_mdata *mdata) {
     mdata->vexists = true;
-    mdata->vlen = 1;
     mdata->value = pctx->u8v0[pctx->u8vpos++];
     return 0;
 }
@@ -420,7 +419,6 @@ static int mr_pack_u16(packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_unpack_u16(packet_ctx *pctx, mr_mdata *mdata) {
-    mdata->vlen = 2;
     mdata->vexists = true;
     uint8_t *u8v = pctx->u8v0 + pctx->u8vpos;
     uint16_t u16v[] = {u8v[0], u8v[1]};
@@ -441,7 +439,6 @@ static int mr_pack_u32(packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_unpack_u32(packet_ctx *pctx, mr_mdata *mdata) {
-    mdata->vlen = 4;
     uint8_t *u8v = pctx->u8v0 + pctx->u8vpos;
     uint32_t u32v[] = {u8v[0], u8v[1], u8v[2], u8v[3]};
     mdata->value = (u32v[0] << 24) + (u32v[1] << 16) + (u32v[2] << 8) + u32v[3];
@@ -542,7 +539,7 @@ static int mr_unpack_spv(packet_ctx *pctx, mr_mdata *mdata) {
     }
     else {
         if (mr_malloc((void **)&spv0, sizeof(string_pair))) return -1;
-        mdata->vlen = 0;
+        mdata->vlen = 0; // increment below
     }
 
     mdata->value = (Word_t)spv0;
@@ -600,6 +597,7 @@ static int mr_free_spv(packet_ctx *pctx, mr_mdata *mdata) {
     mdata->vexists = false;
     mdata->valloc = false;
     mdata->vlen = 0;
+    mdata->u8vlen = 0;
     return 0;
 }
 
@@ -629,12 +627,6 @@ static int mr_unpack_props(packet_ctx *pctx, mr_mdata *mdata) {
 
             return -1;
         }
-        else {
-            dzlog_debug(
-                "mr_unpack_props:: packet: %s; name: %s; propid: %d",
-                pctx->mqtt_packet_name, mdata->name, *pu8
-            );
-        }
 
         prop_index = pprop_index - (uint8_t *)mdata->value;
         prop_mdata = mdata + prop_index + 1;
@@ -649,7 +641,7 @@ static int mr_unpack_props(packet_ctx *pctx, mr_mdata *mdata) {
         }
 
         unpack_fn = DTYPE_MDATA0[prop_mdata->dtype].unpack_fn;
-        if (unpack_fn && unpack_fn(pctx, prop_mdata)) break;
+        if (unpack_fn(pctx, prop_mdata)) return -1;
     }
 
     return 0;
@@ -678,19 +670,19 @@ static int mr_unpack_u8v(packet_ctx *pctx, mr_mdata *mdata) {
     int istr = mdata->dtype == MR_STR_DTYPE ? 1 : 0;
     uint8_t *u8v = pctx->u8v0 + pctx->u8vpos;
     uint16_t u16v[] = {u8v[0], u8v[1]}; u8v += 2;
-    size_t ulen = (u16v[0] << 8) + u16v[1];
-    size_t vlen = ulen + istr;
+    size_t u8vlen = (u16v[0] << 8) + u16v[1];
+    size_t vlen = u8vlen + istr;
 
     uint8_t *value;
     if (mr_malloc((void **)&value, vlen)) return -1;
 
-    memcpy(value, u8v, ulen);
+    memcpy(value, u8v, u8vlen);
     if (istr) value[vlen] = '\0';
     mdata->value = (Word_t)value;
     mdata->vlen = vlen;
     mdata->vexists = true;
     mdata->valloc = true;
-    pctx->u8vpos += 2 + ulen;
+    pctx->u8vpos += 2 + u8vlen;
     return 0;
 }
 
@@ -728,7 +720,6 @@ static int mr_unpack_bits(packet_ctx *pctx, mr_mdata *mdata) { // don't advance 
 
 static int mr_unpack_incr1(packet_ctx *pctx, mr_mdata *mdata) { // now advance - bits all unpacked
     mdata->vexists = true;
-    mdata->vlen = 1;
     pctx->u8vpos++;
     return 0;
 }
