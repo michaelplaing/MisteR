@@ -149,7 +149,7 @@ int mr_set_scalar(packet_ctx *pctx, int idx, Word_t value) {
     mr_mdata *mdata = pctx->mdata0 + idx;
     mr_mdata_fn validate_fn = DTYPE_MDATA0[mdata->dtype].validate_fn;
     mdata->value = value;
-    mdata->vexists = true;
+    mdata->vexists = true; // don't update vlen or u8vlen for scalars
     if (validate_fn && validate_fn(pctx, mdata)) return -1;
     return 0;
 }
@@ -191,19 +191,20 @@ int mr_get_u32(packet_ctx *pctx, int idx, uint32_t *pu32, bool *pexists) {
 
 int mr_set_vector(packet_ctx *pctx, int idx, void *pvoid, size_t len) {
     if (mr_reset_vector(pctx, idx)) return -1;
-    int rc = 0;
     mr_mdata *mdata = pctx->mdata0 + idx;
     mdata->value = (Word_t)pvoid;
     mdata->vexists = mdata->value ? true : false;
     mdata->vlen = mdata->value ? len : 0;
+    mr_mdata_fn count_fn = DTYPE_MDATA0[mdata->dtype].count_fn;
+    if (count_fn(pctx, mdata)) return -1; // sets u8vlen
 
     mr_mdata_fn validate_fn = DTYPE_MDATA0[mdata->dtype].validate_fn;
-    if (validate_fn && mdata->value) {
-        rc = validate_fn(pctx, mdata);
-        if (rc) mr_reset_vector(pctx, idx);
+    if (mdata->value && validate_fn && validate_fn(pctx, mdata)) {
+        mr_reset_vector(pctx, idx);
+        return -1;
     }
 
-    return rc;
+    return 0;
 }
 
 static int mr_get_vector(packet_ctx *pctx, int idx, Word_t *ppvoid, size_t *plen, bool *pexists) {
@@ -327,6 +328,7 @@ static int mr_count_VBI(packet_ctx *pctx, mr_mdata *mdata) {
     uint32_t u32 = mdata->value;
     int rc = mr_bytecount_VBI(u32);
     if (rc < 0) return rc;
+    mdata->vlen = rc;
     mdata->u8vlen = rc;
     return 0;
 }
@@ -347,6 +349,7 @@ static int mr_unpack_VBI(packet_ctx *pctx, mr_mdata *mdata) {
     if (rc < 0) return rc;
     mdata->value = u32;
     mdata->vlen = rc;
+    mdata->u8vlen = rc;
     mdata->vexists = true;
     pctx->u8vpos += rc;
     return 0;
@@ -480,7 +483,7 @@ static int mr_count_spv(packet_ctx *pctx, mr_mdata *mdata) { // spv's are proper
     string_pair *spv = (string_pair *)mdata->value;
 
     mdata->u8vlen = 0;
-    for (int i = 0; i < mdata->vlen; i++) {
+    for (int i = 0; i < mdata->vlen; i++) { // propid(u8) + u16 + nlen + u16 + vlen
         mdata->u8vlen += 1 + 2 + strlen(spv[i].name) + 2 + strlen(spv[i].value);
     }
 
@@ -549,7 +552,7 @@ static int mr_unpack_spv(packet_ctx *pctx, mr_mdata *mdata) {
     mdata->vlen++;
     mdata->vexists = true;
     mdata->valloc = true;
-    pctx->u8vpos += 2 + nlen + 2 + vlen;
+    pctx->u8vpos += 1 + 2 + nlen + 2 + vlen; // string_pairs are always properties
     return 0;
 }
 
@@ -682,6 +685,7 @@ static int mr_unpack_u8v(packet_ctx *pctx, mr_mdata *mdata) {
     mdata->vlen = vlen;
     mdata->vexists = true;
     mdata->valloc = true;
+    mdata->u8vlen = mdata->propid ? 1 : 0 + 2 + u8vlen;
     pctx->u8vpos += 2 + u8vlen;
     return 0;
 }
