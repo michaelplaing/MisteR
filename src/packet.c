@@ -13,7 +13,7 @@
 #include "mister/mrzlog.h"
 
 static char *PTYPE_NAME[] = { // same order as mqtt_packet_type
-    "", // Note: enum high nibbles are 1-based, hence dummy str
+    "", // Note: enum high nibbles are 1-based, hence dummy str so we can use a 1-based index
     "CONNECT",
     "CONNACK",
     "PUBLISH",
@@ -448,7 +448,9 @@ static int mr_unpack_u32(packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_count_str(packet_ctx *pctx, mr_mdata *mdata) {
-    return mr_count_u8v(pctx, mdata);
+    if (mr_count_u8v(pctx, mdata)) return -1;
+    mdata->u8vlen--; // correct for vlen = strlen() + 1
+    return 0;
 }
 
 static int mr_pack_str(packet_ctx *pctx, mr_mdata *mdata) {
@@ -644,8 +646,7 @@ static int mr_unpack_props(packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_count_u8v(packet_ctx *pctx, mr_mdata *mdata) {
-    int istr = mdata->dtype == MR_STR_DTYPE ? 1 : 0;
-    mdata->u8vlen = 2 + mdata->vlen - istr;
+    mdata->u8vlen = 2 + mdata->vlen;
     if (mdata->propid) mdata->u8vlen++;
     return 0;
 }
