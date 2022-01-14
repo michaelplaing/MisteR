@@ -7,7 +7,7 @@
 #include <hiredis/adapters/libuv.h>
 
 #include "mister/redismodule.h"
-#include "mister/mister.h"
+#include "mister/mr.h"
 #include "mister/connect.h"
 #include "mister/connack.h"
 #include "mister/mrzlog.h"

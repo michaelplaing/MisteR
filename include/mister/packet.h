@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "mister.h"
+#include "mr.h"
 
 // expect either 32-bit or 64-bit words
 // to be cast as pointer or whatever fits

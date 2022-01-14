@@ -9,15 +9,16 @@ typedef struct mr_mdata {
     const uint8_t bp;       // bit position
     Word_t value;           // for any mdata value including pointers
     bool valloc;            // is value allocated
-    size_t vlen;            // for sub-byte values and vectors
+    size_t vlen;            // byte size of integer scalar, # of bits for sub-byte scalar,
+                            // length of vector but includes trailing '/0' for string
+    size_t u8vlen;          // byte count of packed value as a uint8_t vector
     bool vexists;           // value has been set
-    const int link;         // end of range for VBI; byte to stuff for bit mdata
+    const int link;         // end of range for VBI; byte to stuff for sub-byte scalar
     const int propid;       // property id if any
     const int flagid;       // flag id if any
     const int idx;          // integer position in the mdata vector
-    size_t u8vlen;          // byte count of packed value as a uint8_t vector
-    bool pvalloc;           // is pvalue allocated?
-    char *pvalue;           // stringified printable value
+    bool ovalloc;           // is pvalue allocated?
+    char *ovalue;           // stringified printable output value
 } mr_mdata;
 
 typedef int (*mr_mdata_fn)(struct packet_ctx *pctx, struct mr_mdata *mdata);
@@ -89,15 +90,12 @@ int mr_get_spv(packet_ctx *pctx, int idx, string_pair **pspv0, size_t *plen, boo
 
 static int mr_free_vector(packet_ctx *pctx, mr_mdata *mdata);
 
-static int mr_count_u8(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_pack_u8(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_unpack_u8(packet_ctx *pctx, mr_mdata *mdata);
 
-static int mr_count_u16(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_pack_u16(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_unpack_u16(packet_ctx *pctx, mr_mdata *mdata);
 
-static int mr_count_u32(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_pack_u32(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_unpack_u32(packet_ctx *pctx, mr_mdata *mdata);
 

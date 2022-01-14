@@ -1,7 +1,7 @@
-// mister.h
+// mr.h
 
-#ifndef MISTER_H
-#define MISTER_H
+#ifndef MR_H
+#define MR_H
 
 extern int mr_errno;
 
@@ -86,4 +86,4 @@ enum mqtt_reason_codes {
     MQTT_WILDCARD_SUBSCRIPTIONS_NOT_SUPPORTED   = 0xA2
 };
 
-#endif /* MISTER_H */
+#endif /* MR_H */

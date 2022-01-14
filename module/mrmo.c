@@ -1,7 +1,7 @@
 /* mister module */
 
 #include "mister/redismodule.h"
-#include "mister/mister.h"
+#include "mister/mr.h"
 #include "mister/mrzlog.h"
 
 int misterPingReq_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) {

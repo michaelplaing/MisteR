@@ -5,12 +5,12 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "mister/mister.h"
 #include "packet_internal.h"
 #include "connect_internal.h"
 #include "will_internal.h"
-#include "mister/mrzlog.h"
 #include "util_internal.h"
+#include "mister/mr.h"
+#include "mister/mrzlog.h"
 
 int mr_set_will_values(packet_ctx *pctx, mr_will_data *pwd) {
     if (mr_set_scalar(pctx, CONNECT_WILL_FLAG, pwd->will_flag)) { // should be true

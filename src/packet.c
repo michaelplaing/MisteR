@@ -5,69 +5,81 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "mister/mister.h"
-#include "packet_internal.h"
 #include "util_internal.h"
+#include "packet_internal.h"
 #include "will_internal.h"
+#include "mister/mr.h"
 #include "mister/memory.h"
 #include "mister/mrzlog.h"
 
-static char *PTYPE_NAME[] = {   // same order as mqtt_packet_type
-    "", "CONNECT", "CONNACK",   // Note: enum high nibbles are 1-based, hence dummy str
-    "PUBLISH", "PUBACK", "PUBREC", "PUBREL", "PUBCOMP",
-    "SUBSCRIBE", "SUBACK", "UNSUBSCRIBE", "UNSUBACK",
-    "PINGREQ", "PINGRESP", "DISCONNECT", "AUTH"
+static char *PTYPE_NAME[] = { // same order as mqtt_packet_type
+    "", // Note: enum high nibbles are 1-based, hence dummy str
+    "CONNECT",
+    "CONNACK",
+    "PUBLISH",
+    "PUBACK",
+    "PUBREC",
+    "PUBREL",
+    "PUBCOMP",
+    "SUBSCRIBE",
+    "SUBACK",
+    "UNSUBSCRIBE",
+    "UNSUBACK",
+    "PINGREQ",
+    "PINGRESP",
+    "DISCONNECT",
+    "AUTH"
 };
 
 static const mr_dtype DTYPE_MDATA0[] = { // same order as mr_dtypes enum
 //   dtype idx          name                        count_fn        pack_fn             unpack_fn           output_fn           validate_fn         free_fn
-    {MR_U8_DTYPE,       "uint8",                    mr_count_u8,    mr_pack_u8,         mr_unpack_u8,       mr_output_scalar,   NULL,               NULL},
-    {MR_U16_DTYPE,      "uint16",                   mr_count_u16,   mr_pack_u16,        mr_unpack_u16,      mr_output_scalar,   NULL,               NULL},
-    {MR_U32_DTYPE,      "uint32",                   mr_count_u32,   mr_pack_u32,        mr_unpack_u32,      mr_output_scalar,   NULL,               NULL},
+    {MR_U8_DTYPE,       "uint8",                    NULL,           mr_pack_u8,         mr_unpack_u8,       mr_output_scalar,   NULL,               NULL},
+    {MR_U16_DTYPE,      "uint16",                   NULL,           mr_pack_u16,        mr_unpack_u16,      mr_output_scalar,   NULL,               NULL},
+    {MR_U32_DTYPE,      "uint32",                   NULL,           mr_pack_u32,        mr_unpack_u32,      mr_output_scalar,   NULL,               NULL},
     {MR_VBI_DTYPE,      "variable byte int",        mr_count_VBI,   mr_pack_VBI,        mr_unpack_VBI,      mr_output_scalar,   NULL,               NULL},
     {MR_BITS_DTYPE,     "bits in uint8 flag",       NULL,           mr_pack_bits,       mr_unpack_bits,     mr_output_scalar,   NULL,               NULL},
     {MR_U8V_DTYPE,      "binary data - uint8 vec",  mr_count_u8v,   mr_pack_u8v,        mr_unpack_u8v,      mr_output_hexdump,  NULL,               mr_free_vector},
     {MR_STR_DTYPE,      "utf8 prefix string",       mr_count_str,   mr_pack_str,        mr_unpack_str,      mr_output_string,   mr_validate_str,    mr_free_vector},
     {MR_SPV_DTYPE,      "string pair vector",       mr_count_spv,   mr_pack_spv,        mr_unpack_spv,      mr_output_spv,      mr_validate_spv,    mr_free_spv},
-    {MR_FLAGS_DTYPE,    "uint8 flag",               mr_count_u8,    mr_pack_incr1,      mr_unpack_incr1,    mr_output_scalar,   NULL,               NULL},
+    {MR_FLAGS_DTYPE,    "uint8 flag",               NULL,           mr_pack_incr1,      mr_unpack_incr1,    mr_output_scalar,   NULL,               NULL},
     {MR_PROPS_DTYPE,    "properties",               NULL,           NULL,               mr_unpack_props,    mr_output_hexdump,  NULL,               NULL}
 };
 
 static int mr_output_scalar(packet_ctx *pctx, mr_mdata *mdata) {
-    char *pvalue;
-    if (!asprintf(&pvalue, "%u", (uint32_t)mdata->value)) return -1;
-    mdata->pvalloc = true;
-    mdata->pvalue = pvalue;
+    char *ovalue;
+    if (!asprintf(&ovalue, "%u", (uint32_t)mdata->value)) return -1;
+    mdata->ovalloc = true;
+    mdata->ovalue = ovalue;
     return 0;
 }
 
 #define CVSZ 200
 static int mr_output_hexdump(packet_ctx *pctx, mr_mdata *mdata) {
     char cv[CVSZ];
-    size_t len = mdata->vlen > 32 ? 32 : mdata->vlen;
+    size_t len = mdata->vlen > 32 ? 32 : mdata->vlen; // limit to 32 bytes
     if (get_hexdump(cv, sizeof(cv), (uint8_t *)mdata->value, len)) return -1;
-    compress_spaces_lines(cv);
-    char *pvalue;
-    if (mr_malloc((void **)&pvalue, strlen(cv) + 1)) return -1;
-    strlcpy(pvalue, cv, CVSZ);
-    mdata->pvalue = pvalue;
-    mdata->pvalloc = true;
+    compress_spaces_lines(cv); // make into a single line
+    char *ovalue;
+    if (mr_malloc((void **)&ovalue, strlen(cv) + 1)) return -1;
+    strlcpy(ovalue, cv, CVSZ);
+    mdata->ovalue = ovalue;
+    mdata->ovalloc = true;
     return 0;
 }
 
 static int mr_output_string(packet_ctx *pctx, mr_mdata *mdata) {
-    char *pvalue;
+    char *ovalue;
     size_t slen = strlen((char *)mdata->value);
-    if (mr_malloc((void **)&pvalue, slen + 1)) return -1;
-    strlcpy(pvalue, (char *)mdata->value, mdata->vlen);
-    pvalue[slen] = '\0';
-    mdata->pvalue = pvalue;
-    mdata->pvalloc = true;
+    if (mr_malloc((void **)&ovalue, slen + 1)) return -1;
+    strlcpy(ovalue, (char *)mdata->value, mdata->vlen);
+    ovalue[slen] = '\0';
+    mdata->ovalue = ovalue;
+    mdata->ovalloc = true;
     return 0;
 }
 
 static int mr_output_spv(packet_ctx *pctx, mr_mdata *mdata) {
-    char *pvalue;
+    char *ovalue;
     size_t sz = 0;
     string_pair *spv = (string_pair *)mdata->value;
 
@@ -75,17 +87,17 @@ static int mr_output_spv(packet_ctx *pctx, mr_mdata *mdata) {
         sz += strlen(spv[i].name) + 1 + strlen(spv[i].value) + 1; // ':' and ';'
     }
 
-    if (mr_malloc((void **)&pvalue, sz)) return -1;
+    if (mr_malloc((void **)&ovalue, sz)) return -1;
 
-    char *pc = pvalue;
+    char *pc = ovalue;
     for (int i = 0; i < mdata->vlen; i++) {
         sprintf(pc, "%s:%s;", spv[i].name, spv[i].value);
-        pc += strlen(spv[i].name) + 1 + strlen(spv[i].value) + 1;
+        pc += strlen(spv[i].name) + 1 + strlen(spv[i].value) + 1; // ditto
     }
 
     *(pc - 1) = '\0'; // overwrite trailing ';'
-    mdata->pvalue = pvalue;
-    mdata->pvalloc = true;
+    mdata->ovalue = ovalue;
+    mdata->ovalloc = true;
     return 0;
 }
 
@@ -96,7 +108,7 @@ int mr_mdata_dump(packet_ctx *pctx) {
         if (mdata->vexists) {
             mr_mdata_fn output_fn = DTYPE_MDATA0[mdata->dtype].output_fn;
             if (output_fn(pctx, mdata)) return -1;
-            len += strlen(mdata->name) + 1 + strlen(mdata->pvalue) + 1; // ':' and '\n'
+            len += strlen(mdata->name) + 1 + strlen(mdata->ovalue) + 1; // ':' and '\n'
         }
     }
 
@@ -107,8 +119,8 @@ int mr_mdata_dump(packet_ctx *pctx) {
     mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
         if (mdata->vexists) {
-            sprintf(pc, "%s:%s\n", mdata->name, mdata->pvalue);
-            pc += strlen(mdata->name) + 1 + strlen(mdata->pvalue) + 1;
+            sprintf(pc, "%s:%s\n", mdata->name, mdata->ovalue);
+            pc += strlen(mdata->name) + 1 + strlen(mdata->ovalue) + 1; // ditto
         }
     }
 
@@ -134,13 +146,12 @@ int mr_validate_u8vutf8(packet_ctx *pctx, int idx) {
 }
 
 int mr_set_scalar(packet_ctx *pctx, int idx, Word_t value) {
-    int rc = 0;
     mr_mdata *mdata = pctx->mdata0 + idx;
     mr_mdata_fn validate_fn = DTYPE_MDATA0[mdata->dtype].validate_fn;
     mdata->value = value;
     mdata->vexists = true;
-    if (validate_fn) rc = validate_fn(pctx, mdata);
-    return rc;
+    if (validate_fn && validate_fn(pctx, mdata)) return -1;
+    return 0;
 }
 
 static int mr_get_scalar(packet_ctx *pctx, int idx, Word_t *pvalue, bool *pexists) {
@@ -310,7 +321,7 @@ static int mr_count_VBI(packet_ctx *pctx, mr_mdata *mdata) {
     //  accumulate u8vlens in cum_len for the range of the VBI
     for (int i = mdata->idx + 1; i <= mdata->link; i++) {
         current_mdata = pctx->mdata0 + i;
-        cum_len += current_mdata->u8vlen;
+        if (current_mdata->vexists) cum_len += current_mdata->u8vlen;
     }
 
     mdata->value = cum_len;
@@ -385,11 +396,6 @@ int mr_init_packet(packet_ctx **ppctx, const mr_mdata *MDATA_TEMPLATE, size_t md
     return 0;
 }
 
-static int mr_count_u8(packet_ctx *pctx, mr_mdata *mdata) {
-    mdata->u8vlen = mdata->propid ? 2 : 1;
-    return 0;
-}
-
 static int mr_pack_u8(packet_ctx *pctx, mr_mdata *mdata) {
     uint8_t propid = mdata->propid;
     if (propid) pctx->u8v0[pctx->u8vpos++] = propid;
@@ -401,11 +407,6 @@ static int mr_unpack_u8(packet_ctx *pctx, mr_mdata *mdata) {
     mdata->vexists = true;
     mdata->vlen = 1;
     mdata->value = pctx->u8v0[pctx->u8vpos++];
-    return 0;
-}
-
-static int mr_count_u16(packet_ctx *pctx, mr_mdata *mdata) {
-    mdata->u8vlen = mdata->propid ? 3 : 2;
     return 0;
 }
 
@@ -425,11 +426,6 @@ static int mr_unpack_u16(packet_ctx *pctx, mr_mdata *mdata) {
     uint16_t u16v[] = {u8v[0], u8v[1]};
     mdata->value = (u16v[0] << 8) + u16v[1];
     pctx->u8vpos += 2;
-    return 0;
-}
-
-static int mr_count_u32(packet_ctx *pctx, mr_mdata *mdata) {
-    mdata->u8vlen = mdata->propid ? 5 : 4;
     return 0;
 }
 
