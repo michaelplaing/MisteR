@@ -1,6 +1,6 @@
 /* mister module */
 
-#include "mister/redismodule.h"
+#include "mister/mrredismodule.h"
 #include "mister/mister.h"
 #include "mister/mrzlog.h"
 
