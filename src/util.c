@@ -4,7 +4,8 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "mister/util.h"
+#include "mister/mister.h"
+#include "util_internal.h"
 
 // MQTT unicode validation using a reasonably fast and portable naïve method
 /*
@@ -163,14 +164,14 @@ int mr_get_VBI(uint32_t *pu32, uint8_t *u8v) {
     }
 }
 
-int print_hexdump(const uint8_t *u8v, const size_t ulen) {
-    if (!(u8v && ulen)) return -1;
-    int ulines = (ulen - 1) / 16 + 1;
-    if (ulines > 40) ulines = 40; // 40 lines max - TODO: parameterize
-    size_t clen = ulines * 70 + 1; // trailing 0
-    char *pc = calloc(clen, 1);
+int print_hexdump(const uint8_t *u8v, const size_t u8vlen) {
+    if (!(u8v && u8vlen)) return -1;
+    int u8vlines = (u8vlen - 1) / 16 + 1;
+    if (u8vlines > 40) u8vlines = 40; // 40 lines max - TODO: parameterize
+    size_t cvlen = u8vlines * 70 + 1; // trailing 0
+    char *pc = calloc(cvlen, 1);
     if (!pc) return -1;
-    int rc = get_hexdump(pc, clen, u8v, ulen);
+    int rc = get_hexdump(pc, cvlen, u8v, u8vlen);
 
     if (rc) {
         free(pc);
@@ -183,24 +184,24 @@ int print_hexdump(const uint8_t *u8v, const size_t ulen) {
     }
 }
 
-int get_hexdump(char *cv0, size_t clen, const uint8_t *u8v, size_t ulen) {
-    if (!(cv0 && clen >= 70 && u8v && ulen)) return -1;
-    int ulines = (ulen - 1) / 16 + 1;
-    if (ulines > 40) ulines = 40; // 40 lines max - TODO: parameterize?
-    int clines = (clen - 2) / 70 + 1; // trailing \0
-    if (ulines > clines) ulines = clines;
-    if (ulen > ulines * 16) ulen = ulines * 16;
+int get_hexdump(char *cv0, size_t cvlen, const uint8_t *u8v, size_t u8vlen) {
+    if (!(cv0 && cvlen >= 70 && u8v && u8vlen)) return -1;
+    int u8vlines = (u8vlen - 1) / 16 + 1;
+    if (u8vlines > 40) u8vlines = 40; // 40 lines max - TODO: parameterize?
+    int cvlines = (cvlen - 2) / 70 + 1; // trailing \0
+    if (u8vlines > cvlines) u8vlines = cvlines;
+    if (u8vlen > u8vlines * 16) u8vlen = u8vlines * 16;
 
     char cv[17]; // char vector is our reusable string
     cv[16] = '\0'; // and needs termination
     char *pc = cv0; // pointer to next position in output buffer cv0 - increment as we go
 
-    for (int i = 0; i < ulen; i++) {
+    for (int i = 0; i < u8vlen; i++) {
         sprintf(pc, "%02hhX ", (uint8_t)u8v[i]); // hex
         pc += 3;
         cv[i % 16] = isprint((int)u8v[i]) ? u8v[i] : '.'; // printable char or '.'
 
-        if ((i + 1) % 8 == 0 || i + 1 == ulen) { // finished 8 hex chars - or may be done
+        if ((i + 1) % 8 == 0 || i + 1 == u8vlen) { // finished 8 hex chars - or may be done
             sprintf(pc, " ");
             pc++;
 
@@ -208,7 +209,7 @@ int get_hexdump(char *cv0, size_t clen, const uint8_t *u8v, size_t ulen) {
                 sprintf(pc, "|  %s \n", cv);
                 pc += 21;
             }
-            else if (i + 1 == ulen) { // done - pad the hex and finish up the leftovers
+            else if (i + 1 == u8vlen) { // done - pad the hex and finish up the leftovers
                 if ((i + 1) % 16 <= 8) {
                     sprintf(pc, " ");
                     pc++;

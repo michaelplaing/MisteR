@@ -1,7 +1,7 @@
 #ifndef WILL_INTERNAL_H
 #define WILL_INTERNAL_H
 
-#include "mister/will.h"
+//#include "mister/mister.h"
 
 static int mr_validate_will_qos(mr_will_data *pwd);
 static int mr_validate_will_retain(mr_will_data *pwd);

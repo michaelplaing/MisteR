@@ -5,10 +5,10 @@
 #include <string.h>
 #include <stdbool.h>
 
+#include "mister/mister.h"
+#include "mister/mrzlog.h"
 #include "connect_internal.h"
 #include "packet_internal.h"
-#include "mister/mr.h"
-#include "mister/mrzlog.h"
 
 static const uint8_t PNM[] = {'M', 'Q', 'T', 'T'};  // protocol signature
 #define PNMSZ 4

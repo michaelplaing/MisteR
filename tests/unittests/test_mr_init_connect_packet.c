@@ -4,24 +4,23 @@
 #include <stdint.h>
 #include <cmocka.h>
 
-#include "mister/connect.h"
+#include "mister/mister.h"
 
 /* A test case that does nothing and succeeds. */
-static void null_test_success(void **state) {
-    (void) state; /* unused */
-}
+//static void null_test_success(void **state) {
+//    (void) state; /* unused */
+//}
 
-static void test_test(void **state) {
-    (void) state; /* unused */
+static void test_mr_init_connect_packet(void **state) {
     packet_ctx *pctx;
     int rc = mr_init_connect_packet(&pctx);
-
+    assert_return_code(rc, 0);
 }
 
 int main(void) {
     const struct CMUnitTest tests[] = {
-        cmocka_unit_test(null_test_success),
-        cmocka_unit_test(test_test),
+        //cmocka_unit_test(null_test_success),
+        cmocka_unit_test(test_mr_init_connect_packet),
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);

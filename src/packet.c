@@ -5,12 +5,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "mister/mister.h"
+#include "mister/mrzlog.h"
 #include "util_internal.h"
 #include "packet_internal.h"
 #include "will_internal.h"
-#include "mister/mr.h"
-#include "mister/memory.h"
-#include "mister/mrzlog.h"
 
 static char *PTYPE_NAME[] = { // same order as mqtt_packet_type
     "", // Note: enum high nibbles are 1-based, hence dummy str so we can use a 1-based index
@@ -310,7 +309,25 @@ static int mr_unpack_packet(packet_ctx *pctx) {
         }
     }
 
-    return 0;
+    if (pctx->u8vpos == pctx->u8vlen) {
+        return 0;
+    }
+    else if (pctx->u8vpos < pctx->u8vlen) {
+        dzlog_error(
+            "unparsed bytes in the packet:: packet name: %s; u8vlen: %lu, u8vpos: %lu",
+            pctx->mqtt_packet_name, pctx->u8vlen, pctx->u8vpos
+        );
+
+        return -1;
+    }
+    else { // pctx->u8vpos > pctx->u8vlen
+        dzlog_error(
+            "parsed beyond the packet:: packet name: %s; u8vlen: %lu, u8vpos: %lu",
+            pctx->mqtt_packet_name, pctx->u8vlen, pctx->u8vpos
+        );
+
+        return -1;
+    }
 }
 
 static int mr_count_VBI(packet_ctx *pctx, mr_mdata *mdata) {
@@ -462,7 +479,6 @@ static int mr_unpack_str(packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_validate_str(packet_ctx *pctx, mr_mdata *mdata) {
-    int rc = 0;
     char *pc = (char *)mdata->value;
     int err_pos = utf8val((uint8_t *)pc, strlen(pc)); // returns error position
 
@@ -472,10 +488,10 @@ static int mr_validate_str(packet_ctx *pctx, mr_mdata *mdata) {
             pctx->mqtt_packet_name, mdata->name, pc, err_pos
         );
 
-        rc = -1;
+        return -1;
     }
 
-    return rc;
+    return 0;
 }
 
 static int mr_count_spv(packet_ctx *pctx, mr_mdata *mdata) { // spv's are properties

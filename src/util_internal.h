@@ -1,7 +1,7 @@
 #ifndef UTIL_INTERNAL_H
 #define UTIL_INTERNAL_H
 
-#include "mister/util.h"
+//#include "mister/mister.h"
 
 int utf8val(const uint8_t *u8v, size_t len);
 int mr_bytecount_VBI(uint32_t u32);

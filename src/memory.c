@@ -4,8 +4,7 @@
 #include <string.h>
 #include <errno.h>
 
-#include "memory.h"
-#include "mister/mr.h"
+#include "mister/mister.h"
 #include "mister/mrzlog.h"
 
 int mr_calloc(void **ppv, size_t count, size_t size) {

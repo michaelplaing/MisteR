@@ -1,7 +1,7 @@
 #ifndef CONNECT_INTERNAL_H
 #define CONNECT_INTERNAL_H
 
-#include "mister/connect.h"
+// #include "mister/mister.h"
 
 enum CONNECT_MDATA_FIELDS { // Same order as CONNECT_MDATA_TEMPLATE
     CONNECT_PACKET_TYPE,

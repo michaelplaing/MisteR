@@ -7,13 +7,8 @@
 #include <hiredis/adapters/libuv.h>
 
 #include "mister/redismodule.h"
-#include "mister/mr.h"
-#include "mister/connect.h"
-#include "mister/connack.h"
+#include "mister/mister.h"
 #include "mister/mrzlog.h"
-#include "mister/will.h"
-#include "mister/util.h"
-#include "mister/memory.h"
 
 #include "../src/connect_internal.h"
 #include "../src/packet_internal.h"

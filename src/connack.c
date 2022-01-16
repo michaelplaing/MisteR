@@ -5,10 +5,10 @@
 #include <string.h>
 #include <stdbool.h>
 
+#include "mister/mister.h"
+#include "mister/mrzlog.h"
 #include "connack_internal.h"
 #include "packet_internal.h"
-#include "mister/mr.h"
-#include "mister/mrzlog.h"
 
 static const uint8_t MRCP[] = {
     MQTT_PROP_SESSION_EXPIRY_INTERVAL,
