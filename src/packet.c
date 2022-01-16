@@ -252,7 +252,7 @@ int mr_reset_scalar(packet_ctx *pctx, int idx) {
 
 int mr_pack_packet(packet_ctx *pctx) {
     if (pctx->u8valloc && mr_free(pctx->u8v0)) return -1;
-    mr_mdata_fn vbi_count_fn = DTYPE_MDATA0[MR_VBI_DTYPE].count_fn;
+    const mr_mdata_fn vbi_count_fn = DTYPE_MDATA0[MR_VBI_DTYPE].count_fn;
     mr_mdata *mdata = pctx->mdata0 + pctx->mdata_count - 1; // last one
 
     for (int i = pctx->mdata_count - 1; i > -1; mdata--, i--) { // go in reverse for VBIs
@@ -334,7 +334,7 @@ static int mr_count_VBI(packet_ctx *pctx, mr_mdata *mdata) {
 
 static int mr_pack_VBI(packet_ctx *pctx, mr_mdata *mdata) {
     uint32_t u32 = mdata->value;
-    uint8_t u8v[5];
+    uint8_t u8v[4];
     int rc = mr_make_VBI(u32, u8v);
     if (rc < 0) return rc;
     memcpy(pctx->u8v0 + pctx->u8vpos, u8v, mdata->u8vlen);
