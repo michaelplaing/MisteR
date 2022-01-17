@@ -12,70 +12,70 @@
 #include "will_internal.h"
 #include "util_internal.h"
 
-int mr_set_will_values(packet_ctx *pctx, mr_will_data *pwd) {
+int mr_set_connect_will_values(packet_ctx *pctx, mr_connect_will_data *pwd) {
     if (mr_set_scalar(pctx, CONNECT_WILL_FLAG, pwd->will_flag)) { // should be true
-        mr_reset_will_values(pctx);
+        mr_reset_connect_will_values(pctx);
         return -1;
     }
     if (mr_set_scalar(pctx, CONNECT_WILL_QOS, pwd->will_qos))  {
-        mr_reset_will_values(pctx);
+        mr_reset_connect_will_values(pctx);
         return -1;
     }
     if (mr_set_scalar(pctx, CONNECT_WILL_RETAIN, pwd->will_retain))  {
-        mr_reset_will_values(pctx);
+        mr_reset_connect_will_values(pctx);
         return -1;
     }
     if (mr_set_scalar(pctx, CONNECT_WILL_PROPERTY_LENGTH, 0)) { // sets vexists = true
-        mr_reset_will_values(pctx);
+        mr_reset_connect_will_values(pctx);
         return -1;
     }
     if (mr_set_scalar(pctx, CONNECT_WILL_DELAY_INTERVAL, pwd->will_delay_interval)) {
-        mr_reset_will_values(pctx);
+        mr_reset_connect_will_values(pctx);
         return -1;
     }
     if (mr_set_scalar(pctx, CONNECT_PAYLOAD_FORMAT_INDICATOR, pwd->payload_format_indicator)) {
-        mr_reset_will_values(pctx);
+        mr_reset_connect_will_values(pctx);
         return -1;
     }
     if (mr_set_scalar(pctx, CONNECT_MESSAGE_EXPIRY_INTERVAL, pwd->message_expiry_interval)) {
-        mr_reset_will_values(pctx);
+        mr_reset_connect_will_values(pctx);
         return -1;
     }
 
     if (mr_set_vector(pctx, CONNECT_CONTENT_TYPE, pwd->content_type, strlen(pwd->content_type) + 1)) {
-        mr_reset_will_values(pctx);
+        mr_reset_connect_will_values(pctx);
         return -1;
     }
     if (mr_set_vector(pctx, CONNECT_RESPONSE_TOPIC, pwd->response_topic, strlen(pwd->response_topic) + 1)) {
-        mr_reset_will_values(pctx);
+        mr_reset_connect_will_values(pctx);
         return -1;
     }
     if (mr_set_vector(pctx, CONNECT_CORRELATION_DATA, pwd->correlation_data, pwd->correlation_data_len)) {
-        mr_reset_will_values(pctx);
+        mr_reset_connect_will_values(pctx);
         return -1;
     }
     if (mr_set_vector(pctx, CONNECT_WILL_USER_PROPERTIES, pwd->will_user_properties, pwd->will_user_properties_len)) {
-        mr_reset_will_values(pctx);
+        mr_reset_connect_will_values(pctx);
         return -1;
     }
     if (mr_set_vector(pctx, CONNECT_WILL_TOPIC, pwd->will_topic, strlen(pwd->will_topic) + 1)) {
-        mr_reset_will_values(pctx);
+        mr_reset_connect_will_values(pctx);
         return -1;
     }
     if (mr_set_vector(pctx, CONNECT_WILL_PAYLOAD, pwd->will_payload, pwd->will_payload_len)) {
-        mr_reset_will_values(pctx);
+        mr_reset_connect_will_values(pctx);
         return -1;
     }
 
-    if (mr_validate_will_values(pctx)) {
-        mr_reset_will_values(pctx);
+    if (mr_validate_connect_will_values(pctx)) {
+        mr_reset_connect_will_values(pctx);
         return -1;
     }
 
     return 0;
 }
 
-int mr_clear_will_data(mr_will_data *pwd) {
+int mr_clear_connect_will_data(mr_connect_will_data *pwd) {
     pwd->will_flag = false;
     pwd->will_qos = 0;
     pwd->will_retain = false;
@@ -96,7 +96,7 @@ int mr_clear_will_data(mr_will_data *pwd) {
     return 0;
 }
 
-int mr_reset_will_values(packet_ctx *pctx) {
+int mr_reset_connect_will_values(packet_ctx *pctx) {
     if (mr_reset_scalar(pctx, CONNECT_WILL_FLAG)) return -1;;
     if (mr_reset_scalar(pctx, CONNECT_WILL_QOS)) return -1;
     if (mr_reset_scalar(pctx, CONNECT_WILL_RETAIN)) return -1;
@@ -114,7 +114,7 @@ int mr_reset_will_values(packet_ctx *pctx) {
     return 0;
 }
 
-int mr_get_will_data_from_values(packet_ctx *pctx, mr_will_data *pwd) {
+int mr_get_connect_will_values(packet_ctx *pctx, mr_connect_will_data *pwd) {
     bool exists;
 
     mr_get_boolean(pctx, CONNECT_WILL_FLAG, &pwd->will_flag, &exists);
@@ -134,10 +134,10 @@ int mr_get_will_data_from_values(packet_ctx *pctx, mr_will_data *pwd) {
     return 0;
 }
 
-int mr_validate_will_values(packet_ctx *pctx) {
+int mr_validate_connect_will_values(packet_ctx *pctx) {
     int rc;
-    mr_will_data wd;
-    rc = mr_get_will_data_from_values(pctx, &wd); if (rc) return rc;
+    mr_connect_will_data wd;
+    rc = mr_get_connect_will_values(pctx, &wd); if (rc) return rc;
 
     rc = mr_validate_will_qos(&wd); if (rc) return rc;
     rc = mr_validate_will_retain(&wd); if (rc) return rc;
@@ -155,7 +155,7 @@ int mr_validate_will_values(packet_ctx *pctx) {
     return 0;
 }
 
-static int mr_validate_will_qos(mr_will_data *pwd) {
+static int mr_validate_will_qos(mr_connect_will_data *pwd) {
     if (!pwd->will_flag && pwd->will_qos) {
         dzlog_error("will_flag false but will_qos set: %u", pwd->will_qos);
         return -1;
@@ -169,7 +169,7 @@ static int mr_validate_will_qos(mr_will_data *pwd) {
     return 0;
 }
 
-static int mr_validate_will_retain(mr_will_data *pwd) {
+static int mr_validate_will_retain(mr_connect_will_data *pwd) {
     if (!pwd->will_flag && pwd->will_retain) {
         dzlog_error("will_flag false but will_retain true");
         return -1;
@@ -178,7 +178,7 @@ static int mr_validate_will_retain(mr_will_data *pwd) {
     return 0;
 }
 
-int mr_validate_will_delay_interval(mr_will_data *pwd) {
+int mr_validate_will_delay_interval(mr_connect_will_data *pwd) {
     if (!pwd->will_flag && pwd->will_delay_interval) {
         dzlog_error("will_flag false but will_delay_interval > 0");
         return -1;
@@ -187,7 +187,7 @@ int mr_validate_will_delay_interval(mr_will_data *pwd) {
     return 0;
 }
 
-static int mr_validate_payload_format_indicator(mr_will_data *pwd) {
+static int mr_validate_payload_format_indicator(mr_connect_will_data *pwd) {
     if (!pwd->will_flag && pwd->payload_format_indicator) {
         dzlog_error("will_flag false but payload_format_indicator > 0");
         return -1;
@@ -201,7 +201,7 @@ static int mr_validate_payload_format_indicator(mr_will_data *pwd) {
     return 0;
 }
 
-static int mr_validate_message_expiry_interval(mr_will_data *pwd) {
+static int mr_validate_message_expiry_interval(mr_connect_will_data *pwd) {
     if (!pwd->will_flag && pwd->message_expiry_interval) {
         dzlog_error("will_flag false but message_expiry_interval > 0");
         return -1;
@@ -210,7 +210,7 @@ static int mr_validate_message_expiry_interval(mr_will_data *pwd) {
     return 0;
 }
 
-static int mr_validate_content_type(mr_will_data *pwd) {
+static int mr_validate_content_type(mr_connect_will_data *pwd) {
     if (!pwd->will_flag) {
         if (pwd->content_type) {
             dzlog_error("will_flag false but content_type is not NULL");
@@ -237,7 +237,7 @@ static int mr_validate_content_type(mr_will_data *pwd) {
     return 0;
 }
 
-static int mr_validate_response_topic(mr_will_data *pwd) {
+static int mr_validate_response_topic(mr_connect_will_data *pwd) {
     if (!pwd->will_flag) {
         if (pwd->response_topic) {
             dzlog_error("will_flag false but response_topic is not NULL");
@@ -264,7 +264,7 @@ static int mr_validate_response_topic(mr_will_data *pwd) {
     return 0;
 }
 
-static int mr_validate_correlation_data(mr_will_data *pwd) {
+static int mr_validate_correlation_data(mr_connect_will_data *pwd) {
     if (!pwd->will_flag) {
         if (pwd->correlation_data || pwd->correlation_data_len) {
             dzlog_error("will_flag false but correlation_data is not NULL or its len > 0");
@@ -283,7 +283,7 @@ static int mr_validate_correlation_data(mr_will_data *pwd) {
     return 0;
 }
 
-static int mr_validate_will_user_properties(mr_will_data *pwd) {
+static int mr_validate_will_user_properties(mr_connect_will_data *pwd) {
     if (!pwd->will_flag) {
         if (pwd->will_user_properties || pwd->will_user_properties_len) {
             dzlog_error("will_flag false but will_user_properties is not NULL or its len > 0");
@@ -326,7 +326,7 @@ static int mr_validate_will_user_properties(mr_will_data *pwd) {
     return 0;
 }
 
-static int mr_validate_will_topic(mr_will_data *pwd) {
+static int mr_validate_will_topic(mr_connect_will_data *pwd) {
     if (!pwd->will_flag) {
         if (pwd->will_topic) {
             dzlog_error("will_flag false but will_topic is not NULL");
@@ -351,7 +351,7 @@ static int mr_validate_will_topic(mr_will_data *pwd) {
     return 0;
 }
 
-static int mr_validate_will_payload(mr_will_data *pwd) {
+static int mr_validate_will_payload(mr_connect_will_data *pwd) {
     if (!pwd->will_flag) {
         if (pwd->will_payload || pwd->will_payload_len) {
             dzlog_error("will_flag false but will_payload is not NULL or its len > 0");

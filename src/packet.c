@@ -144,7 +144,7 @@ int mr_validate_u8vutf8(packet_ctx *pctx, int idx) {
     return 0;
 }
 
-int mr_set_scalar(packet_ctx *pctx, int idx, Word_t value) {
+int mr_set_scalar(packet_ctx *pctx, int idx, mvalue_t value) {
     mr_mdata *mdata = pctx->mdata0 + idx;
     mr_mdata_fn validate_fn = DTYPE_MDATA0[mdata->dtype].validate_fn;
     mdata->value = value;
@@ -153,7 +153,7 @@ int mr_set_scalar(packet_ctx *pctx, int idx, Word_t value) {
     return 0;
 }
 
-static int mr_get_scalar(packet_ctx *pctx, int idx, Word_t *pvalue, bool *pexists) {
+static int mr_get_scalar(packet_ctx *pctx, int idx, mvalue_t *pvalue, bool *pexists) {
     mr_mdata *mdata = pctx->mdata0 + idx;
     *pvalue = mdata->value;
     *pexists = mdata->vexists;
@@ -161,28 +161,28 @@ static int mr_get_scalar(packet_ctx *pctx, int idx, Word_t *pvalue, bool *pexist
 }
 
 int mr_get_boolean(packet_ctx *pctx, int idx, bool *pboolean, bool *pexists) {
-    Word_t value;
+    mvalue_t value;
     mr_get_scalar(pctx, idx, &value, pexists);
     *pboolean = (bool)value;
     return 0;
 }
 
 int mr_get_u8(packet_ctx *pctx, int idx, uint8_t *pu8, bool *pexists) {
-    Word_t value;
+    mvalue_t value;
     mr_get_scalar(pctx, idx, &value, pexists);
     *pu8 = (uint8_t)value;
     return 0;
 }
 
 int mr_get_u16(packet_ctx *pctx, int idx, uint16_t *pu16, bool *pexists) {
-    Word_t value;
+    mvalue_t value;
     mr_get_scalar(pctx, idx, &value, pexists);
     *pu16 = (uint16_t)value;
     return 0;
 }
 
 int mr_get_u32(packet_ctx *pctx, int idx, uint32_t *pu32, bool *pexists) {
-    Word_t value;
+    mvalue_t value;
     mr_get_scalar(pctx, idx, &value, pexists);
     *pu32 = (uint32_t)value;
     return 0;
@@ -191,7 +191,7 @@ int mr_get_u32(packet_ctx *pctx, int idx, uint32_t *pu32, bool *pexists) {
 int mr_set_vector(packet_ctx *pctx, int idx, void *pvoid, size_t len) {
     if (mr_reset_vector(pctx, idx)) return -1;
     mr_mdata *mdata = pctx->mdata0 + idx;
-    mdata->value = (Word_t)pvoid;
+    mdata->value = (mvalue_t)pvoid;
     mdata->vexists = mdata->value ? true : false;
     mdata->vlen = mdata->value ? len : 0;
     mr_mdata_fn count_fn = DTYPE_MDATA0[mdata->dtype].count_fn;
@@ -206,7 +206,7 @@ int mr_set_vector(packet_ctx *pctx, int idx, void *pvoid, size_t len) {
     return 0;
 }
 
-static int mr_get_vector(packet_ctx *pctx, int idx, Word_t *ppvoid, size_t *plen, bool *pexists) {
+static int mr_get_vector(packet_ctx *pctx, int idx, mvalue_t *ppvoid, size_t *plen, bool *pexists) {
     mr_mdata *mdata = pctx->mdata0 + idx;
     *ppvoid = mdata->value; // for a vector, value is a pointer to something or NULL
     *plen = mdata->vlen;
@@ -215,7 +215,7 @@ static int mr_get_vector(packet_ctx *pctx, int idx, Word_t *ppvoid, size_t *plen
 }
 
 int mr_get_str(packet_ctx *pctx, int idx, char **pcv0, bool *pexists) {
-    Word_t pvoid;
+    mvalue_t pvoid;
     size_t len;
     mr_get_vector(pctx, idx, &pvoid, &len, pexists);
     *pcv0 = (char *)pvoid;
@@ -223,14 +223,14 @@ int mr_get_str(packet_ctx *pctx, int idx, char **pcv0, bool *pexists) {
 }
 
 int mr_get_u8v(packet_ctx *pctx, int idx, uint8_t **pu8v0, size_t *plen, bool *pexists) {
-    Word_t pvoid;
+    mvalue_t pvoid;
     mr_get_vector(pctx, idx, &pvoid, plen, pexists);
     *pu8v0 = (uint8_t *)pvoid;
     return 0;
 }
 
 int mr_get_spv(packet_ctx *pctx, int idx, string_pair **pspv0, size_t *plen, bool *pexists) {
-    Word_t pvoid;
+    mvalue_t pvoid;
     mr_get_vector(pctx, idx, &pvoid, plen, pexists);
     *pspv0 = (string_pair *)pvoid;
     return 0;
@@ -373,7 +373,7 @@ static int mr_unpack_VBI(packet_ctx *pctx, mr_mdata *mdata) {
 
 static int mr_free_vector(packet_ctx *pctx, mr_mdata *mdata) {
     if (mdata->valloc && !mr_free((void *)mdata->value)) return -1;
-    mdata->value = (Word_t)NULL;
+    mdata->value = (mvalue_t)NULL;
     mdata->valloc = false;
     mdata->vexists = false;
     mdata->vlen = 0;
@@ -555,7 +555,7 @@ static int mr_unpack_spv(packet_ctx *pctx, mr_mdata *mdata) {
         mdata->vlen = 0; // incremented below
     }
 
-    mdata->value = (Word_t)spv0;
+    mdata->value = (mvalue_t)spv0;
     psp = spv0 + mdata->vlen;
     psp->name = name;
     psp->value = value;
@@ -607,7 +607,7 @@ static int mr_free_spv(packet_ctx *pctx, mr_mdata *mdata) {
     }
 
     free(spv0);
-    mdata->value = (Word_t)NULL;
+    mdata->value = (mvalue_t)NULL;
     mdata->vexists = false;
     mdata->valloc = false;
     mdata->vlen = 0;
@@ -691,7 +691,7 @@ static int mr_unpack_u8v(packet_ctx *pctx, mr_mdata *mdata) {
 
     memcpy(value, u8v, u8vlen);
     if (istr) value[vlen] = '\0';
-    mdata->value = (Word_t)value;
+    mdata->value = (mvalue_t)value;
     mdata->vlen = vlen;
     mdata->vexists = true;
     mdata->valloc = true;

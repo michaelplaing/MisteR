@@ -1,8 +1,6 @@
 #ifndef CONNACK_INTERNAL_H
 #define CONNACK_INTERNAL_H
 
-//#include "mister/mister.h"
-
 enum CONNACK_MDATA_FIELDS { // Same order as CONNACK_MDATA_TEMPLATE
     CONNACK_PACKET_TYPE,
     CONNACK_REMAINING_LENGTH,

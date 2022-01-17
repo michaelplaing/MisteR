@@ -11,6 +11,7 @@ extern "C" {
 #include <stdint.h>
 #include <stdlib.h>
 
+// spec
 enum mqtt_packet_type {
     MQTT_CONNECT        = 0x10U,
     MQTT_CONNACK        = 0x20U,
@@ -29,7 +30,7 @@ enum mqtt_packet_type {
     MQTT_AUTH           = 0xF0U
 };
 
-/* copied from mosquitto & spec */
+// from mosquitto & spec
 enum mqtt_property {
     MQTT_PROP_PAYLOAD_FORMAT_INDICATOR = 1,             /* Byte :               PUBLISH, Will Properties */
     MQTT_PROP_MESSAGE_EXPIRY_INTERVAL = 2,              /* 4 byte int :         PUBLISH, Will Properties */
@@ -60,8 +61,20 @@ enum mqtt_property {
     MQTT_PROP_SHARED_SUBSCRIPTION_AVAILABLE = 42,       /* Byte :               CONNACK */
 };
 
+// spec: Reason Codes for Malformed Packet and Protocol Errors
+enum mqtt_reason_codes {
+    MQTT_MALFORMED_PACKET                       = 0x81,
+    MQTT_PROTOCOL_ERROR                         = 0x82,
+    MQTT_RECEIVE_MAXIMUM_EXCEEDED               = 0x93,
+    MQTT_PACKET_TOO_LARGE                       = 0x95,
+    MQTT_RETAIN_NOT_SUPPORTED                   = 0x9A,
+    MQTT_QOS_NOT_SUPPORTED                      = 0x9B,
+    MQTT_SHARED_SUBSCRIPTIONS_NOT_SUPPORTED     = 0x9E,
+    MQTT_SUBSCRIPTION_IDENTIFIERS_NOT_SUPPORTED = 0xA1,
+    MQTT_WILDCARD_SUBSCRIPTIONS_NOT_SUPPORTED   = 0xA2
+};
 
-/* MisteR Commands understood by the Redis mister module */
+// MisteR Commands understood by the Redis mister module
 #define MR_CONNECT          "mr.connect"
 #define MR_CONNACK          "mr.connack"
 #define MR_PUBLISH          "mr.publish"
@@ -78,20 +91,6 @@ enum mqtt_property {
 #define MR_DISCONNECT       "mr.disconnect"
 #define MR_AUTH             "mr.auth"
 
-
-/* from spec: Reason Codes for Malformed Packet and Protocol Errors */
-enum mqtt_reason_codes {
-    MQTT_MALFORMED_PACKET                       = 0x81,
-    MQTT_PROTOCOL_ERROR                         = 0x82,
-    MQTT_RECEIVE_MAXIMUM_EXCEEDED               = 0x93,
-    MQTT_PACKET_TOO_LARGE                       = 0x95,
-    MQTT_RETAIN_NOT_SUPPORTED                   = 0x9A,
-    MQTT_QOS_NOT_SUPPORTED                      = 0x9B,
-    MQTT_SHARED_SUBSCRIPTIONS_NOT_SUPPORTED     = 0x9E,
-    MQTT_SUBSCRIPTION_IDENTIFIERS_NOT_SUPPORTED = 0xA1,
-    MQTT_WILDCARD_SUBSCRIPTIONS_NOT_SUPPORTED   = 0xA2
-};
-
 // error handling
 
 extern int mr_errno;
@@ -104,12 +103,6 @@ int mr_realloc(void **ppv, size_t sz);
 int mr_free(void *pv);
 
 // packets
-
-// expect either 32-bit or 64-bit words
-// to be cast as pointers or whatever
-typedef unsigned long Word_t;
-
-struct mr_mdata;
 
 typedef struct packet_ctx {
     uint8_t mqtt_packet_type;
@@ -224,9 +217,9 @@ int mr_get_connect_password(packet_ctx *pctx, uint8_t **pu8v0, size_t *plen, boo
 int mr_set_connect_password(packet_ctx *pctx, uint8_t *u8v0, size_t len);
 int mr_reset_connect_password(packet_ctx *pctx);
 
-// connect packet - will data
+// connect packet - will values
 
-typedef struct mr_will_data {
+typedef struct mr_connect_will_data {
     bool will_flag;
     uint8_t will_qos;
     bool will_retain;
@@ -243,14 +236,14 @@ typedef struct mr_will_data {
     char *will_topic;
     uint8_t *will_payload;
     size_t will_payload_len;
-} mr_will_data;
+} mr_connect_will_data;
 
-int mr_clear_will_data(mr_will_data *pwd);
+int mr_clear_connect_will_data(mr_connect_will_data *pwd);
 
-int mr_set_will_values(packet_ctx *pctx, mr_will_data *pwd);
-int mr_reset_will_values(packet_ctx *pctx);
-int mr_get_will_data_from_values(packet_ctx *pctx, mr_will_data *pwd);
-int mr_validate_will_values(packet_ctx *pctx);
+int mr_get_connect_will_values(packet_ctx *pctx, mr_connect_will_data *pwd);
+int mr_set_connect_will_values(packet_ctx *pctx, mr_connect_will_data *pwd);
+int mr_reset_connect_will_values(packet_ctx *pctx);
+int mr_validate_connect_will_values(packet_ctx *pctx);
 
 // connack packet
 

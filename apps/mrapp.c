@@ -152,8 +152,8 @@ void mr_send_connect(redisAsyncContext *rctx) {
     uint8_t password[] = {'1', '2', '3', '4'};
     mr_set_connect_password(pctx, password, 4);
 */
-    mr_will_data wd;
-    rc = mr_clear_will_data(&wd);
+    mr_connect_will_data wd;
+    rc = mr_clear_connect_will_data(&wd);
     wd.will_flag = true;
     wd.will_topic = "T";
     wd.payload_format_indicator = 1;
@@ -173,7 +173,7 @@ void mr_send_connect(redisAsyncContext *rctx) {
     wd.will_user_properties = spv;
     wd.will_user_properties_len = sizeof(spv) / sizeof(string_pair);
 
-    rc = mr_set_will_values(pctx, &wd);
+    rc = mr_set_connect_will_values(pctx, &wd);
 
     if (rc) {
         printf("failed\n");

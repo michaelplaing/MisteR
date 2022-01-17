@@ -1,23 +1,26 @@
-#ifndef PACK_INTERNAL_H
-#define PACK_INTERNAL_H
+#ifndef PACKET_INTERNAL_H
+#define PACKET_INTERNAL_H
 
-//#include "mister/mister.h"
+// a type that can be cast to/from a pointer or an int up to uint32_t
+typedef unsigned long mvalue_t;
+
+struct mr_mdata;
 
 typedef struct mr_mdata {
     const char *name;
     const int dtype;        // data type
     const uint8_t bp;       // bit position
-    Word_t value;           // for any mdata value including pointers
+    mvalue_t value;         // for any mdata value including pointers
     bool valloc;            // is value allocated
-    size_t vlen;            // byte size of integer scalar, # of bits for sub-byte scalar,
-                            // length of vector but includes trailing '/0' for string
+    size_t vlen;            // byte size of an integer scalar, # of bits for a sub-byte scalar,
+                            // length of a vector - includes trailing '/0' for a string, i.e. strlen() + 1
     size_t u8vlen;          // byte count of packed value as a uint8_t vector
     bool vexists;           // value has been set
     const int link;         // end of range for VBI; byte to stuff for sub-byte scalar
     const int propid;       // property id if any
     const int flagid;       // flag id if any
     const int idx;          // integer position in the mdata vector
-    bool ovalloc;           // is pvalue allocated?
+    bool ovalloc;           // is ovalue allocated?
     char *ovalue;           // stringified printable output value
 } mr_mdata;
 
@@ -73,9 +76,9 @@ int mr_mdata_dump(packet_ctx *pctx);
 int mr_reset_scalar(packet_ctx *pctx, int idx);
 int mr_reset_vector(packet_ctx *pctx, int idx);
 
-int mr_set_scalar(packet_ctx *pctx, int idx, Word_t value);
+int mr_set_scalar(packet_ctx *pctx, int idx, mvalue_t value);
 
-static int mr_get_scalar(packet_ctx *pctx, int idx, Word_t *pvalue, bool *pexists);
+static int mr_get_scalar(packet_ctx *pctx, int idx, mvalue_t *pvalue, bool *pexists);
 int mr_get_boolean(packet_ctx *pctx, int idx, bool *pboolean, bool *pexists);
 int mr_get_u8(packet_ctx *pctx, int idx, uint8_t *pu8, bool *pexists);
 int mr_get_u16(packet_ctx *pctx, int idx, uint16_t *pu16, bool *pexists);
@@ -83,7 +86,7 @@ int mr_get_u32(packet_ctx *pctx, int idx, uint32_t *pu32, bool *pexists);
 
 int mr_set_vector(packet_ctx *pctx, int idx, void *pvoid, size_t len);
 
-static int mr_get_vector(packet_ctx *pctx, int idx, Word_t *ppvoid, size_t *plen, bool *pexists);
+static int mr_get_vector(packet_ctx *pctx, int idx, mvalue_t *ppvoid, size_t *plen, bool *pexists);
 int mr_get_str(packet_ctx *pctx, int idx, char **pcv0, bool *pexists);
 int mr_get_u8v(packet_ctx *pctx, int idx, uint8_t **pu8v0, size_t *plen, bool *pexists);
 int mr_get_spv(packet_ctx *pctx, int idx, string_pair **pspv0, size_t *plen, bool *pexists);
@@ -129,4 +132,4 @@ static int mr_output_scalar(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_output_hexdump(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_output_string(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_output_spv(packet_ctx *pctx, mr_mdata *mdata);
-#endif // PACK_INTERNAL_H
+#endif // PACKET_INTERNAL_H
