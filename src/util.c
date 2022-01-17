@@ -241,7 +241,7 @@ void compress_spaces_lines(char *cv) {
     char *s = cv;
     bool bs = true;
 
-    for ( ; *s; s++) {
+    for ( ; *s; s++) { // compress spaces in place
         if (*s == ' ' && bs) continue;
         bs = *s == ' ';
         *d++ = *s;
@@ -249,7 +249,7 @@ void compress_spaces_lines(char *cv) {
 
     *d = '\0';
 
-    for (d--; *d == ' ' || *d == '\n'; d--) {
+    for (d--; *d == ' ' || *d == '\n'; d--) { // remove trailing whitespace
         *d = '\0';
     }
 
@@ -261,14 +261,16 @@ void compress_spaces_lines(char *cv) {
 
     for (int i = 0; *s && replace < compress; i++, s++) {
         if (*s == '\n') {
+            // add a leading space if there is room and it is needed
             if (replace + 1 < compress && i && *(s - 1) != ' ') {
                 *d++ = ' ';
                 replace++;
             }
 
-            *d++ = '/';
+            *d++ = '/'; // break the line
             replace++;
 
+            // add a trailing space if there is room and it is needed
             if (replace + 1 < compress && *(s + 1) != ' ') {
                 *d++ = ' ';
                 replace++;

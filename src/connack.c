@@ -10,7 +10,7 @@
 #include "connack_internal.h"
 #include "packet_internal.h"
 
-static const uint8_t MRCP[] = {
+static const uint8_t _CP[] = {
     MQTT_PROP_SESSION_EXPIRY_INTERVAL,
     MQTT_PROP_RECEIVE_MAXIMUM,
     MQTT_PROP_MAXIMUM_QOS,
@@ -29,48 +29,48 @@ static const uint8_t MRCP[] = {
     MQTT_PROP_AUTHENTICATION_METHOD,
     MQTT_PROP_AUTHENTICATION_DATA
 };
-#define MRCPSZ 17
+#define _CPSZ 17
 
-#define NA 0
+#define _NA 0
 
-static const mr_mdata CONNACK_MDATA_TEMPLATE[] = {
-//   name                                   dtype           bp  value           valloc  vlen    u8vlen  vexists link                            propid                                          flagid  idx                                         pvalloc     pvalue
-    {"packet_type",                         MR_U8_DTYPE,    NA, MQTT_CONNACK,   false,  1,      1,      true,   NA,                             NA,                                             NA,     CONNACK_PACKET_TYPE,                        false,      NULL},
-    {"remaining_length",                    MR_VBI_DTYPE,   NA, 0,              false,  0,      0,      true,   CONNACK_AUTHENTICATION_DATA,    NA,                                             NA,     CONNACK_REMAINING_LENGTH,                   false,      NULL},
-    {"session_present",                     MR_BITS_DTYPE,  0,  0,              false,  1,      0,      true,   CONNACK_MR_FLAGS,               NA,                                             NA,     CONNACK_SESSION_PRESENT,                    false,      NULL},
-    {"reserved",                            MR_BITS_DTYPE,  1,  0,              false,  7,      0,      true,   CONNACK_MR_FLAGS,               NA,                                             NA,     CONNACK_RESERVED,                           false,      NULL},
-    {"mr_flags",                            MR_FLAGS_DTYPE, NA, 0,              false,  1,      1,      true,   NA,                             NA,                                             NA,     CONNACK_MR_FLAGS,                           false,      NULL},
-    {"connect_reason_code",                 MR_U8_DTYPE,    NA, 0,              false,  1,      1,      true,   NA,                             NA,                                             NA,     CONNACK_CONNECT_REASON_CODE,                false,      NULL},
-    {"property_length",                     MR_VBI_DTYPE,   NA, 0,              false,  0,      0,      true,   CONNACK_AUTHENTICATION_DATA,    NA,                                             NA,     CONNACK_PROPERTY_LENGTH,                    false,      NULL},
-    {"mr_properties",                       MR_PROPS_DTYPE, NA, (mvalue_t)MRCP,   false,  MRCPSZ, NA,     true,   NA,                             NA,                                             NA,     CONNACK_MR_PROPERTIES,                      false,      NULL},
-    {"session_expiry_interval",             MR_U32_DTYPE,   NA, 0,              false,  4,      5,      false,  NA,                             MQTT_PROP_SESSION_EXPIRY_INTERVAL,              NA,     CONNACK_SESSION_EXPIRY_INTERVAL,            false,      NULL},
-    {"receive_maximum",                     MR_U16_DTYPE,   NA, 0,              false,  2,      3,      false,  NA,                             MQTT_PROP_RECEIVE_MAXIMUM,                      NA,     CONNACK_RECEIVE_MAXIMUM,                    false,      NULL},
-    {"maximum_qos",                         MR_U8_DTYPE,    NA, 0,              false,  1,      2,      false,  NA,                             MQTT_PROP_MAXIMUM_QOS,                          NA,     CONNACK_MAXIMUM_QOS,                        false,      NULL},
-    {"retain_available",                    MR_U8_DTYPE,    NA, 0,              false,  1,      2,      false,  NA,                             MQTT_PROP_RETAIN_AVAILABLE,                     NA,     CONNACK_RETAIN_AVAILABLE,                   false,      NULL},
-    {"maximum_packet_size",                 MR_U32_DTYPE,   NA, 0,              false,  4,      5,      false,  NA,                             MQTT_PROP_MAXIMUM_PACKET_SIZE,                  NA,     CONNACK_MAXIMUM_PACKET_SIZE,                false,      NULL},
-    {"assigned_client_identifier",          MR_STR_DTYPE,   NA, (mvalue_t)NULL,   false,  0,      0,      false,  NA,                             MQTT_PROP_ASSIGNED_CLIENT_IDENTIFIER,           NA,     CONNACK_ASSIGNED_CLIENT_IDENTIFIER,         false,      NULL},
-    {"topic_alias_maximum",                 MR_U16_DTYPE,   NA, 0,              false,  2,      3,      false,  NA,                             MQTT_PROP_TOPIC_ALIAS_MAXIMUM,                  NA,     CONNACK_TOPIC_ALIAS_MAXIMUM,                false,      NULL},
-    {"reason_string",                       MR_STR_DTYPE,   NA, (mvalue_t)NULL,   false,  0,      0,      false,  NA,                             MQTT_PROP_REASON_STRING,                        NA,     CONNACK_REASON_STRING,                      false,      NULL},
-    {"user_properties",                     MR_SPV_DTYPE,   NA, (mvalue_t)NULL,   false,  0,      0,      false,  NA,                             MQTT_PROP_USER_PROPERTY,                        NA,     CONNACK_USER_PROPERTIES,                    false,      NULL},
-    {"wildcard_subscription_available",     MR_U8_DTYPE,    NA, 0,              false,  1,      2,      false,  NA,                             MQTT_PROP_WILDCARD_SUBSCRIPTION_AVAILABLE,      NA,     CONNACK_WILDCARD_SUBSCRIPTION_AVAILABLE,    false,      NULL},
-    {"subscription_identifiers_available",  MR_U8_DTYPE,    NA, 0,              false,  1,      2,      false,  NA,                             MQTT_PROP_SUBSCRIPTION_IDENTIFIERS_AVAILABLE,   NA,     CONNACK_WILDCARD_SUBSCRIPTION_AVAILABLE,    false,      NULL},
-    {"shared_subscription_available",       MR_U8_DTYPE,    NA, 0,              false,  1,      2,      false,  NA,                             MQTT_PROP_SHARED_SUBSCRIPTION_AVAILABLE,        NA,     CONNACK_SHARED_SUBSCRIPTION_AVAILABLE,      false,      NULL},
-    {"server_keep_alive",                   MR_U16_DTYPE,   NA, 0,              false,  2,      3,      false,  NA,                             MQTT_PROP_SERVER_KEEP_ALIVE,                    NA,     CONNACK_SERVER_KEEP_ALIVE,                  false,      NULL},
-    {"response_information",                MR_STR_DTYPE,   NA, (mvalue_t)NULL,   false,  0,      0,      false,  NA,                             MQTT_PROP_RESPONSE_INFORMATION,                 NA,     CONNACK_RESPONSE_INFORMATION,               false,      NULL},
-    {"server_reference",                    MR_STR_DTYPE,   NA, (mvalue_t)NULL,   false,  0,      0,      false,  NA,                             MQTT_PROP_SERVER_REFERENCE,                     NA,     CONNACK_SERVER_REFERENCE,                   false,      NULL},
-    {"authentication_method",               MR_STR_DTYPE,   NA, (mvalue_t)NULL,   false,  0,      0,      false,  NA,                             MQTT_PROP_AUTHENTICATION_METHOD,                NA,     CONNACK_AUTHENTICATION_METHOD,              false,      NULL},
-    {"authentication_data",                 MR_U8V_DTYPE,   NA, (mvalue_t)NULL,   false,  0,      0,      false,  NA,                             MQTT_PROP_AUTHENTICATION_DATA,                  NA,     CONNACK_AUTHENTICATION_DATA,                false,      NULL}
-//   name                                   dtype           bp  value           valloc  vlen    u8vlen  vexists link                            propid                                          flagid  idx                                         spvalloc    spv
+static const mr_mdata _CONNACK_MDATA_TEMPLATE[] = {
+//   name                                   dtype           bpos    value           valloc  vlen    u8vlen  vexists link                            propid                                          flagid  idx                                         pvalloc     pvalue
+    {"packet_type",                         MR_U8_DTYPE,    _NA,    MQTT_CONNACK,   false,  1,      1,      true,   _NA,                            _NA,                                            _NA,    CONNACK_PACKET_TYPE,                        false,      NULL},
+    {"remaining_length",                    MR_VBI_DTYPE,   _NA,    0,              false,  0,      0,      true,   CONNACK_AUTHENTICATION_DATA,    _NA,                                            _NA,    CONNACK_REMAINING_LENGTH,                   false,      NULL},
+    {"session_present",                     MR_BITS_DTYPE,  0,      0,              false,  1,      0,      true,   CONNACK_MR_FLAGS,               _NA,                                            _NA,    CONNACK_SESSION_PRESENT,                    false,      NULL},
+    {"reserved",                            MR_BITS_DTYPE,  1,      0,              false,  7,      0,      true,   CONNACK_MR_FLAGS,               _NA,                                            _NA,    CONNACK_RESERVED,                           false,      NULL},
+    {"mr_flags",                            MR_FLAGS_DTYPE, _NA,    0,              false,  1,      1,      true,   _NA,                            _NA,                                            _NA,    CONNACK_MR_FLAGS,                           false,      NULL},
+    {"connect_reason_code",                 MR_U8_DTYPE,    _NA,    0,              false,  1,      1,      true,   _NA,                            _NA,                                            _NA,    CONNACK_CONNECT_REASON_CODE,                false,      NULL},
+    {"property_length",                     MR_VBI_DTYPE,   _NA,    0,              false,  0,      0,      true,   CONNACK_AUTHENTICATION_DATA,    _NA,                                            _NA,    CONNACK_PROPERTY_LENGTH,                    false,      NULL},
+    {"mr_properties",                       MR_PROPS_DTYPE, _NA,    (mvalue_t)_CP,  false,  _CPSZ,  _NA,    true,   _NA,                            _NA,                                            _NA,    CONNACK_MR_PROPERTIES,                      false,      NULL},
+    {"session_expiry_interval",             MR_U32_DTYPE,   _NA,    0,              false,  4,      5,      false,  _NA,                            MQTT_PROP_SESSION_EXPIRY_INTERVAL,              _NA,    CONNACK_SESSION_EXPIRY_INTERVAL,            false,      NULL},
+    {"receive_maximum",                     MR_U16_DTYPE,   _NA,    0,              false,  2,      3,      false,  _NA,                            MQTT_PROP_RECEIVE_MAXIMUM,                      _NA,    CONNACK_RECEIVE_MAXIMUM,                    false,      NULL},
+    {"maximum_qos",                         MR_U8_DTYPE,    _NA,    0,              false,  1,      2,      false,  _NA,                            MQTT_PROP_MAXIMUM_QOS,                          _NA,    CONNACK_MAXIMUM_QOS,                        false,      NULL},
+    {"retain_available",                    MR_U8_DTYPE,    _NA,    0,              false,  1,      2,      false,  _NA,                            MQTT_PROP_RETAIN_AVAILABLE,                     _NA,    CONNACK_RETAIN_AVAILABLE,                   false,      NULL},
+    {"maximum_packet_size",                 MR_U32_DTYPE,   _NA,    0,              false,  4,      5,      false,  _NA,                            MQTT_PROP_MAXIMUM_PACKET_SIZE,                  _NA,    CONNACK_MAXIMUM_PACKET_SIZE,                false,      NULL},
+    {"assigned_client_identifier",          MR_STR_DTYPE,   _NA,    (mvalue_t)NULL, false,  0,      0,      false,  _NA,                            MQTT_PROP_ASSIGNED_CLIENT_IDENTIFIER,           _NA,    CONNACK_ASSIGNED_CLIENT_IDENTIFIER,         false,      NULL},
+    {"topic_alias_maximum",                 MR_U16_DTYPE,   _NA,    0,              false,  2,      3,      false,  _NA,                            MQTT_PROP_TOPIC_ALIAS_MAXIMUM,                  _NA,    CONNACK_TOPIC_ALIAS_MAXIMUM,                false,      NULL},
+    {"reason_string",                       MR_STR_DTYPE,   _NA,    (mvalue_t)NULL, false,  0,      0,      false,  _NA,                            MQTT_PROP_REASON_STRING,                        _NA,    CONNACK_REASON_STRING,                      false,      NULL},
+    {"user_properties",                     MR_SPV_DTYPE,   _NA,    (mvalue_t)NULL, false,  0,      0,      false,  _NA,                            MQTT_PROP_USER_PROPERTY,                        _NA,    CONNACK_USER_PROPERTIES,                    false,      NULL},
+    {"wildcard_subscription_available",     MR_U8_DTYPE,    _NA,    0,              false,  1,      2,      false,  _NA,                            MQTT_PROP_WILDCARD_SUBSCRIPTION_AVAILABLE,      _NA,    CONNACK_WILDCARD_SUBSCRIPTION_AVAILABLE,    false,      NULL},
+    {"subscription_identifiers_available",  MR_U8_DTYPE,    _NA,    0,              false,  1,      2,      false,  _NA,                            MQTT_PROP_SUBSCRIPTION_IDENTIFIERS_AVAILABLE,   _NA,    CONNACK_WILDCARD_SUBSCRIPTION_AVAILABLE,    false,      NULL},
+    {"shared_subscription_available",       MR_U8_DTYPE,    _NA,    0,              false,  1,      2,      false,  _NA,                            MQTT_PROP_SHARED_SUBSCRIPTION_AVAILABLE,        _NA,    CONNACK_SHARED_SUBSCRIPTION_AVAILABLE,      false,      NULL},
+    {"server_keep_alive",                   MR_U16_DTYPE,   _NA,    0,              false,  2,      3,      false,  _NA,                            MQTT_PROP_SERVER_KEEP_ALIVE,                    _NA,    CONNACK_SERVER_KEEP_ALIVE,                  false,      NULL},
+    {"response_information",                MR_STR_DTYPE,   _NA,    (mvalue_t)NULL, false,  0,      0,      false,  _NA,                            MQTT_PROP_RESPONSE_INFORMATION,                 _NA,    CONNACK_RESPONSE_INFORMATION,               false,      NULL},
+    {"server_reference",                    MR_STR_DTYPE,   _NA,    (mvalue_t)NULL, false,  0,      0,      false,  _NA,                            MQTT_PROP_SERVER_REFERENCE,                     _NA,    CONNACK_SERVER_REFERENCE,                   false,      NULL},
+    {"authentication_method",               MR_STR_DTYPE,   _NA,    (mvalue_t)NULL, false,  0,      0,      false,  _NA,                            MQTT_PROP_AUTHENTICATION_METHOD,                _NA,    CONNACK_AUTHENTICATION_METHOD,              false,      NULL},
+    {"authentication_data",                 MR_U8V_DTYPE,   _NA,    (mvalue_t)NULL, false,  0,      0,      false,  _NA,                            MQTT_PROP_AUTHENTICATION_DATA,                  _NA,    CONNACK_AUTHENTICATION_DATA,                false,      NULL}
+//   name                                   dtype           bpos    value           valloc  vlen    u8vlen  vexists link                            propid                                          flagid  idx                                         spvalloc    spv
 };
 
 int mr_init_connack_packet(packet_ctx **ppctx) {
-    size_t mdata_count = sizeof(CONNACK_MDATA_TEMPLATE) / sizeof(mr_mdata);
-    return mr_init_packet(ppctx, CONNACK_MDATA_TEMPLATE, mdata_count);
+    size_t mdata_count = sizeof(_CONNACK_MDATA_TEMPLATE) / sizeof(mr_mdata);
+    return mr_init_packet(ppctx, _CONNACK_MDATA_TEMPLATE, mdata_count);
 }
 
 int mr_init_unpack_connack_packet(packet_ctx **ppctx, uint8_t *u8v0, size_t ulen) {
-    size_t mdata_count = sizeof(CONNACK_MDATA_TEMPLATE) / sizeof(mr_mdata);
-    return mr_init_unpack_packet(ppctx, CONNACK_MDATA_TEMPLATE, mdata_count, u8v0, ulen);
+    size_t mdata_count = sizeof(_CONNACK_MDATA_TEMPLATE) / sizeof(mr_mdata);
+    return mr_init_unpack_packet(ppctx, _CONNACK_MDATA_TEMPLATE, mdata_count, u8v0, ulen);
 }
 
 static int mr_connack_packet_check(packet_ctx *pctx) {

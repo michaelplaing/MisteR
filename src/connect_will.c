@@ -9,7 +9,7 @@
 #include "mister/mrzlog.h"
 #include "packet_internal.h"
 #include "connect_internal.h"
-#include "will_internal.h"
+#include "connect_will_internal.h"
 #include "util_internal.h"
 
 int mr_set_connect_will_values(packet_ctx *pctx, mr_connect_will_data *pwd) {

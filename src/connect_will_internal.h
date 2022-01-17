@@ -1,8 +1,6 @@
 #ifndef WILL_INTERNAL_H
 #define WILL_INTERNAL_H
 
-//#include "mister/mister.h"
-
 static int mr_validate_will_qos(mr_connect_will_data *pwd);
 static int mr_validate_will_retain(mr_connect_will_data *pwd);
 static int mr_validate_will_delay_interval(mr_connect_will_data *pwd);

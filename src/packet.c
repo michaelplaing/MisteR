@@ -9,9 +9,9 @@
 #include "mister/mrzlog.h"
 #include "util_internal.h"
 #include "packet_internal.h"
-#include "will_internal.h"
+#include "connect_will_internal.h"
 
-static char *PTYPE_NAME[] = { // same order as mqtt_packet_type
+static char *_PTYPE_NAME[] = { // same order as mqtt_packet_type
     "", // Note: enum high nibbles are 1-based, hence dummy str so we can use a 1-based index
     "CONNECT",
     "CONNACK",
@@ -30,7 +30,7 @@ static char *PTYPE_NAME[] = { // same order as mqtt_packet_type
     "AUTH"
 };
 
-static const mr_dtype DTYPE_MDATA0[] = { // same order as mr_dtypes enum
+static const mr_dtype _DTYPE[] = { // same order as mr_dtypes enum
 //   dtype idx          name                        count_fn        pack_fn             unpack_fn           output_fn           validate_fn         free_fn
     {MR_U8_DTYPE,       "uint8",                    NULL,           mr_pack_u8,         mr_unpack_u8,       mr_output_scalar,   NULL,               NULL},
     {MR_U16_DTYPE,      "uint16",                   NULL,           mr_pack_u16,        mr_unpack_u16,      mr_output_scalar,   NULL,               NULL},
@@ -105,7 +105,7 @@ int mr_mdata_dump(packet_ctx *pctx) {
     mr_mdata *mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
         if (mdata->vexists) {
-            mr_mdata_fn output_fn = DTYPE_MDATA0[mdata->dtype].output_fn;
+            mr_mdata_fn output_fn = _DTYPE[mdata->dtype].output_fn;
             if (output_fn(pctx, mdata)) return -1;
             len += strlen(mdata->name) + 1 + strlen(mdata->ovalue) + 1; // ':' and '\n'
         }
@@ -146,7 +146,7 @@ int mr_validate_u8vutf8(packet_ctx *pctx, int idx) {
 
 int mr_set_scalar(packet_ctx *pctx, int idx, mvalue_t value) {
     mr_mdata *mdata = pctx->mdata0 + idx;
-    mr_mdata_fn validate_fn = DTYPE_MDATA0[mdata->dtype].validate_fn;
+    mr_mdata_fn validate_fn = _DTYPE[mdata->dtype].validate_fn;
     mdata->value = value;
     mdata->vexists = true; // don't update vlen or u8vlen for scalars
     if (validate_fn && validate_fn(pctx, mdata)) return -1;
@@ -194,10 +194,10 @@ int mr_set_vector(packet_ctx *pctx, int idx, void *pvoid, size_t len) {
     mdata->value = (mvalue_t)pvoid;
     mdata->vexists = mdata->value ? true : false;
     mdata->vlen = mdata->value ? len : 0;
-    mr_mdata_fn count_fn = DTYPE_MDATA0[mdata->dtype].count_fn;
+    mr_mdata_fn count_fn = _DTYPE[mdata->dtype].count_fn;
     if (count_fn(pctx, mdata)) return -1; // sets u8vlen
 
-    mr_mdata_fn validate_fn = DTYPE_MDATA0[mdata->dtype].validate_fn;
+    mr_mdata_fn validate_fn = _DTYPE[mdata->dtype].validate_fn;
     if (mdata->value && validate_fn && validate_fn(pctx, mdata)) {
         mr_reset_vector(pctx, idx);
         return -1;
@@ -238,7 +238,7 @@ int mr_get_spv(packet_ctx *pctx, int idx, string_pair **pspv0, size_t *plen, boo
 
 int mr_reset_vector(packet_ctx *pctx, int idx) {
     mr_mdata *mdata = pctx->mdata0 + idx;
-    mr_mdata_fn free_fn = DTYPE_MDATA0[mdata->dtype].free_fn;
+    mr_mdata_fn free_fn = _DTYPE[mdata->dtype].free_fn;
     return free_fn(pctx, mdata);
 }
 
@@ -251,7 +251,7 @@ int mr_reset_scalar(packet_ctx *pctx, int idx) {
 
 int mr_pack_packet(packet_ctx *pctx) {
     if (pctx->u8valloc && mr_free(pctx->u8v0)) return -1;
-    const mr_mdata_fn vbi_count_fn = DTYPE_MDATA0[MR_VBI_DTYPE].count_fn;
+    const mr_mdata_fn vbi_count_fn = _DTYPE[MR_VBI_DTYPE].count_fn;
     mr_mdata *mdata = pctx->mdata0 + pctx->mdata_count - 1; // last one
 
     for (int i = pctx->mdata_count - 1; i > -1; mdata--, i--) { // go in reverse for VBIs
@@ -269,7 +269,7 @@ int mr_pack_packet(packet_ctx *pctx) {
     mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
         if (mdata->vexists) {
-            mr_mdata_fn pack_fn = DTYPE_MDATA0[mdata->dtype].pack_fn;
+            mr_mdata_fn pack_fn = _DTYPE[mdata->dtype].pack_fn;
             if (pack_fn && pack_fn(pctx, mdata)) return -1; // each pack_fn increments pctx->u8vpos
         }
     }
@@ -302,9 +302,9 @@ static int mr_unpack_packet(packet_ctx *pctx) {
                 if (!flag_mdata->value) continue; // skip this mdata if flag is not set
             }
 
-            mr_mdata_fn unpack_fn = DTYPE_MDATA0[mdata->dtype].unpack_fn;
+            mr_mdata_fn unpack_fn = _DTYPE[mdata->dtype].unpack_fn;
             if (unpack_fn && unpack_fn(pctx, mdata)) return -1;
-            mr_mdata_fn validate_fn = DTYPE_MDATA0[mdata->dtype].validate_fn;
+            mr_mdata_fn validate_fn = _DTYPE[mdata->dtype].validate_fn;
             if (validate_fn && validate_fn(pctx, mdata)) return -1;
         }
     }
@@ -385,7 +385,7 @@ int mr_free_packet_context(packet_ctx *pctx) {
     mr_mdata_fn free_fn;
     mr_mdata *mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; i++, mdata++) {
-        free_fn = DTYPE_MDATA0[mdata->dtype].free_fn;
+        free_fn = _DTYPE[mdata->dtype].free_fn;
         if (mdata->valloc && free_fn && free_fn(pctx, mdata)) return -1;
     }
 
@@ -408,7 +408,7 @@ int mr_init_packet(packet_ctx **ppctx, const mr_mdata *MDATA_TEMPLATE, size_t md
     memcpy(mdata0, MDATA_TEMPLATE, mdata_count * sizeof(mr_mdata));
     pctx->mdata0 = mdata0;
     pctx->mqtt_packet_type = mdata0->value; // always the value of the 0th mdata row
-    pctx->mqtt_packet_name = PTYPE_NAME[pctx->mqtt_packet_type >> 4]; // left nibble is index
+    pctx->mqtt_packet_name = _PTYPE_NAME[pctx->mqtt_packet_type >> 4]; // left nibble is index
     *ppctx = pctx;
     return 0;
 }
@@ -654,7 +654,7 @@ static int mr_unpack_props(packet_ctx *pctx, mr_mdata *mdata) {
             return -1;
         }
 
-        unpack_fn = DTYPE_MDATA0[prop_mdata->dtype].unpack_fn;
+        unpack_fn = _DTYPE[prop_mdata->dtype].unpack_fn;
         if (unpack_fn(pctx, prop_mdata)) return -1;
     }
 
@@ -706,7 +706,7 @@ static const uint8_t BIT_MASKS[] = {
 };
 
 static int mr_pack_bits(packet_ctx *pctx, mr_mdata *mdata) { // don't advance pctx->u8vpos
-    uint8_t bitpos = mdata->bp;
+    uint8_t bitpos = mdata->bpos;
     uint8_t *pu8 = pctx->u8v0 + pctx->u8vpos;
 
     *pu8 &= ~(BIT_MASKS[mdata->vlen] << bitpos);
@@ -725,7 +725,7 @@ static int mr_pack_incr1(packet_ctx *pctx, mr_mdata *mdata) { // now advance - b
 }
 
 static int mr_unpack_bits(packet_ctx *pctx, mr_mdata *mdata) { // don't advance pctx->u8vpos
-    uint8_t bitpos = mdata->bp;
+    uint8_t bitpos = mdata->bpos;
     uint8_t *pu8 = pctx->u8v0 + pctx->u8vpos;
     mdata->value = *pu8 >> bitpos & BIT_MASKS[mdata->vlen];
     mdata->vexists = true;
