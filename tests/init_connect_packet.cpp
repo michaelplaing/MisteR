@@ -1,4 +1,4 @@
-#include "catch2/catch.hpp"
+#include <catch2/catch.hpp>
 #include "mister/mister.h"
 
 unsigned int init_connect_packet() {

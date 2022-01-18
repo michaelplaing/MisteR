@@ -12,20 +12,18 @@ find_package(Catch2 REQUIRED)
 include_directories(mister PUBLIC ${mister_SOURCE_DIR}/include)
 
 # Tests need to be added as executables first - include CatchMain
-add_executable(simpletest simpletest.cpp CatchMain.cpp)
-add_executable(init_connect_packet init_connect_packet.cpp CatchMain.cpp)
+add_executable(connect_test connect_test.cpp CatchMain.cpp)
 
 # Use C++17 in the test
-target_compile_features(simpletest PRIVATE cxx_std_17)
-target_compile_features(init_connect_packet PRIVATE cxx_std_17)
+target_compile_features(connect_test PRIVATE cxx_std_17)
 
 # linked to the main library, as well as the Catch2 testing library
-target_link_libraries(simpletest PRIVATE Catch2::Catch2)
-target_link_libraries(init_connect_packet PRIVATE mister Catch2::Catch2)
+target_link_libraries(connect_test PRIVATE mister Catch2::Catch2)
 
 # If you register a test, then ctest and make test will run it.
 # You can also run examples and check the output, as well.
-add_test(NAME simpletest COMMAND simpletest) # Command can be a target
-add_test(NAME init_connect_packet COMMAND init_connect_packet) # Command can be a target
+add_test(NAME connect_test COMMAND connect_test) # Command can be a target
+configure_file("init_mdata_dump.txt" "init_mdata_dump.txt" COPYONLY)
+configure_file("init_pack_connect.bin" "init_pack_connect.bin" COPYONLY)
 
 add_subdirectory(unittests)
