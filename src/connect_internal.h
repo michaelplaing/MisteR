@@ -1,6 +1,10 @@
 #ifndef CONNECT_INTERNAL_H
 #define CONNECT_INTERNAL_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 enum CONNECT_MDATA_FIELDS { // Same order as _CONNECT_MDATA_TEMPLATE
     CONNECT_PACKET_TYPE,
     CONNECT_REMAINING_LENGTH,
@@ -79,5 +83,9 @@ struct mr_connect_values { // may or may not be useful
     uint8_t *user_name;
     uint8_t *password;
 };
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // CONNECT_INTERNAL_H

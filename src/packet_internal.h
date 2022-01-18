@@ -1,6 +1,10 @@
 #ifndef PACKET_INTERNAL_H
 #define PACKET_INTERNAL_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // a type that can be cast to/from a pointer or an int up to uint32_t
 typedef unsigned long mvalue_t;
 
@@ -132,4 +136,9 @@ static int mr_output_scalar(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_output_hexdump(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_output_string(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_output_spv(packet_ctx *pctx, mr_mdata *mdata);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif // PACKET_INTERNAL_H

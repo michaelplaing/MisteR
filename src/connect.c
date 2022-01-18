@@ -39,7 +39,8 @@ static const uint8_t _CWP[] = {
 };
 #define _CWPSZ 7
 
-static const mr_mdata _CONNECT_MDATA_TEMPLATE[] = {
+static const mr_mdata _CONNECT_MDATA_TEMPLATE[] = { // Same order as enum CONNACK_MDATA_FIELDS (see column idx)
+
 //   name                           dtype           bpos    value           valloc  vlen    u8vlen  vexists link                            propid                                  flagid                  idx                                     pvalloc     pvalue
     {"packet_type",                 MR_U8_DTYPE,    _NA,    MQTT_CONNECT,   false,  1,      1,      true,   _NA,                            _NA,                                    _NA,                    CONNECT_PACKET_TYPE,                    false,      NULL},
     {"remaining_length",            MR_VBI_DTYPE,   _NA,    0,              false,  0,      0,      true,   CONNECT_PASSWORD,               _NA,                                    _NA,                    CONNECT_REMAINING_LENGTH,               false,      NULL},

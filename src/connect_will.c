@@ -1,4 +1,4 @@
-/* will.c */
+/* connect_will.c */
 
 #include <stdio.h>
 #include <stdlib.h>

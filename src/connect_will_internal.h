@@ -1,5 +1,9 @@
-#ifndef WILL_INTERNAL_H
-#define WILL_INTERNAL_H
+#ifndef CONNECT_WILL_INTERNAL_H
+#define CONNECT_WILL_INTERNAL_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 static int mr_validate_will_qos(mr_connect_will_data *pwd);
 static int mr_validate_will_retain(mr_connect_will_data *pwd);
@@ -14,4 +18,8 @@ static int mr_validate_will_user_properties(mr_connect_will_data *pwd);
 static int mr_validate_will_topic(mr_connect_will_data *pwd);
 static int mr_validate_will_payload(mr_connect_will_data *pwd);
 
-#endif /* WILL_INTERNAL_H */
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* CONNECT_WILL_INTERNAL_H */
