@@ -27,7 +27,7 @@ TEST_CASE("default CONNECT packet", "[connect]") {
         free(mdata_dump);
     }
     SECTION("pack connect packet succeeds") {
-        print_hexdump(pctx->u8v0, pctx->u8vlen);
+        mr_print_hexdump(pctx->u8v0, pctx->u8vlen);
         // int rc = put_binary_file_content("fixtures/init_pack_connect.bin", pctx->u8v0, pctx->u8vlen);
         REQUIRE(rc20 == 0);
     }
@@ -78,8 +78,8 @@ TEST_CASE("default CONNECT packet", "[connect]") {
         uint32_t mdsz;
         rc = get_binary_file_content("fixtures/init_mdata_dump.txt", (uint8_t **)&mdata_dump, &mdsz);
         REQUIRE(rc == 0);
-        puts("mdata_dump:"); print_hexdump((uint8_t *)mdata_dump, mdsz);
-        puts("pctx->mdata_dump:"); print_hexdump((uint8_t *)pctx->mdata_dump, strlen(pctx->mdata_dump));
+        // puts("mdata_dump:"); mr_print_hexdump((uint8_t *)mdata_dump, mdsz);
+        // puts("pctx->mdata_dump:"); mr_print_hexdump((uint8_t *)pctx->mdata_dump, strlen(pctx->mdata_dump));
         REQUIRE(mdsz == strlen(pctx->mdata_dump));
         REQUIRE(strncmp(mdata_dump, pctx->mdata_dump, mdsz) == 0);
         free(mdata_dump);

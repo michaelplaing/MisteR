@@ -186,9 +186,9 @@ void mr_send_connect(redisAsyncContext *rctx) {
     mr_pack_connect_packet(pctx);
 
     printf("Connect Packet:\n");
-    print_hexdump(pctx->u8v0, pctx->u8vlen);
+    mr_print_hexdump(pctx->u8v0, pctx->u8vlen);
     // char cv[1000] = "";
-    // rc = get_hexdump(cv, sizeof(cv) - 1, pctx->u8v0, pctx->u8vlen);
+    // rc = mr_get_hexdump(cv, sizeof(cv) - 1, pctx->u8v0, pctx->u8vlen);
     // dzlog_info("Connect Packet:\n%s", cv);
     size_t len = pctx->u8vlen;
     uint8_t *u8v0;
@@ -267,7 +267,7 @@ void mr_send_connect(redisAsyncContext *rctx) {
     mr_init_connack_packet(&connack_pctx);
     rc = mr_pack_connack_packet(connack_pctx);
     printf("pack rc: %d\n", rc);
-    print_hexdump(connack_pctx->u8v0, connack_pctx->u8vlen);
+    mr_print_hexdump(connack_pctx->u8v0, connack_pctx->u8vlen);
 
     len = connack_pctx->u8vlen;
     rc = mr_malloc((void **)&u8v0, len);

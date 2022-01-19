@@ -123,9 +123,9 @@ typedef struct string_pair {
 
 // packet utilities
 
-int print_hexdump(const uint8_t *u8v, const size_t u8vlen);
-int get_hexdump(char *cv0, const size_t cvlen, const uint8_t *u8v, const size_t u8vlen);
-void compress_spaces_lines(char *cv);
+int mr_print_hexdump(const uint8_t *u8v, const size_t u8vlen);
+int mr_get_hexdump(char *cv0, const size_t cvlen, const uint8_t *u8v, const size_t u8vlen);
+void mr_compress_spaces_lines(char *cv);
 
 // connect packet
 

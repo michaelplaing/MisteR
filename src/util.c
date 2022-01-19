@@ -40,7 +40,7 @@
 /* MQTT: error on "Disallowed Unicode code points" (control chars) and U+0000 */
 int utf8val(const uint8_t *u8v, size_t len) {
     int err_pos = 1;
-    if (len > 65536) return err_pos; // MQTT: too large
+    if (len > 65536) return err_pos; // MQTT: vector too large
 
     while (len) { // 0-length is valid
         int bytes;
@@ -50,11 +50,10 @@ int utf8val(const uint8_t *u8v, size_t len) {
             if (byte1 <= 0x1F || byte1 == 0x7F) return err_pos; // MQTT: U+0000 or control char
             bytes = 1;
         }
-        else if ( /* C2..DF, 80..BF */
-                len >= 2
-                && byte1 >= 0xC2
-                && byte1 <= 0xDF
-                && (int8_t)u8v[1] <= (int8_t)0xBF
+        else if (
+            len >= 2
+            && byte1 >= 0xC2 && byte1 <= 0xDF   /* C2..DF */
+            && u8v[1] >= 0x80 && u8v[1] <= 0xBF /* 80..BF */
         ) {
             if (byte1 == 0xC2 && u8v[1] <= 0x9F) return err_pos; // MQTT: control char
             bytes = 2;
@@ -164,14 +163,14 @@ int mr_get_VBI(uint32_t *pu32, uint8_t *u8v) {
     }
 }
 
-int print_hexdump(const uint8_t *u8v, const size_t u8vlen) {
+int mr_print_hexdump(const uint8_t *u8v, const size_t u8vlen) {
     if (!(u8v && u8vlen)) return -1;
     int u8vlines = (u8vlen - 1) / 16 + 1;
     if (u8vlines > 40) u8vlines = 40; // 40 lines max - TODO: parameterize
     size_t cvlen = u8vlines * 70 + 1; // trailing 0
     char *pc = calloc(cvlen, 1);
     if (!pc) return -1;
-    int rc = get_hexdump(pc, cvlen, u8v, u8vlen);
+    int rc = mr_get_hexdump(pc, cvlen, u8v, u8vlen);
 
     if (rc) {
         free(pc);
@@ -184,7 +183,7 @@ int print_hexdump(const uint8_t *u8v, const size_t u8vlen) {
     }
 }
 
-int get_hexdump(char *cv0, size_t cvlen, const uint8_t *u8v, size_t u8vlen) {
+int mr_get_hexdump(char *cv0, size_t cvlen, const uint8_t *u8v, size_t u8vlen) {
     if (!(cv0 && cvlen >= 70 && u8v && u8vlen)) return -1;
     int u8vlines = (u8vlen - 1) / 16 + 1;
     if (u8vlines > 40) u8vlines = 40; // 40 lines max - TODO: parameterize?
@@ -234,7 +233,7 @@ int get_hexdump(char *cv0, size_t cvlen, const uint8_t *u8v, size_t u8vlen) {
     return 0;
 }
 
-void compress_spaces_lines(char *cv) {
+void mr_compress_spaces_lines(char *cv) {
     if (!*cv) return;
     size_t slen = strlen(cv);
     char *d = cv;

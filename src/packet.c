@@ -56,8 +56,8 @@ static int mr_output_scalar(packet_ctx *pctx, mr_mdata *mdata) {
 static int mr_output_hexdump(packet_ctx *pctx, mr_mdata *mdata) {
     char cv[CVSZ];
     size_t len = mdata->vlen > 32 ? 32 : mdata->vlen; // limit to 32 bytes
-    if (get_hexdump(cv, sizeof(cv), (uint8_t *)mdata->value, len)) return -1;
-    compress_spaces_lines(cv); // make into a single line
+    if (mr_get_hexdump(cv, sizeof(cv), (uint8_t *)mdata->value, len)) return -1;
+    mr_compress_spaces_lines(cv); // make into a single line
     char *ovalue;
     if (mr_malloc((void **)&ovalue, strlen(cv) + 1)) return -1;
     strlcpy(ovalue, cv, CVSZ);

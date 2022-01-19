@@ -27,7 +27,7 @@ TEST_CASE("complex CONNECT packet", "[connect]") {
         free(mdata_dump);
     }
     SECTION("pack connect packet succeeds") {
-        print_hexdump(pctx->u8v0, pctx->u8vlen);
+        mr_print_hexdump(pctx->u8v0, pctx->u8vlen);
         // int rc = put_binary_file_content("fixtures/init_pack_connect.bin", pctx->u8v0, pctx->u8vlen);
         REQUIRE(rc20 == 0);
     }
