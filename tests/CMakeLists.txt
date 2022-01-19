@@ -25,8 +25,8 @@ add_test(NAME test-000-default_connect COMMAND test-000-default_connect)
 add_test(NAME test-001-complex_connect COMMAND test-001-complex_connect)
 
 # copy the fixture files to the build directory
-configure_file("fixtures/init_mdata_dump.txt" "fixtures/init_mdata_dump.txt" COPYONLY)
-configure_file("fixtures/init_pack_connect.bin" "fixtures/init_pack_connect.bin" COPYONLY)
+configure_file("fixtures/default_connect_mdata_dump.txt" "fixtures/default_connect_mdata_dump.txt" COPYONLY)
+configure_file("fixtures/default_connect_packet.bin" "fixtures/default_connect_packet.bin" COPYONLY)
 
 # add the cmocka test directory
-add_subdirectory(unittests)
+# add_subdirectory(unittests)
