@@ -37,6 +37,7 @@ TEST_CASE("complex CONNECT packet", "[connect]") {
         .will_payload = will_payload,
         .will_payload_len = sizeof(will_payload)
     };
+
     int rc05 = mr_set_connect_will_values(pctx, &wd);
 
     // int rc10 = mr_connect_mdata_dump(pctx);
@@ -53,35 +54,43 @@ TEST_CASE("complex CONNECT packet", "[connect]") {
         int rc07 = mr_validate_connect_will_values(pctx);
         REQUIRE(rc07 == 0);
     }
-    /*
-    SECTION("connect mdata_dump succeeds") {
+    SECTION("connect will mdata_dump succeeds") {
+        int rc10 = mr_connect_mdata_dump(pctx);
         REQUIRE(rc10 == 0);
-    }
-    SECTION("connect mdata_dump is correct") {
+        // int rc = put_binary_file_content(
+        //    "fixtures/complex_connect_will_mdata_dump.txt", (uint8_t *)pctx->mdata_dump, strlen(pctx->mdata_dump)
+        //);
+}
+    SECTION("connect will mdata_dump is correct") {
+        int rc10 = mr_connect_mdata_dump(pctx);
+        REQUIRE(rc10 == 0);
         char *mdata_dump;
         uint32_t mdsz;
-        int rc = get_binary_file_content("fixtures/init_mdata_dump.txt", (uint8_t **)&mdata_dump, &mdsz);
+        int rc = get_binary_file_content("fixtures/complex_connect_will_mdata_dump.txt", (uint8_t **)&mdata_dump, &mdsz);
         REQUIRE(rc == 0);
         REQUIRE(mdsz == strlen(pctx->mdata_dump));
         REQUIRE(strncmp(mdata_dump, pctx->mdata_dump, mdsz) == 0);
         free(mdata_dump);
     }
     SECTION("pack connect packet succeeds") {
+        int rc20 = mr_pack_connect_packet(pctx);
         mr_print_hexdump(pctx->u8v0, pctx->u8vlen);
-        // int rc = put_binary_file_content("fixtures/init_pack_connect.bin", pctx->u8v0, pctx->u8vlen);
+        // int rc = put_binary_file_content("fixtures/complex_connect_packet.bin", pctx->u8v0, pctx->u8vlen);
         REQUIRE(rc20 == 0);
     }
     SECTION("packed connect packet is correct") {
+        int rc20 = mr_pack_connect_packet(pctx);
+        REQUIRE(rc20 == 0);
         uint8_t *u8v0;
         uint32_t u8vlen;
-        int rc = get_binary_file_content("fixtures/init_pack_connect.bin", &u8v0, &u8vlen);
+        int rc = get_binary_file_content("fixtures/complex_connect_packet.bin", &u8v0, &u8vlen);
         REQUIRE(rc == 0);
         REQUIRE(u8vlen == pctx->u8vlen);
         REQUIRE(memcmp(u8v0, pctx->u8v0, u8vlen) == 0);
         free(u8v0);
     }
     SECTION("free connect packet succeeds") {
+        int rc30 = mr_free_connect_packet(pctx);
         REQUIRE(rc30 == 0);
     }
-    */
 }
