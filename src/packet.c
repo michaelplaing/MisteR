@@ -101,8 +101,15 @@ static int mr_output_spv(packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 int mr_mdata_dump(packet_ctx *pctx) {
+    const mr_mdata_fn vbi_count_fn = _DTYPE[MR_VBI_DTYPE].count_fn;
+    mr_mdata *mdata = pctx->mdata0 + pctx->mdata_count - 1; // last one
+
+    for (int i = pctx->mdata_count - 1; i > -1; mdata--, i--) { // go in reverse to calculate VBIs
+        if (mdata->vexists && mdata->dtype == MR_VBI_DTYPE && vbi_count_fn(pctx, mdata)) return -1;
+    }
+
     size_t len = 0;
-    mr_mdata *mdata = pctx->mdata0;
+    mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
         if (mdata->vexists) {
             mr_mdata_fn output_fn = _DTYPE[mdata->dtype].output_fn;
@@ -254,7 +261,7 @@ int mr_pack_packet(packet_ctx *pctx) {
     const mr_mdata_fn vbi_count_fn = _DTYPE[MR_VBI_DTYPE].count_fn;
     mr_mdata *mdata = pctx->mdata0 + pctx->mdata_count - 1; // last one
 
-    for (int i = pctx->mdata_count - 1; i > -1; mdata--, i--) { // go in reverse for VBIs
+    for (int i = pctx->mdata_count - 1; i > -1; mdata--, i--) { // go in reverse to calculate VBIs
         if (mdata->vexists) {
             if (mdata->dtype == MR_VBI_DTYPE && vbi_count_fn(pctx, mdata)) return -1;
             pctx->u8vlen += mdata->u8vlen;
@@ -372,7 +379,7 @@ static int mr_unpack_VBI(packet_ctx *pctx, mr_mdata *mdata) {
  }
 
 static int mr_free_vector(packet_ctx *pctx, mr_mdata *mdata) {
-    if (mdata->valloc && !mr_free((void *)mdata->value)) return -1;
+    if (mdata->valloc && mr_free((void *)mdata->value)) return -1;
     mdata->value = (mvalue_t)NULL;
     mdata->valloc = false;
     mdata->vexists = false;

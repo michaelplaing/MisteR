@@ -1,5 +1,5 @@
 packet_type:16
-remaining_length:0
+remaining_length:13
 protocol_name:4D 51 54 54 | MQTT
 protocol_version:5
 reserved:0
