@@ -1,5 +1,5 @@
-find_package(PkgConfig REQUIRED)
-pkg_check_modules (TESTLIBS REQUIRED cmocka)
+find_library(CMocka cmocka REQUIRED)
+include(AddCMockaTest)
 
 include_directories(mister PUBLIC ${mister_SOURCE_DIR}/include)
 
@@ -12,6 +12,6 @@ foreach(_UNIT_TEST ${MISTER_UNIT_TESTS})
     add_cmocka_test(
         ${_UNIT_TEST}
         SOURCES ${_UNIT_TEST}.c
-        LINK_LIBRARIES mister ${TESTLIBS_LIBRARIES}
+        LINK_LIBRARIES mister cmocka
     )
 endforeach()

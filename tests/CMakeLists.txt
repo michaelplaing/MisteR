@@ -1,5 +1,3 @@
-find_package(PkgConfig REQUIRED)
-pkg_check_modules (Catch2 REQUIRED catch2>=2.13.8)
 find_package(Catch2 REQUIRED)
 
 include_directories(mister PUBLIC ${mister_SOURCE_DIR}/include)
@@ -30,4 +28,4 @@ configure_file("fixtures/will_connect_mdata_dump.txt" "fixtures/will_connect_mda
 configure_file("fixtures/will_connect_packet.bin" "fixtures/will_connect_packet.bin" COPYONLY)
 
 # add the cmocka test directory
-# add_subdirectory(unittests)
+add_subdirectory(unittests)

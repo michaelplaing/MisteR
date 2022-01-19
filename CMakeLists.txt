@@ -59,11 +59,6 @@ if (UNIT_TESTING OR MODULE_TESTING)
 endif()
 
 if (UNIT_TESTING)
-    find_package(CMocka REQUIRED)
-endif ()
-
-if (UNIT_TESTING)
-    include(AddCMockaTest)
     add_subdirectory(tests)
 endif ()
 
