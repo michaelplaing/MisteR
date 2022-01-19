@@ -13,7 +13,6 @@ TEST_CASE("default CONNECT packet", "[connect]") {
     SECTION("connect packet initialization succeeds") {
         REQUIRE(rc00 == 0);
     }
-
     SECTION("connect mdata_dump succeeds") {
         REQUIRE(rc10 == 0);
     }
@@ -22,7 +21,8 @@ TEST_CASE("default CONNECT packet", "[connect]") {
         uint32_t mdsz;
         int rc = get_binary_file_content("fixtures/init_mdata_dump.txt", (uint8_t **)&mdata_dump, &mdsz);
         REQUIRE(rc == 0);
-        REQUIRE(strncmp(mdata_dump, pctx->mdata_dump, strlen(pctx->mdata_dump)) == 0);
+        REQUIRE(mdsz == strlen(pctx->mdata_dump));
+        REQUIRE(strncmp(mdata_dump, pctx->mdata_dump, mdsz) == 0);
         free(mdata_dump);
     }
     SECTION("pack connect packet succeeds") {
@@ -35,6 +35,7 @@ TEST_CASE("default CONNECT packet", "[connect]") {
         uint32_t u8vlen;
         int rc = get_binary_file_content("fixtures/init_pack_connect.bin", &u8v0, &u8vlen);
         REQUIRE(rc == 0);
+        REQUIRE(u8vlen == pctx->u8vlen);
         REQUIRE(memcmp(u8v0, pctx->u8v0, u8vlen) == 0);
         free(u8v0);
     }
