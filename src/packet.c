@@ -40,7 +40,7 @@ static const mr_dtype _DTYPE[] = { // same order as mr_dtypes enum
     {MR_U8V_DTYPE,      "binary data - uint8 vec",  mr_count_u8v,   mr_pack_u8v,        mr_unpack_u8v,      mr_output_hexdump,  NULL,               mr_free_vector},
     {MR_STR_DTYPE,      "utf8 prefix string",       mr_count_str,   mr_pack_str,        mr_unpack_str,      mr_output_string,   mr_validate_str,    mr_free_vector},
     {MR_SPV_DTYPE,      "string pair vector",       mr_count_spv,   mr_pack_spv,        mr_unpack_spv,      mr_output_spv,      mr_validate_spv,    mr_free_spv},
-    {MR_FLAGS_DTYPE,    "uint8 flag",               NULL,           mr_pack_incr1,      mr_unpack_incr1,    mr_output_hdvalue,  NULL,               NULL},
+    {MR_FLAGS_DTYPE,    "uint8 flag",               NULL,           mr_pack_incr1,      mr_unpack_u8,       mr_output_hdvalue,  NULL,               NULL},
     {MR_PROPS_DTYPE,    "properties",               NULL,           NULL,               mr_unpack_props,    mr_output_hexdump,  NULL,               NULL}
 };
 
@@ -132,7 +132,6 @@ int mr_mdata_dump(packet_ctx *pctx) {
     mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
         if (mdata->vexists) {
-            if (mdata->dtype == MR_BITS_DTYPE && mr_pack_bits_in_value(pctx, mdata)) return -1;
             mr_mdata_fn output_fn = _DTYPE[mdata->dtype].output_fn;
             if (output_fn(pctx, mdata)) return -1;
             len += strlen(mdata->name) + 1 + strlen(mdata->ovalue) + 1; // ':' and '\n'
@@ -178,6 +177,7 @@ int mr_set_scalar(packet_ctx *pctx, int idx, mvalue_t value) {
     mdata->value = value;
     mdata->vexists = true; // don't update vlen or u8vlen for scalars
     if (validate_fn && validate_fn(pctx, mdata)) return -1;
+    if (mdata->dtype == MR_BITS_DTYPE && mr_pack_bits_in_value(pctx, mdata)) return -1;
     return 0;
 }
 
@@ -768,16 +768,10 @@ static int mr_pack_incr1(packet_ctx *pctx, mr_mdata *mdata) { // now advance - b
     return 0;
 }
 
-static int mr_unpack_bits(packet_ctx *pctx, mr_mdata *mdata) { // don't advance pctx->u8vpos
-    uint8_t bitpos = mdata->bpos;
+static int mr_unpack_bits(packet_ctx *pctx, mr_mdata *mdata) {  // don't advance pctx->u8vpos; unpacking
+    uint8_t bitpos = mdata->bpos;                               // the following flags byte will do that
     uint8_t *pu8 = pctx->u8v0 + pctx->u8vpos;
     mdata->value = *pu8 >> bitpos & BIT_MASKS[mdata->vlen];
     mdata->vexists = true;
-    return 0;
-}
-
-static int mr_unpack_incr1(packet_ctx *pctx, mr_mdata *mdata) { // now advance - bits all unpacked
-    mdata->vexists = true;
-    pctx->u8vpos++;
     return 0;
 }

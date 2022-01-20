@@ -124,7 +124,6 @@ static int mr_pack_bits_in_value(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_pack_bits(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_pack_incr1(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_unpack_bits(packet_ctx *pctx, mr_mdata *mdata);
-static int mr_unpack_incr1(packet_ctx *pctx, mr_mdata *mdata);
 
 static int mr_count_spv(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_pack_spv(packet_ctx *pctx, mr_mdata *mdata);
