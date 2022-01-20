@@ -1,5 +1,4 @@
-find_package(PkgConfig REQUIRED)
-pkg_check_modules (MYLIBS REQUIRED jemalloc)
+find_library(JEMALLOC jemalloc REQUIRED)
 
 file(GLOB HEADER_LIST CONFIGURE_DEPENDS "${mister_SOURCE_DIR}/include/mister/*.h")
 
@@ -10,4 +9,4 @@ add_library(
 )
 
 target_include_directories(mister PUBLIC ../include)
-target_link_libraries(mister PRIVATE mrzlog ${MYLIBS_LIBRARIES})
+target_link_libraries(mister PRIVATE mrzlog jemalloc)
