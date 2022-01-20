@@ -3,7 +3,7 @@
 #include "mister/mister.h"
 #include "util.h"
 
-TEST_CASE("will CONNECT packet", "[connect]") {
+TEST_CASE("complex CONNECT packet", "[connect]") {
     packet_ctx *pctx;
     int rc00 = mr_init_connect_packet(&pctx);
     char content_type[] = "content_type";
@@ -39,29 +39,73 @@ TEST_CASE("will CONNECT packet", "[connect]") {
     };
 
     int rc05 = mr_set_connect_will_values(pctx, &wd);
+    int rc07 = mr_validate_connect_will_values(pctx);
 
-    // int rc10 = mr_connect_mdata_dump(pctx);
+    int rc100 = mr_set_connect_clean_start(pctx, true);
+    int rc110 = mr_set_connect_keep_alive(pctx, 5);
+    int rc120 = mr_set_connect_session_expiry_interval(pctx, 3600);
+    int rc130 = mr_set_connect_receive_maximum(pctx, 1000);
+    int rc140 = mr_set_connect_maximum_packet_size(pctx, 32768);
+    int rc150 = mr_set_connect_topic_alias_maximum(pctx, 10);
+    int rc160 = mr_set_connect_request_response_information(pctx, 1);
+    int rc170 = mr_set_connect_request_problem_information(pctx, 1);
+
+    char flim[] = "flim";
+    char flop[] = "flop";
+    string_pair spflim = {flim, flop};
+    char flam[] = "flam";
+    char floop[] = "floop";
+    string_pair spflam = {flam, floop};
+    string_pair user_properties[] = {spflim, spflam};
+    int rc180 = mr_set_connect_user_properties(pctx, user_properties, sizeof(user_properties) / sizeof(string_pair));
+
+    char authentication_method[] = "authentication_method";
+    int rc190 = mr_set_connect_authentication_method(pctx, authentication_method);
+
+    uint8_t authentication_data[] = {'d', 'e', 'f'};
+    int rc200 = mr_set_connect_authentication_data(pctx, authentication_data, sizeof(authentication_data));
+
+    char client_identifier[] = "client_identifier";
+    int rc210 = mr_set_connect_client_identifier(pctx, client_identifier);
+
+    char user_name[] = "user_name";
+    int rc220 = mr_set_connect_user_name(pctx, user_name);
+
+    uint8_t password[] = {'g', 'h', 'i'};
+    int rc230 = mr_set_connect_password(pctx, password, sizeof(password));
+
+
     // int rc20 = mr_pack_connect_packet(pctx);
     // int rc30 = mr_free_connect_packet(pctx);
 
-    SECTION("connect packet set will values succeeds") {
+    SECTION("connect packet set values succeeds") {
         REQUIRE(rc00 == 0);
         REQUIRE(rc05 == 0);
-    }
-    SECTION("connect packet validate will values succeeds") {
-        REQUIRE(rc00 == 0);
-        REQUIRE(rc05 == 0);
-        int rc07 = mr_validate_connect_will_values(pctx);
         REQUIRE(rc07 == 0);
+        REQUIRE(rc100 == 0);
+        REQUIRE(rc110 == 0);
+        REQUIRE(rc120 == 0);
+        REQUIRE(rc130 == 0);
+        REQUIRE(rc140 == 0);
+        REQUIRE(rc150 == 0);
+        REQUIRE(rc160 == 0);
+        REQUIRE(rc170 == 0);
+        REQUIRE(rc180 == 0);
+        REQUIRE(rc190 == 0);
+        REQUIRE(rc200 == 0);
+        REQUIRE(rc210 == 0);
+        REQUIRE(rc220 == 0);
+        REQUIRE(rc230 == 0);
     }
-    SECTION("connect will mdata_dump succeeds") {
+    SECTION("connect mdata_dump succeeds") {
         int rc10 = mr_connect_mdata_dump(pctx);
         REQUIRE(rc10 == 0);
-        //int rc = put_binary_file_content(
-        //    "fixtures/will_connect_mdata_dump.txt", (uint8_t *)pctx->mdata_dump, strlen(pctx->mdata_dump)
-        //);
-        //REQUIRE(rc == 0);
+        // int rc = put_binary_file_content(
+        //     "fixtures/complex_connect_mdata_dump.txt", (uint8_t *)pctx->mdata_dump, strlen(pctx->mdata_dump)
+        // );
+        // REQUIRE(rc == 0);
 }
+    /*
     SECTION("connect will mdata_dump is correct") {
         int rc10 = mr_connect_mdata_dump(pctx);
         REQUIRE(rc10 == 0);
@@ -94,4 +138,5 @@ TEST_CASE("will CONNECT packet", "[connect]") {
         int rc30 = mr_free_connect_packet(pctx);
         REQUIRE(rc30 == 0);
     }
+    */
 }

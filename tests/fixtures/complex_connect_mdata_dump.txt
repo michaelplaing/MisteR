@@ -1,0 +1,37 @@
+packet_type:16
+remaining_length:214
+protocol_name:4D 51 54 54 | MQTT
+protocol_version:5
+reserved:0
+clean_start:1
+will_flag:1
+will_qos:2
+will_retain:1
+password_flag:1
+username_flag:1
+mr_flags:00 00 00 F6 | ....
+keep_alive:5
+property_length:77
+mr_properties:11 21 27 22 19 17 26 15 16 | .!'"..&..
+session_expiry_interval:3600
+receive_maximum:1000
+maximum_packet_size:32768
+topic_alias_maximum:10
+request_response_information:1
+request_problem_information:1
+user_properties:flim:flop;flam:floop
+authentication_method:authentication_method
+authentication_data:64 65 66 | def
+client_identifier:client_identifier
+will_property_length:73
+will_delay_interval:1000
+payload_format_indicator:1
+message_expiry_interval:1000
+content_type:content_type
+response_topic:response_topic
+correlation_data:31 32 33 | 123
+will_user_properties:baz:bip;bam:boop
+will_topic:will_topic
+will_payload:61 62 63 | abc
+user_name:user_name
+password:67 68 69 | ghi

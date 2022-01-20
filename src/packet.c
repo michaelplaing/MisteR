@@ -40,7 +40,7 @@ static const mr_dtype _DTYPE[] = { // same order as mr_dtypes enum
     {MR_U8V_DTYPE,      "binary data - uint8 vec",  mr_count_u8v,   mr_pack_u8v,        mr_unpack_u8v,      mr_output_hexdump,  NULL,               mr_free_vector},
     {MR_STR_DTYPE,      "utf8 prefix string",       mr_count_str,   mr_pack_str,        mr_unpack_str,      mr_output_string,   mr_validate_str,    mr_free_vector},
     {MR_SPV_DTYPE,      "string pair vector",       mr_count_spv,   mr_pack_spv,        mr_unpack_spv,      mr_output_spv,      mr_validate_spv,    mr_free_spv},
-    {MR_FLAGS_DTYPE,    "uint8 flag",               NULL,           mr_pack_incr1,      mr_unpack_incr1,    mr_output_scalar,   NULL,               NULL},
+    {MR_FLAGS_DTYPE,    "uint8 flag",               NULL,           mr_pack_incr1,      mr_unpack_incr1,    mr_output_hdvalue,  NULL,               NULL},
     {MR_PROPS_DTYPE,    "properties",               NULL,           NULL,               mr_unpack_props,    mr_output_hexdump,  NULL,               NULL}
 };
 
@@ -57,6 +57,24 @@ static int mr_output_hexdump(packet_ctx *pctx, mr_mdata *mdata) {
     char cv[CVSZ];
     size_t len = mdata->vlen > 32 ? 32 : mdata->vlen; // limit to 32 bytes
     if (mr_get_hexdump(cv, sizeof(cv), (uint8_t *)mdata->value, len)) return -1;
+    mr_compress_spaces_lines(cv); // make into a single line
+    char *ovalue;
+    if (mr_malloc((void **)&ovalue, strlen(cv) + 1)) return -1;
+    strlcpy(ovalue, cv, CVSZ);
+    mdata->ovalue = ovalue;
+    mdata->ovalloc = true;
+    return 0;
+}
+
+static int mr_output_hdvalue(packet_ctx *pctx, mr_mdata *mdata) {
+    char cv[CVSZ];
+    uint8_t u8v[4];
+    uint32_t u32 = mdata->value;
+    u8v[0] = (u32 >> 24) & 0xFF;
+    u8v[1] = (u32 >> 16) & 0xFF;
+    u8v[2] = (u32 >> 8) & 0xFF;
+    u8v[3] = u32 & 0xFF;
+    if (mr_get_hexdump(cv, sizeof(cv), u8v, 4)) return -1;
     mr_compress_spaces_lines(cv); // make into a single line
     char *ovalue;
     if (mr_malloc((void **)&ovalue, strlen(cv) + 1)) return -1;
@@ -102,9 +120,11 @@ static int mr_output_spv(packet_ctx *pctx, mr_mdata *mdata) {
 
 int mr_mdata_dump(packet_ctx *pctx) {
     const mr_mdata_fn vbi_count_fn = _DTYPE[MR_VBI_DTYPE].count_fn;
+
+    // traverse in reverse to calculate VBIs since they have variable size
     mr_mdata *mdata = pctx->mdata0 + pctx->mdata_count - 1; // last one
 
-    for (int i = pctx->mdata_count - 1; i > -1; mdata--, i--) { // go in reverse to calculate VBIs
+    for (int i = pctx->mdata_count - 1; i > -1; mdata--, i--) {
         if (mdata->vexists && mdata->dtype == MR_VBI_DTYPE && vbi_count_fn(pctx, mdata)) return -1;
     }
 
@@ -112,6 +132,7 @@ int mr_mdata_dump(packet_ctx *pctx) {
     mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
         if (mdata->vexists) {
+            if (mdata->dtype == MR_BITS_DTYPE && mr_pack_bits_in_value(pctx, mdata)) return -1;
             mr_mdata_fn output_fn = _DTYPE[mdata->dtype].output_fn;
             if (output_fn(pctx, mdata)) return -1;
             len += strlen(mdata->name) + 1 + strlen(mdata->ovalue) + 1; // ':' and '\n'
@@ -711,6 +732,22 @@ static int mr_unpack_u8v(packet_ctx *pctx, mr_mdata *mdata) {
 static const uint8_t BIT_MASKS[] = {
     0x00, 0x01, 0x03, 0x07, 0x0F, 0x1F, 0x3F, 0x7F
 };
+
+static int mr_pack_bits_in_value(packet_ctx *pctx, mr_mdata *mdata) {
+    uint8_t bitpos = mdata->bpos;
+    mr_mdata *flags_mdata = pctx->mdata0 + mdata->link;
+    uint8_t flags_u8 = flags_mdata->value;
+
+    flags_u8 &= ~(BIT_MASKS[mdata->vlen] << bitpos);
+
+    if (mdata->value) {
+        uint8_t u8 = mdata->value;
+        flags_u8 |= u8 << bitpos;
+    }
+
+    flags_mdata->value = flags_u8;
+    return 0;
+}
 
 static int mr_pack_bits(packet_ctx *pctx, mr_mdata *mdata) { // don't advance pctx->u8vpos
     uint8_t bitpos = mdata->bpos;

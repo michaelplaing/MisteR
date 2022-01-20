@@ -72,6 +72,7 @@ int mr_validate_u8vutf8(packet_ctx *pctx, int idx);
 int mr_free_packet_context(packet_ctx *pctx);
 
 static int mr_output_scalar(packet_ctx *pctx, mr_mdata *mdata);
+static int mr_output_hdvalue(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_output_hexdump(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_output_string(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_output_spv(packet_ctx *pctx, mr_mdata *mdata);
@@ -119,6 +120,7 @@ static int mr_count_u8v(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_pack_u8v(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_unpack_u8v(packet_ctx *pctx, mr_mdata *mdata);
 
+static int mr_pack_bits_in_value(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_pack_bits(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_pack_incr1(packet_ctx *pctx, mr_mdata *mdata);
 static int mr_unpack_bits(packet_ctx *pctx, mr_mdata *mdata);
