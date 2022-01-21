@@ -656,6 +656,7 @@ static int mr_unpack_props(packet_ctx *pctx, mr_mdata *mdata) {
     int prop_index;
     mr_mdata *prop_mdata;
     mr_mdata_fn unpack_fn;
+    mr_mdata_fn validate_fn;
 
     for (; pctx->u8vpos < end_pos;) {
         pu8 = pctx->u8v0 + pctx->u8vpos++;
@@ -684,6 +685,8 @@ static int mr_unpack_props(packet_ctx *pctx, mr_mdata *mdata) {
 
         unpack_fn = _DTYPE[prop_mdata->dtype].unpack_fn;
         if (unpack_fn(pctx, prop_mdata)) return -1;
+        validate_fn = _DTYPE[mdata->dtype].validate_fn;
+        if (validate_fn && validate_fn(pctx, mdata)) return -1;
     }
 
     return 0;
@@ -696,10 +699,11 @@ static int mr_count_u8v(packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_pack_u8v(packet_ctx *pctx, mr_mdata *mdata) {
-    int istr = mdata->dtype == MR_STR_DTYPE ? 1 : 0;
+    bool bstr = mdata->dtype == MR_STR_DTYPE;
+    // int istr = mdata->dtype == MR_STR_DTYPE ? 1 : 0;
     uint8_t propid = mdata->propid;
     if (propid) pctx->u8v0[pctx->u8vpos++] = propid;
-    uint16_t u16 = mdata->vlen - istr;
+    uint16_t u16 = mdata->vlen - (bstr ? 1 : 0);
     pctx->u8v0[pctx->u8vpos++] = (u16 >> 8) & 0xFF;
     pctx->u8v0[pctx->u8vpos++] = u16 & 0xFF;
     memcpy(pctx->u8v0 + pctx->u8vpos, (uint8_t *)mdata->value, u16);
@@ -708,22 +712,23 @@ static int mr_pack_u8v(packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_unpack_u8v(packet_ctx *pctx, mr_mdata *mdata) {
-    int istr = mdata->dtype == MR_STR_DTYPE ? 1 : 0;
+    bool bstr = mdata->dtype == MR_STR_DTYPE;
+    // int istr = mdata->dtype == MR_STR_DTYPE ? 1 : 0;
     uint8_t *u8v = pctx->u8v0 + pctx->u8vpos;
     uint16_t u16v[] = {u8v[0], u8v[1]}; u8v += 2;
     size_t u8vlen = (u16v[0] << 8) + u16v[1];
-    size_t vlen = u8vlen + istr;
+    size_t vlen = u8vlen + (bstr ? 1 : 0);
 
     uint8_t *value;
-    if (mr_malloc((void **)&value, vlen)) return -1;
+    if (mr_calloc((void **)&value, vlen, 1)) return -1;
 
     memcpy(value, u8v, u8vlen);
-    if (istr) value[vlen] = '\0';
+    // if (bstr) value[vlen] = '\0';
     mdata->value = (mvalue_t)value;
     mdata->vlen = vlen;
     mdata->vexists = true;
     mdata->valloc = true;
-    mdata->u8vlen = mdata->propid ? 1 : 0 + 2 + u8vlen;
+    mdata->u8vlen = (mdata->propid ? 1 : 0) + 2 + u8vlen;
     pctx->u8vpos += 2 + u8vlen;
     return 0;
 }

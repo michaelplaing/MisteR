@@ -5,6 +5,7 @@
 #include <ctype.h>
 
 #include "mister/mister.h"
+#include "mister/mrzlog.h"
 #include "util_internal.h"
 
 // MQTT unicode validation using a reasonably fast and portable naïve method
@@ -39,6 +40,8 @@
 /* Return 0 - success,  >0 - index(1-based) of first error char */
 /* MQTT: error on "Disallowed Unicode code points" (control chars) and U+0000 */
 int utf8val(const uint8_t *u8v, size_t len) {
+    //mr_print_hexdump(u8v, len);
+    //dzlog_debug("int utf8val:: *ubv: %02hhX; len: %lu", u8v[0], len);
     int err_pos = 1;
     if (len > 65536) return err_pos; // MQTT: vector too large
 

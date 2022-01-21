@@ -1,9 +1,11 @@
 #include <unistd.h>
 #include <catch2/catch.hpp>
 #include "mister/mister.h"
+#include "mister/mrzlog.h"
 #include "util.h"
 
 TEST_CASE("complex CONNECT packet", "[connect]") {
+    dzlog_init("", "mr_init");
     packet_ctx *pctx;
     int rc00 = mr_init_connect_packet(&pctx);
     char content_type[] = "content_type";
@@ -137,4 +139,16 @@ TEST_CASE("complex CONNECT packet", "[connect]") {
         int rc30 = mr_free_connect_packet(pctx);
         REQUIRE(rc30 == 0);
     }
+    SECTION("unpack/free connect packet succeeds") {
+        uint8_t *u8v0;
+        uint32_t u8vlen;
+        int rc = get_binary_file_content("fixtures/complex_connect_packet.bin", &u8v0, &u8vlen);
+        REQUIRE(rc == 0);
+        int rc40 = mr_init_unpack_connect_packet(&pctx, u8v0, u8vlen);
+        REQUIRE(rc40 == 0);
+        rc = mr_free_connect_packet(pctx);
+        REQUIRE(rc == 0);
+    }
+
+    zlog_fini();
 }

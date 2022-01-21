@@ -1,9 +1,11 @@
 #include <unistd.h>
 #include <catch2/catch.hpp>
 #include "mister/mister.h"
+#include "mister/mrzlog.h"
 #include "util.h"
 
 TEST_CASE("will CONNECT packet", "[connect]") {
+    dzlog_init("", "mr_init");
     packet_ctx *pctx;
     int rc00 = mr_init_connect_packet(&pctx);
     char content_type[] = "content_type";
@@ -61,7 +63,7 @@ TEST_CASE("will CONNECT packet", "[connect]") {
         //    "fixtures/will_connect_mdata_dump.txt", (uint8_t *)pctx->mdata_dump, strlen(pctx->mdata_dump)
         //);
         //REQUIRE(rc == 0);
-}
+    }
     SECTION("connect will mdata_dump is correct") {
         int rc10 = mr_connect_mdata_dump(pctx);
         REQUIRE(rc10 == 0);
@@ -94,4 +96,16 @@ TEST_CASE("will CONNECT packet", "[connect]") {
         int rc30 = mr_free_connect_packet(pctx);
         REQUIRE(rc30 == 0);
     }
+    SECTION("unpack/free connect packet succeeds") {
+        uint8_t *u8v0;
+        uint32_t u8vlen;
+        int rc = get_binary_file_content("fixtures/will_connect_packet.bin", &u8v0, &u8vlen);
+        REQUIRE(rc == 0);
+        int rc40 = mr_init_unpack_connect_packet(&pctx, u8v0, u8vlen);
+        REQUIRE(rc40 == 0);
+        rc = mr_free_connect_packet(pctx);
+        REQUIRE(rc == 0);
+    }
+
+    zlog_fini();
 }
