@@ -703,7 +703,6 @@ static int mr_count_u8v(packet_ctx *pctx, mr_mdata *mdata) {
 
 static int mr_pack_u8v(packet_ctx *pctx, mr_mdata *mdata) {
     bool bstr = mdata->dtype == MR_STR_DTYPE;
-    // int istr = mdata->dtype == MR_STR_DTYPE ? 1 : 0;
     uint8_t propid = mdata->propid;
     if (propid) pctx->u8v0[pctx->u8vpos++] = propid;
     uint16_t u16 = mdata->vlen - (bstr ? 1 : 0);
@@ -716,7 +715,6 @@ static int mr_pack_u8v(packet_ctx *pctx, mr_mdata *mdata) {
 
 static int mr_unpack_u8v(packet_ctx *pctx, mr_mdata *mdata) {
     bool bstr = mdata->dtype == MR_STR_DTYPE;
-    // int istr = mdata->dtype == MR_STR_DTYPE ? 1 : 0;
     uint8_t *u8v = pctx->u8v0 + pctx->u8vpos;
     uint16_t u16v[] = {u8v[0], u8v[1]}; u8v += 2;
     size_t u8vlen = (u16v[0] << 8) + u16v[1];
@@ -726,7 +724,6 @@ static int mr_unpack_u8v(packet_ctx *pctx, mr_mdata *mdata) {
     if (mr_calloc((void **)&value, vlen, 1)) return -1;
 
     memcpy(value, u8v, u8vlen);
-    // if (bstr) value[vlen] = '\0';
     mdata->value = (mvalue_t)value;
     mdata->vlen = vlen;
     mdata->vexists = true;
@@ -737,7 +734,7 @@ static int mr_unpack_u8v(packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 //  idx is vlen: # of bits to be (re)set
-static const uint8_t BIT_MASKS[] = {
+static const uint8_t _BIT_MASKS[] = {
     0x00, 0x01, 0x03, 0x07, 0x0F, 0x1F, 0x3F, 0x7F
 };
 
@@ -746,11 +743,11 @@ static int mr_pack_bits_in_value(packet_ctx *pctx, mr_mdata *mdata) {
     mr_mdata *flags_mdata = pctx->mdata0 + mdata->link;
     uint8_t flags_u8 = flags_mdata->value;
 
-    flags_u8 &= ~(BIT_MASKS[mdata->vlen] << bitpos);
+    flags_u8 &= ~(_BIT_MASKS[mdata->vlen] << bitpos); // reset
 
     if (mdata->value) {
         uint8_t u8 = mdata->value;
-        flags_u8 |= u8 << bitpos;
+        flags_u8 |= u8 << bitpos; // set
     }
 
     flags_mdata->value = flags_u8;
@@ -761,11 +758,11 @@ static int mr_pack_bits(packet_ctx *pctx, mr_mdata *mdata) { // don't advance pc
     uint8_t bitpos = mdata->bpos;
     uint8_t *pu8 = pctx->u8v0 + pctx->u8vpos;
 
-    *pu8 &= ~(BIT_MASKS[mdata->vlen] << bitpos);
+    *pu8 &= ~(_BIT_MASKS[mdata->vlen] << bitpos); // reset
 
     if (mdata->value) {
         uint8_t u8 = mdata->value;
-        *pu8 |= u8 << bitpos;
+        *pu8 |= u8 << bitpos; // set
     }
 
     return 0;
@@ -779,7 +776,7 @@ static int mr_pack_incr1(packet_ctx *pctx, mr_mdata *mdata) { // now advance - b
 static int mr_unpack_bits(packet_ctx *pctx, mr_mdata *mdata) {  // don't advance pctx->u8vpos; unpacking
     uint8_t bitpos = mdata->bpos;                               // the following flags byte will do that
     uint8_t *pu8 = pctx->u8v0 + pctx->u8vpos;
-    mdata->value = *pu8 >> bitpos & BIT_MASKS[mdata->vlen];
+    mdata->value = *pu8 >> bitpos & _BIT_MASKS[mdata->vlen];
     mdata->vexists = true;
     return 0;
 }
