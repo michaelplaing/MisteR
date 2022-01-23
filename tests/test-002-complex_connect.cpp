@@ -102,9 +102,7 @@ TEST_CASE("complex CONNECT packet", "[connect]") {
     SECTION("connect mdata_dump succeeds") {
         int rc10 = mr_connect_mdata_dump(pctx);
         REQUIRE(rc10 == 0);
-        // int rc = put_binary_file_content(
-        //     "fixtures/complex_connect_mdata_dump.txt", (uint8_t *)pctx->mdata_dump, strlen(pctx->mdata_dump)
-        // );
+        // int rc = put_binary_file_content("fixtures/complex_connect_mdata_dump.txt", (uint8_t *)pctx->mdata_dump, strlen(pctx->mdata_dump));
         // REQUIRE(rc == 0);
 }
     SECTION("connect mdata_dump is correct") {
@@ -146,6 +144,39 @@ TEST_CASE("complex CONNECT packet", "[connect]") {
         REQUIRE(rc == 0);
         int rc40 = mr_init_unpack_connect_packet(&pctx, u8v0, u8vlen);
         REQUIRE(rc40 == 0);
+        rc = mr_free_connect_packet(pctx);
+        REQUIRE(rc == 0);
+    }
+    SECTION("unpacked connect packet mdata_dump succeeds") {
+        uint8_t *u8v0;
+        uint32_t u8vlen;
+        int rc = get_binary_file_content("fixtures/complex_connect_packet.bin", &u8v0, &u8vlen);
+        REQUIRE(rc == 0);
+        int rc40 = mr_init_unpack_connect_packet(&pctx, u8v0, u8vlen);
+        REQUIRE(rc40 == 0);
+        int rc10 = mr_connect_mdata_dump(pctx);
+        REQUIRE(rc10 == 0);
+        rc = mr_free_connect_packet(pctx);
+        REQUIRE(rc == 0);
+    }
+    SECTION("unpacked connect packet mdata_dump is correct") {
+        uint8_t *u8v0;
+        uint32_t u8vlen;
+        int rc = get_binary_file_content("fixtures/complex_connect_packet.bin", &u8v0, &u8vlen);
+        REQUIRE(rc == 0);
+        int rc40 = mr_init_unpack_connect_packet(&pctx, u8v0, u8vlen);
+        REQUIRE(rc40 == 0);
+        int rc10 = mr_connect_mdata_dump(pctx);
+        REQUIRE(rc10 == 0);
+        char *mdata_dump;
+        uint32_t mdsz;
+        rc = get_binary_file_content("fixtures/complex_connect_mdata_dump.txt", (uint8_t **)&mdata_dump, &mdsz);
+        REQUIRE(rc == 0);
+        puts("mdata_dump:"); mr_print_hexdump((uint8_t *)mdata_dump, mdsz);
+        puts("pctx->mdata_dump:"); mr_print_hexdump((uint8_t *)pctx->mdata_dump, strlen(pctx->mdata_dump));
+        REQUIRE(mdsz == strlen(pctx->mdata_dump));
+        REQUIRE(strncmp(mdata_dump, pctx->mdata_dump, mdsz) == 0);
+        free(mdata_dump);
         rc = mr_free_connect_packet(pctx);
         REQUIRE(rc == 0);
     }

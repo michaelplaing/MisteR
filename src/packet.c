@@ -41,7 +41,7 @@ static const mr_dtype _DTYPE[] = { // same order as mr_dtypes enum
     {MR_STR_DTYPE,      "utf8 prefix string",       mr_count_str,   mr_pack_str,        mr_unpack_str,      mr_output_string,   mr_validate_str,    mr_free_vector},
     {MR_SPV_DTYPE,      "string pair vector",       mr_count_spv,   mr_pack_spv,        mr_unpack_spv,      mr_output_spv,      mr_validate_spv,    mr_free_spv},
     {MR_FLAGS_DTYPE,    "uint8 flag",               NULL,           mr_pack_incr1,      mr_unpack_u8,       mr_output_hdvalue,  NULL,               NULL},
-    {MR_PROPS_DTYPE,    "properties",               NULL,           NULL,               mr_unpack_props,    mr_output_hexdump,  NULL,               NULL}
+    {MR_PROPS_DTYPE,    "properties",               NULL,           NULL,               mr_unpack_props,    NULL,               NULL,               NULL}
 };
 
 static int mr_output_scalar(packet_ctx *pctx, mr_mdata *mdata) {
@@ -133,8 +133,11 @@ int mr_mdata_dump(packet_ctx *pctx) {
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
         if (mdata->vexists) {
             mr_mdata_fn output_fn = _DTYPE[mdata->dtype].output_fn;
-            if (output_fn(pctx, mdata)) return -1;
-            len += strlen(mdata->name) + 1 + strlen(mdata->ovalue) + 1; // ':' and '\n'
+
+            if (output_fn) {
+                if (output_fn(pctx, mdata)) return -1;
+                len += strlen(mdata->name) + 1 + strlen(mdata->ovalue) + 1; // ':' and '\n'
+            }
         }
     }
 
@@ -144,7 +147,7 @@ int mr_mdata_dump(packet_ctx *pctx) {
     char *pc = mdata_dump;
     mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
-        if (mdata->vexists) {
+        if (mdata->ovalue) {
             sprintf(pc, "%s:%s\n", mdata->name, mdata->ovalue);
             pc += strlen(mdata->name) + 1 + strlen(mdata->ovalue) + 1; // ditto
         }
@@ -360,12 +363,12 @@ static int mr_unpack_packet(packet_ctx *pctx) {
 
 static int mr_count_VBI(packet_ctx *pctx, mr_mdata *mdata) {
     size_t cum_len = 0;
-    mr_mdata *current_mdata;
+    mr_mdata *cnt_mdata;
 
     //  accumulate u8vlens in cum_len for the range of the VBI
     for (int i = mdata->idx + 1; i <= mdata->link; i++) {
-        current_mdata = pctx->mdata0 + i;
-        if (current_mdata->vexists) cum_len += current_mdata->u8vlen;
+        cnt_mdata = pctx->mdata0 + i;
+        if (cnt_mdata->vexists) cum_len += cnt_mdata->u8vlen;
     }
 
     mdata->value = cum_len;
@@ -590,7 +593,7 @@ static int mr_unpack_spv(packet_ctx *pctx, mr_mdata *mdata) {
     mdata->vlen++;
     mdata->vexists = true;
     mdata->valloc = true;
-    mdata->u8vlen = 1 + 2 + namelen + 2 + valuelen;
+    mdata->u8vlen += 1 + 2 + namelen + 2 + valuelen;
     pctx->u8vpos += 2 + namelen + 2 + valuelen; // propid has already been consumed
     return 0;
 }

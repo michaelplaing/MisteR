@@ -12,5 +12,4 @@ username_flag:0
 mr_flags:00 00 00 00 | ....
 keep_alive:0
 property_length:0
-mr_properties:11 21 27 22 19 17 26 15 16 | .!'"..&..
 client_identifier:

@@ -12,7 +12,6 @@ username_flag:1
 mr_flags:00 00 00 F6 | ....
 keep_alive:5
 property_length:77
-mr_properties:11 21 27 22 19 17 26 15 16 | .!'"..&..
 session_expiry_interval:3600
 receive_maximum:1000
 maximum_packet_size:32768
