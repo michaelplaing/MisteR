@@ -129,11 +129,11 @@ void mr_compress_spaces_lines(char *cv);
 
 // connect packet
 
-int mr_init_connect_packet(packet_ctx **ppctx);
+int mr_init_connect_pctx(packet_ctx **ppctx);
 int mr_init_unpack_connect_packet(packet_ctx **ppctx, uint8_t *u8v0, size_t ulen);
 static int mr_connect_packet_check(packet_ctx *pctx);
 int mr_pack_connect_packet(packet_ctx *pctx);
-int mr_free_connect_packet(packet_ctx *pctx);
+int mr_free_connect_pctx(packet_ctx *pctx);
 int mr_connect_mdata_dump(packet_ctx *pctx);
 
 int mr_get_connect_packet_type(packet_ctx *pctx, uint8_t *pu8, bool *pexists);

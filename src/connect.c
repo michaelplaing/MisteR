@@ -83,7 +83,7 @@ static const mr_mdata _CONNECT_MDATA_TEMPLATE[] = { // Same order as enum CONNAC
 //   name                           dtype           bpos    value           valloc  vlen    u8vlen  vexists link                            propid                                  flagid                  idx                                     spvalloc    spv
 };
 
-int mr_init_connect_packet(packet_ctx **ppctx) {
+int mr_init_connect_pctx(packet_ctx **ppctx) {
     size_t mdata_count = sizeof(_CONNECT_MDATA_TEMPLATE) / sizeof(mr_mdata);
     return mr_init_packet(ppctx, _CONNECT_MDATA_TEMPLATE, mdata_count);
 }
@@ -108,7 +108,7 @@ int mr_pack_connect_packet(packet_ctx *pctx) {
     return mr_pack_packet(pctx);
 }
 
-int mr_free_connect_packet(packet_ctx *pctx) {
+int mr_free_connect_pctx(packet_ctx *pctx) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_free_packet_context(pctx);
 }

@@ -96,7 +96,7 @@ void mrConnectCallback(redisAsyncContext *rctx, void *reply_void, void *private_
 
 void mr_send_connect(redisAsyncContext *rctx) {
     packet_ctx *pctx;
-    int rc = mr_init_connect_packet(&pctx);
+    int rc = mr_init_connect_pctx(&pctx);
     /*
     // mr_set_connect_clean_start(pctx, true);
     // mr_set_connect_will_qos(pctx, 3);
@@ -194,13 +194,13 @@ void mr_send_connect(redisAsyncContext *rctx) {
     uint8_t *u8v0;
     rc = mr_malloc((void **)&u8v0, len);
     memcpy(u8v0, pctx->u8v0, len);
-    rc = mr_free_connect_packet(pctx);
+    rc = mr_free_connect_pctx(pctx);
     rc = mr_init_unpack_connect_packet(&pctx, u8v0, len);
     rc = mr_free(u8v0);
     printf("unpack_connect rc: %d\n", rc);
     rc = mr_connect_mdata_dump(pctx);
     puts(pctx->mdata_dump);
-    rc = mr_free_connect_packet(pctx);
+    rc = mr_free_connect_pctx(pctx);
 
 /*
     uint8_t type = 0;
