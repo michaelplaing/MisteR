@@ -9,25 +9,28 @@
 #include "mister/mrzlog.h"
 #include "util_internal.h"
 #include "packet_internal.h"
+#include "connect_internal.h"
 #include "connect_will_internal.h"
 
-static char *_PTYPE_NAME[] = { // same order as mqtt_packet_type
-    "", // Note: enum high nibbles are 1-based, hence dummy str so we can use a 1-based index
-    "CONNECT",
-    "CONNACK",
-    "PUBLISH",
-    "PUBACK",
-    "PUBREC",
-    "PUBREL",
-    "PUBCOMP",
-    "SUBSCRIBE",
-    "SUBACK",
-    "UNSUBSCRIBE",
-    "UNSUBACK",
-    "PINGREQ",
-    "PINGRESP",
-    "DISCONNECT",
-    "AUTH"
+static mr_ptype _PTYPE[] = { // same order as mqtt_packet_type
+    // Note: mqtt_packet_type index is 1-based, hence the dummy row 0
+    // The left 4-bit nibble of the mqtt_packet_type is the index
+    {0,                  "",             NULL},
+    {MQTT_CONNECT,       "CONNECT",      mr_validate_connect_values},
+    {MQTT_CONNACK,       "CONNACK",      NULL},
+    {MQTT_PUBLISH,       "PUBLISH",      NULL},
+    {MQTT_PUBACK,        "PUBACK",       NULL},
+    {MQTT_PUBREC,        "PUBREC",       NULL},
+    {MQTT_PUBREL,        "PUBREL",       NULL},
+    {MQTT_PUBCOMP,       "PUBCOMP",      NULL},
+    {MQTT_SUBSCRIBE,     "SUBSCRIBE",    NULL},
+    {MQTT_SUBACK,        "SUBACK",       NULL},
+    {MQTT_UNSUBSCRIBE,   "UNSUBSCRIBE",  NULL},
+    {MQTT_UNSUBACK,      "UNSUBACK",     NULL},
+    {MQTT_PINGREQ,       "PINGREQ",      NULL},
+    {MQTT_PINGRESP,      "PINGRESP",     NULL},
+    {MQTT_DISCONNECT,    "DISCONNECT",   NULL},
+    {MQTT_AUTH,          "AUTH",         NULL}
 };
 
 static const mr_dtype _DTYPE[] = { // same order as mr_dtypes enum
@@ -340,6 +343,9 @@ static int mr_unpack_packet(packet_ctx *pctx) {
         }
     }
 
+    mr_ptype_fn ptype_fn = _PTYPE[pctx->mqtt_packet_type >> 4].ptype_fn;
+    if (ptype_fn && ptype_fn(pctx)) return -1;;
+
     if (pctx->u8vpos == pctx->u8vlen) {
         return 0;
     }
@@ -439,7 +445,7 @@ int mr_init_packet(packet_ctx **ppctx, const mr_mdata *MDATA_TEMPLATE, size_t md
     memcpy(mdata0, MDATA_TEMPLATE, mdata_count * sizeof(mr_mdata));
     pctx->mdata0 = mdata0;
     pctx->mqtt_packet_type = mdata0->value; // always the value of the 0th mdata row
-    pctx->mqtt_packet_name = _PTYPE_NAME[pctx->mqtt_packet_type >> 4]; // left nibble is index
+    pctx->mqtt_packet_name = _PTYPE[pctx->mqtt_packet_type >> 4].mqtt_packet_name; // left nibble is index
     *ppctx = pctx;
     return 0;
 }

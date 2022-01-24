@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 
+int mr_validate_connect_will_values(packet_ctx *pctx);
 static int mr_validate_will_qos(mr_connect_will_data *pwd);
 static int mr_validate_will_retain(mr_connect_will_data *pwd);
 static int mr_validate_will_delay_interval(mr_connect_will_data *pwd);

@@ -475,7 +475,35 @@ int mr_get_connect_password(packet_ctx *pctx, uint8_t **pu8v0, size_t *plen, boo
 
 int mr_reset_connect_password(packet_ctx *pctx) {
     if (mr_connect_packet_check(pctx)) return -1;
-    int rc = mr_reset_vector(pctx, CONNECT_PASSWORD);
-    if (!rc) rc = mr_reset_scalar(pctx, CONNECT_PASSWORD_FLAG);
-    return rc;
+    if (mr_reset_vector(pctx, CONNECT_PASSWORD)) return -1;
+    return mr_reset_scalar(pctx, CONNECT_PASSWORD_FLAG);
+}
+
+int mr_validate_connect_password(packet_ctx *pctx) {
+    if (mr_connect_packet_check(pctx)) return -1;
+    bool bflag_value;
+    bool bflag_exists;
+    if (mr_get_boolean(pctx, CONNECT_PASSWORD_FLAG, &bflag_value, &bflag_exists)) return -1;
+    uint8_t *u8v0;
+    bool bubv0_exists;
+    size_t len;
+    if (mr_get_u8v(pctx, CONNECT_PASSWORD, &u8v0, &len, &bubv0_exists)) return -1;
+
+    if (!bflag_exists && !bubv0_exists) return 0;
+
+    if (bflag_exists) {
+        if (bflag_value) {
+            if (bubv0_exists) return 0;
+        }
+        else {
+            if (!bubv0_exists) return 0;
+        }
+    }
+
+    dzlog_error("CONNECT_PASSWORD_FLAG and CONNECT_PASSWORD are inconsistent");
+    return -1;
+}
+
+int mr_validate_connect_values(packet_ctx *pctx) {
+    return mr_validate_connect_password(pctx);
 }

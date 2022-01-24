@@ -216,6 +216,7 @@ int mr_reset_connect_user_name(packet_ctx *pctx);
 int mr_get_connect_password(packet_ctx *pctx, uint8_t **pu8v0, size_t *plen, bool *pexists);
 int mr_set_connect_password(packet_ctx *pctx, uint8_t *u8v0, size_t len);
 int mr_reset_connect_password(packet_ctx *pctx);
+int mr_validate_connect_password(packet_ctx *pctx);
 
 // connect packet - will values
 

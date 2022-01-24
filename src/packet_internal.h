@@ -54,6 +54,14 @@ enum mr_dtypes {
     MR_PROPS_DTYPE
 };
 
+typedef int (*mr_ptype_fn)(struct packet_ctx *pctx);
+
+typedef struct mr_ptype {
+    const int mqtt_packet_type;
+    char *mqtt_packet_name;
+    const mr_ptype_fn ptype_fn;
+} mr_ptype;
+
 int mr_init_unpack_packet(
     packet_ctx **ppctx,
     const mr_mdata *MDATA_TEMPLATE, size_t mdata_count,
