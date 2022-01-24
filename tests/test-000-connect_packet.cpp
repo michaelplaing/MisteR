@@ -4,6 +4,8 @@
 #include "util.h"
 
 TEST_CASE("default CONNECT packet", "[connect][happy]") {
+    // *** common test prolog ***
+
     dzlog_init("", "mr_init");
     int rc;
     packet_ctx *pctx;
@@ -14,6 +16,8 @@ TEST_CASE("default CONNECT packet", "[connect][happy]") {
     int rc00 = mr_init_connect_pctx(&pctx);
     REQUIRE(rc00 == 0);
 
+    // *** test sections ***
+
     SECTION("default packet") {
         strlcpy(dump_filename, "fixtures/default_connect_mdata_dump.txt", 50);
         strlcpy(packet_filename, "fixtures/default_connect_packet.bin", 50);
@@ -23,7 +27,7 @@ TEST_CASE("default CONNECT packet", "[connect][happy]") {
         strlcpy(dump_filename, "fixtures/will_connect_mdata_dump.txt", 50);
         strlcpy(packet_filename, "fixtures/will_connect_packet.bin", 50);
 
-        // set values
+        // build will values
         char content_type[] = "content_type";
         char response_topic[] = "response_topic";
         uint8_t correlation_data[] = {'1', '2', '3'};
@@ -37,6 +41,7 @@ TEST_CASE("default CONNECT packet", "[connect][happy]") {
         char will_topic[] = "will_topic";
         uint8_t will_payload[] = {'a', 'b', 'c'};
 
+        // set will data
         mr_connect_will_data wd = {
             .will_flag = true,
             .will_qos = 2,
@@ -56,10 +61,11 @@ TEST_CASE("default CONNECT packet", "[connect][happy]") {
             .will_payload_len = sizeof(will_payload)
         };
 
+        // set will values
         int rc05 = mr_set_connect_will_values(pctx, &wd);
         REQUIRE(rc05 == 0);
 
-        // validate
+        // validate will values
         int rc07 = mr_validate_connect_will_values(pctx);
         REQUIRE(rc07 == 0);
 
@@ -69,18 +75,25 @@ TEST_CASE("default CONNECT packet", "[connect][happy]") {
 
             int rc100 = mr_set_connect_clean_start(pctx, true);
             REQUIRE(rc100 == 0);
+
             int rc110 = mr_set_connect_keep_alive(pctx, 5);
             REQUIRE(rc110 == 0);
+
             int rc120 = mr_set_connect_session_expiry_interval(pctx, 3600);
             REQUIRE(rc120 == 0);
+
             int rc130 = mr_set_connect_receive_maximum(pctx, 1000);
             REQUIRE(rc130 == 0);
+
             int rc140 = mr_set_connect_maximum_packet_size(pctx, 32768);
             REQUIRE(rc140 == 0);
+
             int rc150 = mr_set_connect_topic_alias_maximum(pctx, 10);
             REQUIRE(rc150 == 0);
+
             int rc160 = mr_set_connect_request_response_information(pctx, 1);
             REQUIRE(rc160 == 0);
+
             int rc170 = mr_set_connect_request_problem_information(pctx, 1);
             REQUIRE(rc170 == 0);
 
@@ -116,6 +129,8 @@ TEST_CASE("default CONNECT packet", "[connect][happy]") {
         }
     }
 
+    // *** common test epilog ***
+
     // dump
     int rc10 = mr_connect_mdata_dump(pctx);
     REQUIRE(rc10 == 0);
@@ -147,24 +162,24 @@ TEST_CASE("default CONNECT packet", "[connect][happy]") {
     REQUIRE(memcmp(u8v0, pctx->u8v0, u8vlen) == 0);
     free(u8v0);
 
-    // free context
+    // free pack context
     int rc30 = mr_free_connect_pctx(pctx);
     REQUIRE(rc30 == 0);
 
-    // init context / unpack packet
+    // init unpack context / unpack packet
     int rc40 = mr_init_unpack_connect_packet(&pctx, u8v0, u8vlen);
     REQUIRE(rc40 == 0);
 
-    // dump
+    // unpack dump
     int rc50 = mr_connect_mdata_dump(pctx);
     REQUIRE(rc50 == 0);
 
-    // check dump
+    // check unpack dump
     REQUIRE(mdsz == strlen(pctx->mdata_dump));
     REQUIRE(strncmp(mdata_dump, pctx->mdata_dump, mdsz) == 0);
     free(mdata_dump);
 
-    // free context
+    // free unpack context
     int rc60 = mr_free_connect_pctx(pctx);
     REQUIRE(rc60 == 0);
 

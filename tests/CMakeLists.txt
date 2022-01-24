@@ -11,13 +11,13 @@ add_executable(test-000-connect_packet test-000-connect_packet.cpp)
 
 target_compile_features(test-000-connect_packet PRIVATE cxx_std_17)
 
-# link to 'mister' as well as our test library
+# link to 'mister' and 'mrzlog' as well as our test library
 target_link_libraries(test-000-connect_packet PRIVATE mister mrzlog testlib)
 
  # COMMAND can be a target
 add_test(NAME test-000-connect_packet COMMAND test-000-connect_packet)
 
-# copy the fixture files to the build directory
+# copy the fixture files to the build directory - configure_file watches for a change and will recopy
 configure_file("fixtures/default_connect_mdata_dump.txt" "fixtures/default_connect_mdata_dump.txt" COPYONLY)
 configure_file("fixtures/default_connect_packet.bin" "fixtures/default_connect_packet.bin" COPYONLY)
 configure_file("fixtures/will_connect_mdata_dump.txt" "fixtures/will_connect_mdata_dump.txt" COPYONLY)
@@ -25,5 +25,5 @@ configure_file("fixtures/will_connect_packet.bin" "fixtures/will_connect_packet.
 configure_file("fixtures/complex_connect_mdata_dump.txt" "fixtures/complex_connect_mdata_dump.txt" COPYONLY)
 configure_file("fixtures/complex_connect_packet.bin" "fixtures/complex_connect_packet.bin" COPYONLY)
 
-# add the cmocka test directory
+# add the cmocka test directory if using
 # add_subdirectory(unittests)
