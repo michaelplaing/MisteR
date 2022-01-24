@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#include "util.h"
+
 int get_binary_file_content(const char *fixfilename, uint8_t **pu8v, uint32_t *pffsz) {
     FILE *fixfile;
     fixfile = fopen(fixfilename, "r");
