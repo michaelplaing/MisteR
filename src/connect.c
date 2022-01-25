@@ -83,14 +83,14 @@ static const mr_mdata _CONNECT_MDATA_TEMPLATE[] = { // Same order as enum CONNAC
 //   name                           dtype           bpos    value           valloc  vlen    u8vlen  vexists link                            propid                                  flagid                  idx                                     spvalloc    spv
 };
 
+static const size_t _CONNECT_MDATA_COUNT = sizeof(_CONNECT_MDATA_TEMPLATE) / sizeof(mr_mdata);
+
 int mr_init_connect_pctx(packet_ctx **ppctx) {
-    size_t mdata_count = sizeof(_CONNECT_MDATA_TEMPLATE) / sizeof(mr_mdata);
-    return mr_init_packet(ppctx, _CONNECT_MDATA_TEMPLATE, mdata_count);
+    return mr_init_packet(ppctx, _CONNECT_MDATA_TEMPLATE, _CONNECT_MDATA_COUNT);
 }
 
-int mr_init_unpack_connect_packet(packet_ctx **ppctx, uint8_t *u8v0, size_t ulen) {
-    size_t mdata_count = sizeof(_CONNECT_MDATA_TEMPLATE) / sizeof(mr_mdata);
-    return mr_init_unpack_packet(ppctx, _CONNECT_MDATA_TEMPLATE, mdata_count, u8v0, ulen);
+int mr_init_unpack_connect_packet(packet_ctx **ppctx, uint8_t *u8v0, size_t u8vlen) {
+    return mr_init_unpack_packet(ppctx, _CONNECT_MDATA_TEMPLATE, _CONNECT_MDATA_COUNT, u8v0, u8vlen);
 }
 
 static int mr_connect_packet_check(packet_ctx *pctx) {
@@ -442,9 +442,7 @@ int mr_get_connect_will_payload(packet_ctx *pctx, uint8_t **pu8v0, size_t *plen,
 int mr_set_connect_user_name(packet_ctx *pctx, char *cv0) {
     if (mr_connect_packet_check(pctx)) return -1;
     int rc = mr_set_vector(pctx, CONNECT_USER_NAME, cv0, strlen(cv0) + 1);
-    if (!rc) rc = mr_set_scalar(pctx, CONNECT_USERNAME_FLAG, true);
-    if (rc) mr_reset_connect_user_name(pctx);
-    return rc;
+    return mr_set_scalar(pctx, CONNECT_USERNAME_FLAG, true);
 }
 
 int mr_get_connect_user_name(packet_ctx *pctx, char **pcv0, bool *pexists) {
@@ -454,9 +452,8 @@ int mr_get_connect_user_name(packet_ctx *pctx, char **pcv0, bool *pexists) {
 
 int mr_reset_connect_user_name(packet_ctx *pctx) {
     if (mr_connect_packet_check(pctx)) return -1;
-    int rc = mr_reset_vector(pctx, CONNECT_USER_NAME);
-    if (!rc) rc = mr_reset_scalar(pctx, CONNECT_USERNAME_FLAG);
-    return rc;
+    if (mr_reset_vector(pctx, CONNECT_USER_NAME)) return -1;
+    return mr_reset_scalar(pctx, CONNECT_USERNAME_FLAG);
 }
 
 static int mr_xvalidate_connect_user_name(packet_ctx *pctx) {
@@ -490,10 +487,8 @@ static int mr_xvalidate_connect_user_name(packet_ctx *pctx) {
 // uint8_t *password;
 int mr_set_connect_password(packet_ctx *pctx, uint8_t *u8v0, size_t len) {
     if (mr_connect_packet_check(pctx)) return -1;
-    int rc = mr_set_vector(pctx, CONNECT_PASSWORD, u8v0, len);
-    if (!rc) rc = mr_set_scalar(pctx, CONNECT_PASSWORD_FLAG, true);
-    if (rc) mr_reset_connect_password(pctx);
-    return rc;
+    if (mr_set_vector(pctx, CONNECT_PASSWORD, u8v0, len)) return -1;
+    return mr_set_scalar(pctx, CONNECT_PASSWORD_FLAG, true);
 }
 
 int mr_get_connect_password(packet_ctx *pctx, uint8_t **pu8v0, size_t *plen, bool *pexists) {
