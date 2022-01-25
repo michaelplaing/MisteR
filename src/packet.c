@@ -16,7 +16,7 @@ static mr_ptype _PTYPE[] = { // same order as mqtt_packet_type
     // Note: mqtt_packet_type index is 1-based, hence the dummy row 0
     // The left 4-bit nibble of the mqtt_packet_type is the index
     {0,                  "",             NULL},
-    {MQTT_CONNECT,       "CONNECT",      mr_validate_connect_values},
+    {MQTT_CONNECT,       "CONNECT",      mr_xvalidate_connect_values},
     {MQTT_CONNACK,       "CONNACK",      NULL},
     {MQTT_PUBLISH,       "PUBLISH",      NULL},
     {MQTT_PUBACK,        "PUBACK",       NULL},

@@ -84,7 +84,9 @@ struct mr_connect_values { // may or may not be useful
     uint8_t *password;
 };
 
-int mr_validate_connect_values(packet_ctx *pctx);
+static int mr_xvalidate_connect_user_name(packet_ctx *pctx);
+static int mr_xvalidate_connect_password(packet_ctx *pctx);
+int mr_xvalidate_connect_values(packet_ctx *pctx);
 
 #ifdef __cplusplus
 }

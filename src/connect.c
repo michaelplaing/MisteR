@@ -459,6 +459,34 @@ int mr_reset_connect_user_name(packet_ctx *pctx) {
     return rc;
 }
 
+static int mr_xvalidate_connect_user_name(packet_ctx *pctx) {
+    if (mr_connect_packet_check(pctx)) return -1;
+    bool bflag_value;
+    bool bflag_exists;
+    if (mr_get_boolean(pctx, CONNECT_USERNAME_FLAG, &bflag_value, &bflag_exists)) return -1;
+    uint8_t *u8v0;
+    bool bubv0_exists;
+    size_t len;
+    if (mr_get_u8v(pctx, CONNECT_USER_NAME, &u8v0, &len, &bubv0_exists)) return -1;
+
+    if (!bflag_exists && !bubv0_exists) return 0;
+
+    if (bflag_exists) {
+        if (bflag_value) {
+            if (bubv0_exists) return 0;
+        }
+        else {
+            if (!bubv0_exists) return 0; // shouldn't happen...
+        }
+    }
+
+    dzlog_error(
+        "CONNECT_USERNAME_FLAG / CONNECT_USER_NAME are inconsistent:: flag: %u / %u; value: %u",
+        bflag_exists, bflag_value, bubv0_exists
+    );
+
+    return -1;
+}
 // uint8_t *password;
 int mr_set_connect_password(packet_ctx *pctx, uint8_t *u8v0, size_t len) {
     if (mr_connect_packet_check(pctx)) return -1;
@@ -479,7 +507,7 @@ int mr_reset_connect_password(packet_ctx *pctx) {
     return mr_reset_scalar(pctx, CONNECT_PASSWORD_FLAG);
 }
 
-int mr_validate_connect_password(packet_ctx *pctx) {
+static int mr_xvalidate_connect_password(packet_ctx *pctx) {
     if (mr_connect_packet_check(pctx)) return -1;
     bool bflag_value;
     bool bflag_exists;
@@ -496,14 +524,20 @@ int mr_validate_connect_password(packet_ctx *pctx) {
             if (bubv0_exists) return 0;
         }
         else {
-            if (!bubv0_exists) return 0;
+            if (!bubv0_exists) return 0; // shouldn't happen...
         }
     }
 
-    dzlog_error("CONNECT_PASSWORD_FLAG and CONNECT_PASSWORD are inconsistent");
+    dzlog_error(
+        "CONNECT_PASSWORD_FLAG / CONNECT_PASSWORD are inconsistent:: flag: %u / %u; value: %u",
+        bflag_exists, bflag_value, bubv0_exists
+    );
+
     return -1;
 }
 
-int mr_validate_connect_values(packet_ctx *pctx) {
-    return mr_validate_connect_password(pctx);
+int mr_xvalidate_connect_values(packet_ctx *pctx) {
+    if (mr_xvalidate_connect_user_name(pctx)) return -1;
+    if (mr_xvalidate_connect_password(pctx)) return -1;
+    return 0;
 }
