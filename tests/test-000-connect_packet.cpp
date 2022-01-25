@@ -61,13 +61,26 @@ TEST_CASE("default CONNECT packet", "[connect][happy]") {
             .will_payload_len = sizeof(will_payload)
         };
 
-        // set will values
-        int rc05 = mr_set_connect_will_values(pctx, &wd);
-        REQUIRE(rc05 == 0);
+        // validate will data
+        int rc02 = mr_validate_connect_will_data(pctx, &wd);
+        REQUIRE(rc02 == 0);
+        int rc03 = mr_validate_connect_will_data_utf8(pctx, &wd);
+        REQUIRE(rc03 == 0);
 
-        // validate will values
-        int rc07 = mr_validate_connect_will_values(pctx);
-        REQUIRE(rc07 == 0);
+        // set will values
+        int rc04 = mr_set_connect_will_values(pctx, &wd);
+        REQUIRE(rc04 == 0);
+
+        // get will values
+        mr_connect_will_data wd2;
+        int rc06 = mr_get_connect_will_values(pctx, &wd2);
+        REQUIRE(rc06 == 0);
+
+        // revalidate will data
+        int rc08 = mr_validate_connect_will_data(pctx, &wd2);
+        REQUIRE(rc08 == 0);
+        int rc09 = mr_validate_connect_will_data_utf8(pctx, &wd2);
+        REQUIRE(rc09 == 0);
 
         SECTION("complex packet") {
             strlcpy(dump_filename, "fixtures/complex_connect_mdata_dump.txt", 50);

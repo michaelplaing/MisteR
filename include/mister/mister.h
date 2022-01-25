@@ -244,7 +244,8 @@ int mr_clear_connect_will_data(mr_connect_will_data *pwd);
 int mr_get_connect_will_values(packet_ctx *pctx, mr_connect_will_data *pwd);
 int mr_set_connect_will_values(packet_ctx *pctx, mr_connect_will_data *pwd);
 int mr_reset_connect_will_values(packet_ctx *pctx);
-int mr_validate_connect_will_values(packet_ctx *pctx);
+int mr_validate_connect_will_data(packet_ctx *pctx, mr_connect_will_data *pwd);
+int mr_validate_connect_will_data_utf8(packet_ctx *pctx, mr_connect_will_data *pwd);
 
 // connack packet
 
