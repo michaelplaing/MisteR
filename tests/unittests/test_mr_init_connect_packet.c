@@ -12,7 +12,7 @@
 //}
 
 static void test_mr_init_connect_packet(void **state) {
-    packet_ctx *pctx;
+    mr_packet_ctx *pctx;
     int rc = mr_init_connect_pctx(&pctx);
     assert_return_code(rc, 0);
 }

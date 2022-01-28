@@ -166,10 +166,10 @@ int mr_get_VBI(uint32_t *pu32, uint8_t *u8v) {
     }
 }
 
-int mr_print_hexdump(const uint8_t *u8v, const size_t u8vlen) {
+int mr_print_hexdump(uint8_t *u8v, const size_t u8vlen) {
     if (!(u8v && u8vlen)) return -1;
     int u8vlines = (u8vlen - 1) / 16 + 1;
-    if (u8vlines > 40) u8vlines = 40; // 40 lines max - TODO: parameterize
+    if (u8vlines > 60) u8vlines = 60; // 60 lines max - TODO: parameterize
     size_t cvlen = u8vlines * 70 + 1; // trailing 0
     char *pc = calloc(cvlen, 1);
     if (!pc) return -1;
@@ -189,7 +189,7 @@ int mr_print_hexdump(const uint8_t *u8v, const size_t u8vlen) {
 int mr_get_hexdump(char *cv0, size_t cvlen, const uint8_t *u8v, size_t u8vlen) {
     if (!(cv0 && cvlen >= 70 && u8v && u8vlen)) return -1;
     int u8vlines = (u8vlen - 1) / 16 + 1;
-    if (u8vlines > 40) u8vlines = 40; // 40 lines max - TODO: parameterize?
+    if (u8vlines > 60) u8vlines = 60; // 60 lines max - TODO: parameterize?
     int cvlines = (cvlen - 2) / 70 + 1; // trailing \0
     if (u8vlines > cvlines) u8vlines = cvlines;
     if (u8vlen > u8vlines * 16) u8vlen = u8vlines * 16;

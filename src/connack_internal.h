@@ -48,7 +48,7 @@ struct mr_connack_values { // may or may not be useful
     uint8_t *assigned_client_identifier;
     uint16_t topic_alias_maximum;
     uint8_t *reason_string;
-    string_pair *user_properties;
+    mr_string_pair *user_properties;
     uint8_t wildcard_subscription_available;
     uint8_t subscription_identifiers_available;
     uint8_t shared_subscription_available;

@@ -95,7 +95,7 @@ void mrConnectCallback(redisAsyncContext *rctx, void *reply_void, void *private_
 }
 
 void mr_send_connect(redisAsyncContext *rctx) {
-    packet_ctx *pctx;
+    mr_packet_ctx *pctx;
     int rc = mr_init_connect_pctx(&pctx);
     /*
     // mr_set_connect_clean_start(pctx, true);
@@ -105,16 +105,16 @@ void mr_send_connect(redisAsyncContext *rctx) {
     printf("get_clean_start: %u\n", clean_start);
     char *foo = "fööl";
     char *bar = "barr";
-    string_pair foobar = {foo, bar};
-    string_pair spv0[] = {foobar, foobar};
-    size_t sp_count = sizeof(spv0) / sizeof(string_pair);
+    mr_string_pair foobar = {foo, bar};
+    mr_string_pair spv0[] = {foobar, foobar};
+    size_t sp_count = sizeof(spv0) / sizeof(mr_string_pair);
     // mr_set_connect_user_properties(pctx, spv0, sp_count);
-    string_pair *myspv0;
+    mr_string_pair *myspv0;
     size_t myspvlen;
     rc = mr_get_connect_user_properties(pctx, &myspv0, &myspvlen);
 
     if (!rc) {
-        string_pair *pmysp = myspv0;
+        mr_string_pair *pmysp = myspv0;
         printf("user_properties:\n");
 
         for (int i = 0; i < myspvlen; i++, pmysp++) {
@@ -152,6 +152,7 @@ void mr_send_connect(redisAsyncContext *rctx) {
     uint8_t password[] = {'1', '2', '3', '4'};
     mr_set_connect_password(pctx, password, 4);
 */
+/*
     mr_connect_will_data wd;
     rc = mr_clear_connect_will_data(&wd);
     wd.will_flag = true;
@@ -168,10 +169,10 @@ void mr_send_connect(redisAsyncContext *rctx) {
 
     char *foo = "föö";
     char *bar = "bår";
-    string_pair foobar = {foo, bar};
-    string_pair spv[] = {foobar, foobar};
+    mr_string_pair foobar = {foo, bar};
+    mr_string_pair spv[] = {foobar, foobar};
     wd.will_user_properties = spv;
-    wd.will_user_properties_len = sizeof(spv) / sizeof(string_pair);
+    wd.will_user_properties_len = sizeof(spv) / sizeof(mr_string_pair);
 
     rc = mr_set_connect_will_values(pctx, &wd);
 
@@ -179,7 +180,7 @@ void mr_send_connect(redisAsyncContext *rctx) {
         printf("failed\n");
         return;
     }
-
+*/
     rc = mr_connect_mdata_dump(pctx);
     puts(pctx->mdata_dump);
 
@@ -242,7 +243,7 @@ void mr_send_connect(redisAsyncContext *rctx) {
     rc = mr_get_connect_user_properties(pctx, &myspv0, &myspvlen);
 
     if (!rc) {
-        string_pair *pmysp = myspv0;
+        mr_string_pair *pmysp = myspv0;
         printf("user_properties:\n");
 
         for (int i = 0; i < myspvlen; i++, pmysp++) {
@@ -263,7 +264,7 @@ void mr_send_connect(redisAsyncContext *rctx) {
 */
 
     printf("connack\n");
-    packet_ctx *connack_pctx;
+    mr_packet_ctx *connack_pctx;
     mr_init_connack_packet(&connack_pctx);
     rc = mr_pack_connack_packet(connack_pctx);
     printf("pack rc: %d\n", rc);

@@ -66,7 +66,7 @@ struct mr_connect_values { // may or may not be useful
     uint16_t topic_alias_maximum;
     uint8_t request_response_information;
     uint8_t request_problem_information;
-    string_pair *user_properties;
+    mr_string_pair *user_properties;
     uint8_t *authentication_method;
     uint8_t *authentication_data;
     uint8_t *client_identifier;
@@ -77,16 +77,17 @@ struct mr_connect_values { // may or may not be useful
     uint8_t *content_type;
     uint8_t *response_topic;
     uint8_t *correlation_data;
-    string_pair *will_user_properties;
+    mr_string_pair *will_user_properties;
     uint8_t *will_topic;
     uint8_t *will_payload;
     uint8_t *user_name;
     uint8_t *password;
 };
 
-static int mr_xvalidate_connect_user_name(packet_ctx *pctx);
-static int mr_xvalidate_connect_password(packet_ctx *pctx);
-int mr_xvalidate_connect_values(packet_ctx *pctx);
+static int mr_validate_cross_connect_user_name(mr_packet_ctx *pctx);
+static int mr_validate_cross_connect_password(mr_packet_ctx *pctx);
+static int mr_validate_connect_cross(mr_packet_ctx *pctx);
+int mr_validate_connect_extra(mr_packet_ctx *pctx);
 
 #ifdef __cplusplus
 }
