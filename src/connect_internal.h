@@ -84,8 +84,8 @@ struct mr_connect_values { // may or may not be useful
     uint8_t *password;
 };
 
-static int mr_validate_cross_connect_user_name(mr_packet_ctx *pctx);
-static int mr_validate_cross_connect_password(mr_packet_ctx *pctx);
+// static int mr_validate_cross_connect_user_name(mr_packet_ctx *pctx);
+// static int mr_validate_cross_connect_password(mr_packet_ctx *pctx);
 static int mr_validate_connect_cross(mr_packet_ctx *pctx);
 int mr_validate_connect_extra(mr_packet_ctx *pctx);
 

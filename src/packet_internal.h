@@ -13,8 +13,8 @@ struct mr_mdata;
 typedef struct mr_mdata {
     const char *name;
     const int dtype;        // data type
-    const uint8_t bpos;       // bit position
-    mr_mvalue_t value;         // for any mdata value including pointers
+    const uint8_t bpos;     // bit position
+    mr_mvalue_t value;      // for any mdata value including pointers
     bool valloc;            // is value allocated
     size_t vlen;            // byte size of an integer scalar, # of bits for a sub-byte scalar,
                             // length of a vector - includes trailing '/0' for a string, i.e. strlen() + 1

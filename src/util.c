@@ -171,17 +171,17 @@ int mr_print_hexdump(uint8_t *u8v, const size_t u8vlen) {
     int u8vlines = (u8vlen - 1) / 16 + 1;
     if (u8vlines > 60) u8vlines = 60; // 60 lines max - TODO: parameterize
     size_t cvlen = u8vlines * 70 + 1; // trailing 0
-    char *pc = calloc(cvlen, 1);
-    if (!pc) return -1;
-    int rc = mr_get_hexdump(pc, cvlen, u8v, u8vlen);
+    char *cv0 = calloc(cvlen, 1);
+    if (!cv0) return -1;
+    int rc = mr_get_hexdump(cv0, cvlen, u8v, u8vlen);
 
     if (rc) {
-        free(pc);
+        free(cv0);
         return rc;
     }
     else {
-        printf("%s\n", pc);
-        free(pc);
+        puts(cv0);
+        free(cv0);
         return 0;
     }
 }
@@ -194,14 +194,14 @@ int mr_get_hexdump(char *cv0, size_t cvlen, const uint8_t *u8v, size_t u8vlen) {
     if (u8vlines > cvlines) u8vlines = cvlines;
     if (u8vlen > u8vlines * 16) u8vlen = u8vlines * 16;
 
-    char cv[17]; // char vector is our reusable string
+    char cv[16 + 1]; // char vector is our reusable string
     cv[16] = '\0'; // and needs termination
     char *pc = cv0; // pointer to next position in output buffer cv0 - increment as we go
 
     for (int i = 0; i < u8vlen; i++) {
         sprintf(pc, "%02hhX ", (uint8_t)u8v[i]); // hex
         pc += 3;
-        cv[i % 16] = isprint((int)u8v[i]) ? u8v[i] : '.'; // printable char or '.'
+        cv[i % 16] = isprint((int)u8v[i]) ? u8v[i] : '.'; // either printable char or '.'
 
         if ((i + 1) % 8 == 0 || i + 1 == u8vlen) { // finished 8 hex chars - or may be done
             sprintf(pc, " ");
@@ -211,7 +211,7 @@ int mr_get_hexdump(char *cv0, size_t cvlen, const uint8_t *u8v, size_t u8vlen) {
                 sprintf(pc, "|  %s \n", cv);
                 pc += 21;
             }
-            else if (i + 1 == u8vlen) { // done - pad the hex and finish up the leftovers
+            else if (i + 1 == u8vlen) { // done - pad the hex with spaces and finish up the leftovers
                 if ((i + 1) % 16 <= 8) {
                     sprintf(pc, " ");
                     pc++;
@@ -222,7 +222,7 @@ int mr_get_hexdump(char *cv0, size_t cvlen, const uint8_t *u8v, size_t u8vlen) {
                     pc += 3;
                 }
 
-                cv[(i + 1) % 16] = '\0'; // short string left over
+                cv[(i + 1) % 16] = '\0'; // terminate short string left over
                 sprintf(pc, "|  %s \n", cv);
                 pc += 3 + (i + 1) % 16 + 2;
             }

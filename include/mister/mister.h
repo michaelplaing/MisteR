@@ -131,10 +131,12 @@ void mr_compress_spaces_lines(char *cv);
 
 int mr_init_connect_pctx(mr_packet_ctx **ppctx);
 int mr_init_unpack_connect_packet(mr_packet_ctx **ppctx, uint8_t *u8v0, size_t ulen);
+
 static int mr_connect_packet_check(mr_packet_ctx *pctx);
 int mr_pack_connect_packet(mr_packet_ctx *pctx);
 int mr_free_connect_pctx(mr_packet_ctx *pctx);
 int mr_connect_mdata_dump(mr_packet_ctx *pctx);
+int mr_validate_connect_values(mr_packet_ctx *pctx);
 
 int mr_get_connect_packet_type(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists);
 int mr_get_connect_remaining_length(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists);
@@ -144,31 +146,24 @@ int mr_get_connect_reserved(mr_packet_ctx *pctx, bool *pboolean, bool *pexists);
 
 int mr_get_connect_clean_start(mr_packet_ctx *pctx, bool *pboolean, bool *pexists);
 int mr_set_connect_clean_start(mr_packet_ctx *pctx, bool boolean);
-int mr_reset_connect_clean_start(mr_packet_ctx *pctx);
 
 int mr_get_connect_will_flag(mr_packet_ctx *pctx, bool *pboolean, bool *pexists);
 int mr_set_connect_will_flag(mr_packet_ctx *pctx, bool boolean);
-int mr_reset_connect_will_flag(mr_packet_ctx *pctx);
 
 int mr_get_connect_will_qos(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists);
 int mr_set_connect_will_qos(mr_packet_ctx *pctx, uint8_t u8);
-int mr_reset_connect_will_qos(mr_packet_ctx *pctx);
 
 int mr_get_connect_will_retain(mr_packet_ctx *pctx, bool *pboolean, bool *pexists);
 int mr_set_connect_will_retain(mr_packet_ctx *pctx, bool boolean);
-int mr_reset_connect_will_retain(mr_packet_ctx *pctx);
 
 int mr_get_connect_password_flag(mr_packet_ctx *pctx, bool *pboolean, bool *pexists);
 int mr_set_connect_password_flag(mr_packet_ctx *pctx, bool boolean);
-int mr_reset_connect_password_flag(mr_packet_ctx *pctx);
 
 int mr_get_connect_username_flag(mr_packet_ctx *pctx, bool *pboolean, bool *pexists);
 int mr_set_connect_username_flag(mr_packet_ctx *pctx, bool boolean);
-int mr_reset_connect_username_flag(mr_packet_ctx *pctx);
 
 int mr_get_connect_keep_alive(mr_packet_ctx *pctx, uint16_t *pu16, bool *pexists);
 int mr_set_connect_keep_alive(mr_packet_ctx *pctx, uint16_t u16);
-int mr_reset_connect_keep_alive(mr_packet_ctx *pctx);
 
 int mr_get_connect_property_length(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists);
 
@@ -210,7 +205,6 @@ int mr_reset_connect_authentication_data(mr_packet_ctx *pctx);
 
 int mr_get_connect_client_identifier(mr_packet_ctx *pctx, char **pcv0, bool *pexists);
 int mr_set_connect_client_identifier(mr_packet_ctx *pctx, char *cv0);
-int mr_reset_connect_client_identifier(mr_packet_ctx *pctx);
 
 int mr_get_connect_will_property_length(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists);
 int mr_set_connect_will_property_length(mr_packet_ctx *pctx, uint32_t u32);

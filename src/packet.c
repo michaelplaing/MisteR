@@ -12,24 +12,25 @@
 #include "connect_internal.h"
 
 static mr_ptype _PTYPE[] = { // same order as mqtt_packet_type
-    // Note: mqtt_packet_type index is 1-based, hence the dummy row 0
-    // The left 4-bit nibble of the mqtt_packet_type is the index
-    {0,                  "",             NULL},
-    {MQTT_CONNECT,       "CONNECT",      mr_validate_connect_extra},
-    {MQTT_CONNACK,       "CONNACK",      NULL},
-    {MQTT_PUBLISH,       "PUBLISH",      NULL},
-    {MQTT_PUBACK,        "PUBACK",       NULL},
-    {MQTT_PUBREC,        "PUBREC",       NULL},
-    {MQTT_PUBREL,        "PUBREL",       NULL},
-    {MQTT_PUBCOMP,       "PUBCOMP",      NULL},
-    {MQTT_SUBSCRIBE,     "SUBSCRIBE",    NULL},
-    {MQTT_SUBACK,        "SUBACK",       NULL},
-    {MQTT_UNSUBSCRIBE,   "UNSUBSCRIBE",  NULL},
-    {MQTT_UNSUBACK,      "UNSUBACK",     NULL},
-    {MQTT_PINGREQ,       "PINGREQ",      NULL},
-    {MQTT_PINGRESP,      "PINGRESP",     NULL},
-    {MQTT_DISCONNECT,    "DISCONNECT",   NULL},
-    {MQTT_AUTH,          "AUTH",         NULL}
+// Note: mqtt_packet_type index is 1-based, hence the dummy row 0
+// The left 4-bit nibble (>> 4) of the mqtt_packet_type is the index
+//   mqtt_packet_type   mqtt_packet_name    ptype_fn - invoked at the end of unpacking the packet
+    {0,                 "",                 NULL},
+    {MQTT_CONNECT,      "CONNECT",          mr_validate_connect_extra},
+    {MQTT_CONNACK,      "CONNACK",          NULL},
+    {MQTT_PUBLISH,      "PUBLISH",          NULL},
+    {MQTT_PUBACK,       "PUBACK",           NULL},
+    {MQTT_PUBREC,       "PUBREC",           NULL},
+    {MQTT_PUBREL,       "PUBREL",           NULL},
+    {MQTT_PUBCOMP,      "PUBCOMP",          NULL},
+    {MQTT_SUBSCRIBE,    "SUBSCRIBE",        NULL},
+    {MQTT_SUBACK,       "SUBACK",           NULL},
+    {MQTT_UNSUBSCRIBE,  "UNSUBSCRIBE",      NULL},
+    {MQTT_UNSUBACK,     "UNSUBACK",         NULL},
+    {MQTT_PINGREQ,      "PINGREQ",          NULL},
+    {MQTT_PINGRESP,     "PINGRESP",         NULL},
+    {MQTT_DISCONNECT,   "DISCONNECT",       NULL},
+    {MQTT_AUTH,         "AUTH",             NULL}
 };
 
 static const mr_dtype _DTYPE[] = { // same order as mr_dtypes enum
@@ -47,29 +48,32 @@ static const mr_dtype _DTYPE[] = { // same order as mr_dtypes enum
 };
 
 static int mr_output_scalar(mr_packet_ctx *pctx, mr_mdata *mdata) {
+    char cv[32] = {'\0'};
     char *ovalue;
-    if (!asprintf(&ovalue, "%u", (uint32_t)mdata->value)) return -1;
+    sprintf(cv, "%u", (uint32_t)mdata->value);
+    if (mr_calloc((void **)&ovalue, strlen(cv) + 1, 1)) return -1;
+    strlcpy(ovalue, cv, 32);
     mdata->ovalloc = true;
     mdata->ovalue = ovalue;
     return 0;
 }
 
-#define CVSZ 200
 static int mr_output_hexdump(mr_packet_ctx *pctx, mr_mdata *mdata) {
-    char cv[CVSZ];
+    char cv[200] = {'\0'};
     size_t len = mdata->vlen > 32 ? 32 : mdata->vlen; // limit to 32 bytes
     if (mr_get_hexdump(cv, sizeof(cv), (uint8_t *)mdata->value, len)) return -1;
     mr_compress_spaces_lines(cv); // make into a single line
+    size_t slen = strlen(cv);
     char *ovalue;
-    if (mr_malloc((void **)&ovalue, strlen(cv) + 1)) return -1;
-    strlcpy(ovalue, cv, CVSZ);
+    if (mr_calloc((void **)&ovalue, slen + 1, 1)) return -1;
+    strlcpy(ovalue, cv, slen + 1);
     mdata->ovalue = ovalue;
     mdata->ovalloc = true;
     return 0;
 }
 
 static int mr_output_hdvalue(mr_packet_ctx *pctx, mr_mdata *mdata) {
-    char cv[CVSZ];
+    char cv[200] = {'\0'};
     uint8_t u8v[4];
     uint32_t u32 = mdata->value;
     u8v[0] = (u32 >> 24) & 0xFF;
@@ -78,9 +82,10 @@ static int mr_output_hdvalue(mr_packet_ctx *pctx, mr_mdata *mdata) {
     u8v[3] = u32 & 0xFF;
     if (mr_get_hexdump(cv, sizeof(cv), u8v, 4)) return -1;
     mr_compress_spaces_lines(cv); // make into a single line
+    size_t slen = strlen(cv);
     char *ovalue;
-    if (mr_malloc((void **)&ovalue, strlen(cv) + 1)) return -1;
-    strlcpy(ovalue, cv, CVSZ);
+    if (mr_calloc((void **)&ovalue, slen + 1, 1)) return -1;
+    strlcpy(ovalue, cv, slen + 1);
     mdata->ovalue = ovalue;
     mdata->ovalloc = true;
     return 0;
@@ -89,9 +94,8 @@ static int mr_output_hdvalue(mr_packet_ctx *pctx, mr_mdata *mdata) {
 static int mr_output_string(mr_packet_ctx *pctx, mr_mdata *mdata) {
     char *ovalue;
     size_t slen = strlen((char *)mdata->value);
-    if (mr_malloc((void **)&ovalue, slen + 1)) return -1;
-    strlcpy(ovalue, (char *)mdata->value, mdata->vlen);
-    ovalue[slen] = '\0';
+    if (mr_calloc((void **)&ovalue, slen + 1, 1)) return -1;
+    strlcpy(ovalue, (char *)mdata->value, slen + 1);
     mdata->ovalue = ovalue;
     mdata->ovalloc = true;
     return 0;
@@ -106,7 +110,7 @@ static int mr_output_spv(mr_packet_ctx *pctx, mr_mdata *mdata) {
         sz += strlen(spv[i].name) + 1 + strlen(spv[i].value) + 1; // ':' and ';'
     }
 
-    if (mr_malloc((void **)&ovalue, sz)) return -1;
+    if (mr_calloc((void **)&ovalue, sz, 1)) return -1;
 
     char *pc = ovalue;
     for (int i = 0; i < mdata->vlen; i++) {
@@ -123,9 +127,8 @@ static int mr_output_spv(mr_packet_ctx *pctx, mr_mdata *mdata) {
 int mr_mdata_dump(mr_packet_ctx *pctx) {
     const mr_mdata_fn vbi_count_fn = _DTYPE[MR_VBI_DTYPE].count_fn;
 
-    // traverse in reverse to calculate VBIs since they have variable size
+    // traverse in reverse to calculate VBIs since their u8vlens are variable
     mr_mdata *mdata = pctx->mdata0 + pctx->mdata_count - 1; // last one
-
     for (int i = pctx->mdata_count - 1; i > -1; mdata--, i--) {
         if (mdata->vexists && mdata->dtype == MR_VBI_DTYPE && vbi_count_fn(pctx, mdata)) return -1;
     }
@@ -144,7 +147,7 @@ int mr_mdata_dump(mr_packet_ctx *pctx) {
     }
 
     char *mdata_dump;
-    if (mr_malloc((void **)&mdata_dump, len)) return -1;
+    if (mr_calloc((void **)&mdata_dump, len, 1)) return -1;
 
     char *pc = mdata_dump;
     mdata = pctx->mdata0;
@@ -162,7 +165,7 @@ int mr_mdata_dump(mr_packet_ctx *pctx) {
 
 int mr_validate_u8vutf8(mr_packet_ctx *pctx, int idx) {
     mr_mdata *mdata = pctx->mdata0 + idx;
-    int err_pos = utf8val((uint8_t *)mdata->value, mdata->vlen); // returns error position
+    int err_pos = utf8val((uint8_t *)mdata->value, mdata->vlen);
 
     if (err_pos) {
         dzlog_error(
@@ -229,13 +232,8 @@ int mr_set_vector(mr_packet_ctx *pctx, int idx, void *pvoid, size_t len) {
     mdata->vlen = mdata->value ? len : 0;
     mr_mdata_fn count_fn = _DTYPE[mdata->dtype].count_fn;
     if (count_fn(pctx, mdata)) return -1; // sets u8vlen
-
     mr_mdata_fn validate_fn = _DTYPE[mdata->dtype].validate_fn;
-    if (mdata->value && validate_fn && validate_fn(pctx, mdata)) {
-        mr_reset_vector(pctx, idx);
-        return -1;
-    }
-
+    if (mdata->value && validate_fn && validate_fn(pctx, mdata)) return -1;
     return 0;
 }
 
@@ -342,8 +340,8 @@ static int mr_unpack_packet(mr_packet_ctx *pctx) {
         }
     }
 
-    mr_ptype_fn ptype_fn = _PTYPE[pctx->mqtt_packet_type >> 4].ptype_fn;
-    if (ptype_fn && ptype_fn(pctx)) return -1;;
+    mr_ptype_fn ptype_fn = _PTYPE[pctx->mqtt_packet_type >> 4].ptype_fn; // index is left nibble
+    if (ptype_fn && ptype_fn(pctx)) return -1;
 
     if (pctx->u8vpos == pctx->u8vlen) {
         return 0;
@@ -515,6 +513,12 @@ static int mr_unpack_str(mr_packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_validate_str(mr_packet_ctx *pctx, mr_mdata *mdata) {
+    // dzlog_debug("name: %s; pointer value: %lu", mdata->name, mdata->value);
+    if (!mdata->value) {
+        dzlog_error("NULL pointer: packet: %s; name: %s", pctx->mqtt_packet_name, mdata->name);
+        return -1;
+    }
+
     char *pc = (char *)mdata->value;
     int err_pos = utf8val((uint8_t *)pc, strlen(pc)); // returns error position
 
@@ -531,6 +535,11 @@ static int mr_validate_str(mr_packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_count_spv(mr_packet_ctx *pctx, mr_mdata *mdata) { // spv's are properties
+    if (!mdata->value) {
+        dzlog_error("NULL pointer: packet: %s; name: %s", pctx->mqtt_packet_name, mdata->name);
+        return -1;
+    }
+
     mr_string_pair *spv = (mr_string_pair *)mdata->value;
 
     mdata->u8vlen = 0;
@@ -542,6 +551,11 @@ static int mr_count_spv(mr_packet_ctx *pctx, mr_mdata *mdata) { // spv's are pro
 }
 
 static int mr_pack_spv(mr_packet_ctx *pctx, mr_mdata *mdata) {
+    if (!mdata->value) {
+        dzlog_error("NULL pointer: packet: %s; name: %s", pctx->mqtt_packet_name, mdata->name);
+        return -1;
+    }
+
     mr_string_pair *spv = (mr_string_pair *)mdata->value;
     uint16_t u16;
 
@@ -604,6 +618,11 @@ static int mr_unpack_spv(mr_packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_validate_spv(mr_packet_ctx *pctx, mr_mdata *mdata) {
+    if (!mdata->value) {
+        dzlog_error("NULL pointer: packet: %s; name: %s", pctx->mqtt_packet_name, mdata->name);
+        return -1;
+    }
+
     mr_string_pair *spv = (mr_string_pair *)mdata->value;
 
     for (int i = 0; i < mdata->vlen; i++) { // utf8val returns error position
@@ -642,13 +661,7 @@ static int mr_free_spv(mr_packet_ctx *pctx, mr_mdata *mdata) {
         free(psp->value);
     }
 
-    free(spv0);
-    mdata->value = (mr_mvalue_t)NULL;
-    mdata->vexists = false;
-    mdata->valloc = false;
-    mdata->vlen = 0;
-    mdata->u8vlen = 0;
-    return 0;
+    return mr_free_vector(pctx, mdata);
 }
 
 static int mr_unpack_props(mr_packet_ctx *pctx, mr_mdata *mdata) {
@@ -707,6 +720,11 @@ static int mr_count_u8v(mr_packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_pack_u8v(mr_packet_ctx *pctx, mr_mdata *mdata) {
+    if (!mdata->value) {
+        dzlog_error("NULL pointer: packet: %s; name: %s", pctx->mqtt_packet_name, mdata->name);
+        return -1;
+    }
+
     bool bstr = mdata->dtype == MR_STR_DTYPE;
     uint8_t propid = mdata->propid;
     if (propid) pctx->u8v0[pctx->u8vpos++] = propid;
@@ -787,17 +805,20 @@ static int mr_unpack_bits(mr_packet_ctx *pctx, mr_mdata *mdata) {  // don't adva
 }
 
 int mr_validate_utf8_values(mr_packet_ctx *pctx) {
+    dzlog_debug("");
     mr_mdata *mdata = pctx->mdata0;
 
     for (int i = 0; i < pctx->mdata_count; i++, mdata++) {
-        if (mdata->dtype == MR_STR_DTYPE) {
-            if (mr_validate_str(pctx, mdata)) return -1;
-        }
-        else if (mdata->dtype == MR_SPV_DTYPE) {
-            if (mr_validate_spv(pctx, mdata)) return -1;
-        }
-        else {
-            // noop
+        if (mdata->vexists) {
+            if (mdata->dtype == MR_STR_DTYPE) {
+                if (mr_validate_str(pctx, mdata)) return -1;
+            }
+            else if (mdata->dtype == MR_SPV_DTYPE) {
+                if (mr_validate_spv(pctx, mdata)) return -1;
+            }
+            else {
+                // noop
+            }
         }
     }
 

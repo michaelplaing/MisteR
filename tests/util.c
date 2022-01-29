@@ -11,7 +11,7 @@ int get_binary_file_content(const char *fixfilename, uint8_t **pu8v, uint32_t *p
     fseek(fixfile, 0, SEEK_END);
     *pffsz = ftell(fixfile);
     fseek(fixfile, 0, SEEK_SET);
-    *pu8v = (uint8_t *)malloc(*pffsz);
+    *pu8v = (uint8_t *)calloc(*pffsz, 1);
     if (*pu8v == NULL) return -2;
     fread(*pu8v, 1, *pffsz, fixfile);
     fclose(fixfile);

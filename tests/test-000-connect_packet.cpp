@@ -46,7 +46,6 @@ TEST_CASE("default CONNECT packet", "[connect][happy]") {
         REQUIRE(mr_set_connect_will_flag(pctx, true) == 0);
         REQUIRE(mr_set_connect_will_qos(pctx, 2) == 0);
         REQUIRE(mr_set_connect_will_retain(pctx, true) == 0);
-        REQUIRE(mr_set_connect_will_property_length(pctx, 0) == 0); // sets vexists; value always calculated
         REQUIRE(mr_set_connect_will_delay_interval(pctx, 1000) == 0);
         REQUIRE(mr_set_connect_payload_format_indicator(pctx, 1) == 0);
         REQUIRE(mr_set_connect_message_expiry_interval(pctx, 1000) == 0);
@@ -81,8 +80,8 @@ TEST_CASE("default CONNECT packet", "[connect][happy]") {
             uint8_t password[] = {'g', 'h', 'i'};
 
             REQUIRE(mr_set_connect_clean_start(pctx, true) == 0);
-            REQUIRE(mr_set_connect_password_flag(pctx, true) == 0);
-            REQUIRE(mr_set_connect_username_flag(pctx, true) == 0);
+            REQUIRE(mr_set_connect_password_flag(pctx, true) == 0); // set by mr_set_connect_password
+            REQUIRE(mr_set_connect_username_flag(pctx, true) == 0); // set by mr_set_connect_user_name
             REQUIRE(mr_set_connect_keep_alive(pctx, 5) == 0);
             REQUIRE(mr_set_connect_session_expiry_interval(pctx, 3600) == 0);
             REQUIRE(mr_set_connect_receive_maximum(pctx, 1000) == 0);
@@ -90,6 +89,7 @@ TEST_CASE("default CONNECT packet", "[connect][happy]") {
             REQUIRE(mr_set_connect_topic_alias_maximum(pctx, 10) == 0);
             REQUIRE(mr_set_connect_request_response_information(pctx, 1) == 0);
             REQUIRE(mr_set_connect_request_problem_information(pctx, 1) == 0);
+
             REQUIRE(mr_set_connect_user_properties(pctx, user_properties, sizeof(user_properties) / sizeof(mr_string_pair)) == 0);
             REQUIRE(mr_set_connect_authentication_method(pctx, authentication_method) == 0);
             REQUIRE(mr_set_connect_authentication_data(pctx, authentication_data, sizeof(authentication_data)) == 0);
@@ -101,64 +101,52 @@ TEST_CASE("default CONNECT packet", "[connect][happy]") {
 
     // *** common test epilog ***
 
-    // dump
-    int rc10 = mr_connect_mdata_dump(pctx);
-    REQUIRE(rc10 == 0);
+    // validate
+    REQUIRE(mr_validate_connect_values(pctx) == 0);
 
-    // if (strcmp(dump_filename, "fixtures/will_connect_mdata_dump.txt") == 0) {
-    //     rc = put_binary_file_content(dump_filename, (uint8_t *)pctx->mdata_dump, strlen(pctx->mdata_dump));
-    //     REQUIRE(rc == 0);
-    // }
+    // dump
+    REQUIRE(mr_connect_mdata_dump(pctx) == 0);
+    // REQUIRE(put_binary_file_content(dump_filename, (uint8_t *)pctx->mdata_dump, strlen(pctx->mdata_dump) + 1) == 0);
 
     // check dump
     char *mdata_dump;
     uint32_t mdsz;
-    rc = get_binary_file_content(dump_filename, (uint8_t **)&mdata_dump, &mdsz);
-    REQUIRE(rc == 0);
-    printf("\npctx->mdata_dump (packet)::\n");
-    mr_print_hexdump((uint8_t *)pctx->mdata_dump, strlen(pctx->mdata_dump));
-    printf("\n\nmdata_dump (%s)::\n", dump_filename);
-    mr_print_hexdump((uint8_t *)mdata_dump, mdsz);
-    REQUIRE(mdsz == strlen(pctx->mdata_dump));
-    REQUIRE(strncmp(mdata_dump, pctx->mdata_dump, mdsz) == 0);
+    REQUIRE(get_binary_file_content(dump_filename, (uint8_t **)&mdata_dump, &mdsz) == 0);
+    printf("\nmdata_dump (%s)::\n%s\n\npctx->mdata::\n%s\n", dump_filename, mdata_dump, pctx->mdata_dump);
+    REQUIRE(mdsz == strlen(pctx->mdata_dump) + 1);
+    REQUIRE(strcmp(mdata_dump, pctx->mdata_dump) == 0);
     free(mdata_dump);
 
     // pack
-    int rc20 = mr_pack_connect_packet(pctx);
+    REQUIRE(mr_pack_connect_packet(pctx) == 0);
+    printf("\n\npacket::\n");
     mr_print_hexdump(pctx->u8v0, pctx->u8vlen);
-    // rc = put_binary_file_content(packet_filename, pctx->u8v0, pctx->u8vlen);
-    // REQUIRE(rc == 0);
-    REQUIRE(rc20 == 0);
+    // REQUIRE(put_binary_file_content(packet_filename, pctx->u8v0, pctx->u8vlen) == 0);
 
     // check packet
     uint8_t *u8v0;
     uint32_t u8vlen;
-    rc = get_binary_file_content(packet_filename, &u8v0, &u8vlen);
-    REQUIRE(rc == 0);
+    REQUIRE(get_binary_file_content(packet_filename, &u8v0, &u8vlen) == 0);
     REQUIRE(u8vlen == pctx->u8vlen);
     REQUIRE(memcmp(u8v0, pctx->u8v0, u8vlen) == 0);
     free(u8v0);
 
     // free pack context
-    int rc30 = mr_free_connect_pctx(pctx);
-    REQUIRE(rc30 == 0);
+    REQUIRE(mr_free_connect_pctx(pctx) == 0);
 
     // init unpack context / unpack packet
-    int rc40 = mr_init_unpack_connect_packet(&pctx, u8v0, u8vlen);
-    REQUIRE(rc40 == 0);
+    REQUIRE(mr_init_unpack_connect_packet(&pctx, u8v0, u8vlen) == 0);
 
     // unpack dump
-    int rc50 = mr_connect_mdata_dump(pctx);
-    REQUIRE(rc50 == 0);
+    REQUIRE(mr_connect_mdata_dump(pctx) == 0);
 
     // check unpack dump
-    REQUIRE(mdsz == strlen(pctx->mdata_dump));
-    REQUIRE(strncmp(mdata_dump, pctx->mdata_dump, mdsz) == 0);
+    REQUIRE(mdsz == strlen(pctx->mdata_dump) + 1);
+    REQUIRE(strcmp(mdata_dump, pctx->mdata_dump) == 0);
     free(mdata_dump);
 
     // free unpack context
-    int rc60 = mr_free_connect_pctx(pctx);
-    REQUIRE(rc60 == 0);
+    REQUIRE(mr_free_connect_pctx(pctx) == 0);
 
     zlog_fini();
 }
