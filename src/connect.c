@@ -586,7 +586,7 @@ int mr_reset_connect_password(mr_packet_ctx *pctx) {
 // validation
 
 int mr_validate_connect_values(mr_packet_ctx *pctx) {
-    dzlog_debug("");
+    // dzlog_debug("");
     if (mr_connect_packet_check(pctx)) return -1;
     if (mr_validate_connect_cross(pctx)) return -1;
     if (mr_validate_utf8_values(pctx)) return -1;
@@ -596,7 +596,7 @@ int mr_validate_connect_values(mr_packet_ctx *pctx) {
 }
 
 static int mr_validate_connect_cross(mr_packet_ctx *pctx) {
-    dzlog_debug("");
+    // dzlog_debug("");
     bool bexists;
 
     bool will_flag;
@@ -646,7 +646,7 @@ static int mr_validate_connect_cross(mr_packet_ctx *pctx) {
 
 // CONNECT ptype_fn invoked from packet.c during unpack in addition to above
 int mr_validate_connect_extra(mr_packet_ctx *pctx) {
-    dzlog_debug("");
+    // dzlog_debug("");
     uint8_t u8;
     uint16_t u16;
     uint32_t u32;

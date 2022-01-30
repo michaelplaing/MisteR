@@ -41,7 +41,7 @@ static const mr_dtype _DTYPE[] = { // same order as mr_dtypes enum
     {MR_VBI_DTYPE,      "variable byte int",        mr_count_VBI,   mr_pack_VBI,        mr_unpack_VBI,      mr_output_scalar,   NULL,               NULL},
     {MR_BITS_DTYPE,     "bits in uint8 flag",       NULL,           mr_pack_bits,       mr_unpack_bits,     mr_output_scalar,   NULL,               NULL},
     {MR_U8V_DTYPE,      "binary data - uint8 vec",  mr_count_u8v,   mr_pack_u8v,        mr_unpack_u8v,      mr_output_hexdump,  NULL,               mr_free_vector},
-    {MR_STR_DTYPE,      "utf8 prefix string",       mr_count_str,   mr_pack_str,        mr_unpack_str,      mr_output_string,   mr_validate_str,    mr_free_vector},
+    {MR_STR_DTYPE,      "utf8 prefix string",       mr_count_str,   mr_pack_u8v,        mr_unpack_u8v,      mr_output_string,   mr_validate_str,    mr_free_vector},
     {MR_SPV_DTYPE,      "string pair vector",       mr_count_spv,   mr_pack_spv,        mr_unpack_spv,      mr_output_spv,      mr_validate_spv,    mr_free_spv},
     {MR_FLAGS_DTYPE,    "uint8 flag",               NULL,           mr_pack_incr1,      mr_unpack_u8,       mr_output_hdvalue,  NULL,               NULL},
     {MR_PROPS_DTYPE,    "properties",               NULL,           NULL,               mr_unpack_props,    NULL,               NULL,               NULL}
@@ -431,14 +431,10 @@ int mr_free_packet_context(mr_packet_ctx *pctx) {
 
 int mr_init_packet(mr_packet_ctx **ppctx, const mr_mdata *MDATA_TEMPLATE, size_t mdata_count) {
     mr_packet_ctx *pctx;
-
     if (mr_calloc((void **)&pctx, 1, sizeof(mr_packet_ctx))) return -1;
-
     pctx->mdata_count = mdata_count;
     mr_mdata *mdata0;
-
     if (mr_malloc((void **)&mdata0, mdata_count * sizeof(mr_mdata))) return -1;
-
     memcpy(mdata0, MDATA_TEMPLATE, mdata_count * sizeof(mr_mdata));
     pctx->mdata0 = mdata0;
     pctx->mqtt_packet_type = mdata0->value; // always the value of the 0th mdata row
@@ -502,14 +498,6 @@ static int mr_count_str(mr_packet_ctx *pctx, mr_mdata *mdata) {
     if (mr_count_u8v(pctx, mdata)) return -1;
     mdata->u8vlen--; // correct for vlen = strlen() + 1
     return 0;
-}
-
-static int mr_pack_str(mr_packet_ctx *pctx, mr_mdata *mdata) {
-    return mr_pack_u8v(pctx, mdata);
-}
-
-static int mr_unpack_str(mr_packet_ctx *pctx, mr_mdata *mdata) {
-    return mr_unpack_u8v(pctx, mdata);
 }
 
 static int mr_validate_str(mr_packet_ctx *pctx, mr_mdata *mdata) {
@@ -671,7 +659,6 @@ static int mr_unpack_props(mr_packet_ctx *pctx, mr_mdata *mdata) {
     );
 
     mdata->vexists = true;
-
     size_t end_pos = pctx->u8vpos + (mdata - 1)->value; // use property_length
     uint8_t *pu8, *pprop_index;
     int prop_index;
@@ -742,10 +729,8 @@ static int mr_unpack_u8v(mr_packet_ctx *pctx, mr_mdata *mdata) {
     uint16_t u16v[] = {u8v[0], u8v[1]}; u8v += 2;
     size_t u8vlen = (u16v[0] << 8) + u16v[1];
     size_t vlen = u8vlen + (bstr ? 1 : 0);
-
     uint8_t *value;
     if (mr_calloc((void **)&value, vlen, 1)) return -1;
-
     memcpy(value, u8v, u8vlen);
     mdata->value = (mr_mvalue_t)value;
     mdata->vlen = vlen;
@@ -805,7 +790,7 @@ static int mr_unpack_bits(mr_packet_ctx *pctx, mr_mdata *mdata) {  // don't adva
 }
 
 int mr_validate_utf8_values(mr_packet_ctx *pctx) {
-    dzlog_debug("");
+    // dzlog_debug("");
     mr_mdata *mdata = pctx->mdata0;
 
     for (int i = 0; i < pctx->mdata_count; i++, mdata++) {

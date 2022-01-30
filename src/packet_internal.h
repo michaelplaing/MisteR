@@ -116,8 +116,6 @@ static int mr_pack_u32(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_unpack_u32(mr_packet_ctx *pctx, mr_mdata *mdata);
 
 static int mr_count_str(mr_packet_ctx *pctx, mr_mdata *mdata);
-static int mr_pack_str(mr_packet_ctx *pctx, mr_mdata *mdata);
-static int mr_unpack_str(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_validate_str(mr_packet_ctx *pctx, mr_mdata *mdata);
 
 static int mr_count_VBI(mr_packet_ctx *pctx, mr_mdata *mdata);
