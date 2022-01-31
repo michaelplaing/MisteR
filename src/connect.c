@@ -230,10 +230,7 @@ int mr_get_connect_password_flag(mr_packet_ctx *pctx, bool *pboolean, bool *pexi
     return mr_get_boolean(pctx, CONNECT_PASSWORD_FLAG, pboolean, pexists);
 }
 
-int mr_set_connect_password_flag(mr_packet_ctx *pctx, bool boolean) {
-    if (mr_connect_packet_check(pctx)) return -1;
-    return mr_set_scalar(pctx, CONNECT_PASSWORD_FLAG, boolean);
-}
+// set by setting password
 
 // bool username_flag;
 int mr_get_connect_username_flag(mr_packet_ctx *pctx, bool *pboolean, bool *pexists) {
@@ -241,12 +238,9 @@ int mr_get_connect_username_flag(mr_packet_ctx *pctx, bool *pboolean, bool *pexi
     return mr_get_boolean(pctx, CONNECT_USERNAME_FLAG, pboolean, pexists);
 }
 
-int mr_set_connect_username_flag(mr_packet_ctx *pctx, bool boolean) {
-    if (mr_connect_packet_check(pctx)) return -1;
-    return mr_set_scalar(pctx, CONNECT_USERNAME_FLAG, boolean);
-}
+// set by setting username
 
-// uint16_t keep_alive;
+// uint16_t keep_alive; always exists hence never reset
 int mr_get_connect_keep_alive(mr_packet_ctx *pctx, uint16_t *pu16, bool *pexists) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_get_u16(pctx, CONNECT_KEEP_ALIVE, pu16, pexists);
@@ -587,13 +581,13 @@ int mr_get_connect_user_name(mr_packet_ctx *pctx, char **pcv0, bool *pexists) {
 
 int mr_set_connect_user_name(mr_packet_ctx *pctx, char *cv0) {
     if (mr_connect_packet_check(pctx)) return -1;
-    if (mr_set_connect_username_flag(pctx, true)) return -1;
+    if (mr_set_scalar(pctx, CONNECT_USERNAME_FLAG, true)) return -1;
     return mr_set_vector(pctx, CONNECT_USER_NAME, cv0, strlen(cv0) + 1);
 }
 
 int mr_reset_connect_user_name(mr_packet_ctx *pctx) {
     if (mr_connect_packet_check(pctx)) return -1;
-    if (mr_set_connect_username_flag(pctx, false)) return -1;
+    if (mr_set_scalar(pctx, CONNECT_USERNAME_FLAG, false)) return -1;
     return mr_reset_vector(pctx, CONNECT_USER_NAME);
 }
 
@@ -605,13 +599,13 @@ int mr_get_connect_password(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *plen, 
 
 int mr_set_connect_password(mr_packet_ctx *pctx, uint8_t *u8v0, size_t len) {
     if (mr_connect_packet_check(pctx)) return -1;
-    if (mr_set_connect_password_flag(pctx, true)) return -1;
+    if (mr_set_scalar(pctx, CONNECT_PASSWORD_FLAG, true)) return -1;
     return mr_set_vector(pctx, CONNECT_PASSWORD, u8v0, len);
 }
 
 int mr_reset_connect_password(mr_packet_ctx *pctx) {
     if (mr_connect_packet_check(pctx)) return -1;
-    if (mr_set_connect_password_flag(pctx, false)) return -1;
+    if (mr_set_scalar(pctx, CONNECT_PASSWORD_FLAG, false)) return -1;
     return mr_reset_vector(pctx, CONNECT_PASSWORD);
 }
 

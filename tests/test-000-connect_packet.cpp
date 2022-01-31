@@ -3,6 +3,8 @@
 #include "mister/mrzlog.h"
 #include "util.h"
 
+static char _S0L[] = "";
+
 TEST_CASE("default CONNECT packet", "[connect][happy]") {
     dzlog_info("common test prolog");
     // *** common test prolog ***
@@ -19,14 +21,14 @@ TEST_CASE("default CONNECT packet", "[connect][happy]") {
     // *** test sections ***
 
     SECTION("default packet") {
-        dzlog_info("section: default packet");
+        dzlog_info("section: test default");
 
         strlcpy(dump_filename, "fixtures/default_connect_mdata_dump.txt", 50);
         strlcpy(packet_filename, "fixtures/default_connect_packet.bin", 50);
     }
 
     SECTION("will/complex packet") {
-        dzlog_info("section: will/complex");
+        dzlog_info("section: set will");
 
         // *** section prolog ***
 
@@ -61,27 +63,25 @@ TEST_CASE("default CONNECT packet", "[connect][happy]") {
         REQUIRE(mr_set_connect_will_topic(pctx, will_topic) == 0);
         REQUIRE(mr_set_connect_will_payload(pctx, will_payload, will_payload_len) == 0);
 
-        SECTION("will packet") { // default + will
-            dzlog_info("section: will packet");
+        SECTION("+will packet") { // default + will
+            dzlog_info("section: test will");
 
             strlcpy(dump_filename, "fixtures/will_connect_mdata_dump.txt", 50);
             strlcpy(packet_filename, "fixtures/will_connect_packet.bin", 50);
         }
 
-        SECTION("will reset packet") { // default + will - will
-            dzlog_info("section: will reset packet");
+        SECTION("-will packet") { // default + will - will
+            dzlog_info("section: reset/test will");
 
             strlcpy(dump_filename, "fixtures/default_connect_mdata_dump.txt", 50);
             strlcpy(packet_filename, "fixtures/default_connect_packet.bin", 50);
 
+            // reset all the will-related values set above by setting the will_flag to false
             REQUIRE(mr_set_connect_will_flag(pctx, false) == 0);
         }
 
         SECTION("complex packet") { // default + will + all remaining
             dzlog_info("section: complex packet");
-
-            strlcpy(dump_filename, "fixtures/complex_connect_mdata_dump.txt", 50);
-            strlcpy(packet_filename, "fixtures/complex_connect_packet.bin", 50);
 
             // build additional vector values
             char flim[] = "flim";
@@ -98,8 +98,6 @@ TEST_CASE("default CONNECT packet", "[connect][happy]") {
             uint8_t password[] = {'g', 'h', 'i'};
 
             REQUIRE(mr_set_connect_clean_start(pctx, true) == 0);
-            // REQUIRE(mr_set_connect_password_flag(pctx, true) == 0); // set by mr_set_connect_password
-            // REQUIRE(mr_set_connect_username_flag(pctx, true) == 0); // set by mr_set_connect_user_name
             REQUIRE(mr_set_connect_keep_alive(pctx, 5) == 0);
             REQUIRE(mr_set_connect_session_expiry_interval(pctx, 3600) == 0);
             REQUIRE(mr_set_connect_receive_maximum(pctx, 1000) == 0);
@@ -114,6 +112,40 @@ TEST_CASE("default CONNECT packet", "[connect][happy]") {
             REQUIRE(mr_set_connect_client_identifier(pctx, client_identifier) == 0);
             REQUIRE(mr_set_connect_user_name(pctx, user_name) == 0);
             REQUIRE(mr_set_connect_password(pctx, password, sizeof(password)) == 0);
+
+            SECTION("+complex packet") { // default + will + all remaining
+                dzlog_info("section: set/test complex");
+
+                strlcpy(dump_filename, "fixtures/complex_connect_mdata_dump.txt", 50);
+                strlcpy(packet_filename, "fixtures/complex_connect_packet.bin", 50);
+            }
+
+            SECTION("-complex packet") { // default + will + all remaining - will - all remaining
+                dzlog_info("section: reset/test will & complex");
+
+                strlcpy(dump_filename, "fixtures/default_connect_mdata_dump.txt", 50);
+                strlcpy(packet_filename, "fixtures/default_connect_packet.bin", 50);
+
+                // reset all the will-related values set above by setting the will_flag to false
+                REQUIRE(mr_set_connect_will_flag(pctx, false) == 0);
+
+                // reset the additional values
+                REQUIRE(mr_set_connect_clean_start(pctx, false) == 0);
+                REQUIRE(mr_set_connect_keep_alive(pctx, 0) == 0); // keep_alive always exists hence is not reset
+                REQUIRE(mr_reset_connect_session_expiry_interval(pctx) == 0);
+                REQUIRE(mr_reset_connect_receive_maximum(pctx) == 0);
+                REQUIRE(mr_reset_connect_maximum_packet_size(pctx) == 0);
+                REQUIRE(mr_reset_connect_topic_alias_maximum(pctx) == 0);
+                REQUIRE(mr_reset_connect_request_response_information(pctx) == 0);
+                REQUIRE(mr_reset_connect_request_problem_information(pctx) == 0);
+
+                REQUIRE(mr_reset_connect_user_properties(pctx) == 0);
+                REQUIRE(mr_reset_connect_authentication_method(pctx) == 0);
+                REQUIRE(mr_reset_connect_authentication_data(pctx) == 0);
+                REQUIRE(mr_set_connect_client_identifier(pctx, _S0L) == 0);
+                REQUIRE(mr_reset_connect_user_name(pctx) == 0);
+                REQUIRE(mr_reset_connect_password(pctx) == 0);
+            }
         }
     }
 
@@ -140,6 +172,7 @@ TEST_CASE("default CONNECT packet", "[connect][happy]") {
     REQUIRE(mr_pack_connect_packet(pctx) == 0);
     printf("\n\npacket::\n");
     mr_print_hexdump(pctx->u8v0, pctx->u8vlen);
+    puts("\n\n");
     // REQUIRE(put_binary_file_content(packet_filename, pctx->u8v0, pctx->u8vlen) == 0);
 
     // check packet

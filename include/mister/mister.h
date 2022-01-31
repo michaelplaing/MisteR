@@ -193,10 +193,8 @@ int mr_get_connect_will_retain(mr_packet_ctx *pctx, bool *pboolean, bool *pexist
 int mr_set_connect_will_retain(mr_packet_ctx *pctx, bool boolean);
 
 int mr_get_connect_password_flag(mr_packet_ctx *pctx, bool *pboolean, bool *pexists);
-int mr_set_connect_password_flag(mr_packet_ctx *pctx, bool boolean);
 
 int mr_get_connect_username_flag(mr_packet_ctx *pctx, bool *pboolean, bool *pexists);
-int mr_set_connect_username_flag(mr_packet_ctx *pctx, bool boolean);
 
 int mr_get_connect_keep_alive(mr_packet_ctx *pctx, uint16_t *pu16, bool *pexists);
 int mr_set_connect_keep_alive(mr_packet_ctx *pctx, uint16_t u16);
