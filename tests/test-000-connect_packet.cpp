@@ -4,6 +4,7 @@
 #include "util.h"
 
 TEST_CASE("default CONNECT packet", "[connect][happy]") {
+    dzlog_info("common test prolog");
     // *** common test prolog ***
 
     dzlog_init("", "mr_init");
@@ -13,17 +14,20 @@ TEST_CASE("default CONNECT packet", "[connect][happy]") {
     char packet_filename[50];
 
     // init
-    int rc00 = mr_init_connect_pctx(&pctx);
-    REQUIRE(rc00 == 0);
+    REQUIRE(mr_init_connect_pctx(&pctx) == 0);
 
     // *** test sections ***
 
     SECTION("default packet") {
+        dzlog_info("section: default packet");
+
         strlcpy(dump_filename, "fixtures/default_connect_mdata_dump.txt", 50);
         strlcpy(packet_filename, "fixtures/default_connect_packet.bin", 50);
     }
 
     SECTION("will/complex packet") {
+        dzlog_info("section: will/complex");
+
         // *** section prolog ***
 
         // build will vector values
@@ -58,14 +62,28 @@ TEST_CASE("default CONNECT packet", "[connect][happy]") {
         REQUIRE(mr_set_connect_will_payload(pctx, will_payload, will_payload_len) == 0);
 
         SECTION("will packet") { // default + will
+            dzlog_info("section: will packet");
+
             strlcpy(dump_filename, "fixtures/will_connect_mdata_dump.txt", 50);
             strlcpy(packet_filename, "fixtures/will_connect_packet.bin", 50);
         }
 
+        SECTION("will reset packet") { // default + will - will
+            dzlog_info("section: will reset packet");
+
+            strlcpy(dump_filename, "fixtures/default_connect_mdata_dump.txt", 50);
+            strlcpy(packet_filename, "fixtures/default_connect_packet.bin", 50);
+
+            REQUIRE(mr_set_connect_will_flag(pctx, false) == 0);
+        }
+
         SECTION("complex packet") { // default + will + all remaining
+            dzlog_info("section: complex packet");
+
             strlcpy(dump_filename, "fixtures/complex_connect_mdata_dump.txt", 50);
             strlcpy(packet_filename, "fixtures/complex_connect_packet.bin", 50);
 
+            // build additional vector values
             char flim[] = "flim";
             char flop[] = "flop";
             mr_string_pair spflim = {flim, flop};
@@ -80,8 +98,8 @@ TEST_CASE("default CONNECT packet", "[connect][happy]") {
             uint8_t password[] = {'g', 'h', 'i'};
 
             REQUIRE(mr_set_connect_clean_start(pctx, true) == 0);
-            REQUIRE(mr_set_connect_password_flag(pctx, true) == 0); // set by mr_set_connect_password
-            REQUIRE(mr_set_connect_username_flag(pctx, true) == 0); // set by mr_set_connect_user_name
+            // REQUIRE(mr_set_connect_password_flag(pctx, true) == 0); // set by mr_set_connect_password
+            // REQUIRE(mr_set_connect_username_flag(pctx, true) == 0); // set by mr_set_connect_user_name
             REQUIRE(mr_set_connect_keep_alive(pctx, 5) == 0);
             REQUIRE(mr_set_connect_session_expiry_interval(pctx, 3600) == 0);
             REQUIRE(mr_set_connect_receive_maximum(pctx, 1000) == 0);
@@ -99,6 +117,7 @@ TEST_CASE("default CONNECT packet", "[connect][happy]") {
         }
     }
 
+    dzlog_info("common test epilog");
     // *** common test epilog ***
 
     // validate

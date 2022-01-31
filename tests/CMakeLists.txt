@@ -24,6 +24,3 @@ configure_file("fixtures/will_connect_mdata_dump.txt" "fixtures/will_connect_mda
 configure_file("fixtures/will_connect_packet.bin" "fixtures/will_connect_packet.bin" COPYONLY)
 configure_file("fixtures/complex_connect_mdata_dump.txt" "fixtures/complex_connect_mdata_dump.txt" COPYONLY)
 configure_file("fixtures/complex_connect_packet.bin" "fixtures/complex_connect_packet.bin" COPYONLY)
-
-# add the cmocka test directory if using
-# add_subdirectory(unittests)

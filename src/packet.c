@@ -227,9 +227,10 @@ int mr_get_u32(mr_packet_ctx *pctx, int idx, uint32_t *pu32, bool *pexists) {
 int mr_set_vector(mr_packet_ctx *pctx, int idx, void *pvoid, size_t len) {
     if (mr_reset_vector(pctx, idx)) return -1;
     mr_mdata *mdata = pctx->mdata0 + idx;
+    // dzlog_debug("mr_set_vector:: name: %s; len: %lu", mdata->name, len);
     mdata->value = (mr_mvalue_t)pvoid;
-    mdata->vexists = mdata->value ? true : false;
-    mdata->vlen = mdata->value ? len : 0;
+    mdata->vexists = true;
+    mdata->vlen = len;
     mr_mdata_fn count_fn = _DTYPE[mdata->dtype].count_fn;
     if (count_fn(pctx, mdata)) return -1; // sets u8vlen
     mr_mdata_fn validate_fn = _DTYPE[mdata->dtype].validate_fn;
@@ -406,6 +407,7 @@ static int mr_unpack_VBI(mr_packet_ctx *pctx, mr_mdata *mdata) {
  }
 
 static int mr_free_vector(mr_packet_ctx *pctx, mr_mdata *mdata) {
+    // dzlog_debug("mr_free_vector:: name: %s", mdata->name);
     if (mdata->valloc && mr_free((void *)mdata->value)) return -1;
     mdata->value = (mr_mvalue_t)NULL;
     mdata->valloc = false;
@@ -641,22 +643,25 @@ static int mr_validate_spv(mr_packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_free_spv(mr_packet_ctx *pctx, mr_mdata *mdata) {
+    // dzlog_debug("mr_free_spv:: name: %s; vlen: %lu", mdata->name, mdata->vlen);
     mr_string_pair *spv0 = (mr_string_pair *)mdata->value;
 
-    mr_string_pair *psp = spv0;
-    for (int i = 0; i < mdata->vlen; psp++, i++) {
-        free(psp->name);
-        free(psp->value);
+    if (mdata->valloc) {
+        mr_string_pair *psp = spv0;
+        for (int i = 0; i < mdata->vlen; psp++, i++) {
+            if (mr_free(psp->name)) return -1;
+            if (mr_free(psp->value)) return -1;
+        }
     }
 
     return mr_free_vector(pctx, mdata);
 }
 
 static int mr_unpack_props(mr_packet_ctx *pctx, mr_mdata *mdata) {
-    dzlog_debug(
-        "mr_unpack_props:: packet: %s; name: %s",
-        pctx->mqtt_packet_name, mdata->name
-    );
+    // dzlog_debug(
+    //     "mr_unpack_props:: packet: %s; name: %s",
+    //     pctx->mqtt_packet_name, mdata->name
+    // );
 
     mdata->vexists = true;
     size_t end_pos = pctx->u8vpos + (mdata - 1)->value; // use property_length

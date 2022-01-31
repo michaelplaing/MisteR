@@ -39,6 +39,8 @@ static const uint8_t _CWP[] = { // connect will property values
 };
 #define _CWPSZ 7
 
+static const char _S0L[] = "";
+
 static const mr_mdata _CONNECT_MDATA_TEMPLATE[] = { // Same order as enum CONNECT_MDATA_FIELDS (see column idx)
 //   name                           dtype           bpos    value               valloc  vlen    u8vlen  vexists link                            propid                                  flagid                  idx                                     ovalloc     ovalue
     {"packet_type",                 MR_U8_DTYPE,    _NA,    MQTT_CONNECT,       false,  1,      1,      true,   _NA,                            _NA,                                    _NA,                    CONNECT_PACKET_TYPE,                    false,      NULL},
@@ -55,7 +57,7 @@ static const mr_mdata _CONNECT_MDATA_TEMPLATE[] = { // Same order as enum CONNEC
     {"mr_flags",                    MR_FLAGS_DTYPE, _NA,    0,                  false,  1,      1,      true,   _NA,                            _NA,                                    _NA,                    CONNECT_MR_FLAGS,                       false,      NULL},
     {"keep_alive",                  MR_U16_DTYPE,   _NA,    0,                  false,  2,      2,      true,   _NA,                            _NA,                                    _NA,                    CONNECT_KEEP_ALIVE,                     false,      NULL},
     {"property_length",             MR_VBI_DTYPE,   _NA,    0,                  false,  0,      0,      true,   CONNECT_AUTHENTICATION_DATA,    _NA,                                    _NA,                    CONNECT_PROPERTY_LENGTH,                false,      NULL},
-    {"mr_properties",               MR_PROPS_DTYPE, _NA,    (mr_mvalue_t)_CP,   _NA,    _CPSZ, _NA,     _NA,    _NA,                            _NA,                                    _NA,                    CONNECT_MR_PROPERTIES,                  false,      NULL},
+    {"mr_properties",               MR_PROPS_DTYPE, _NA,    (mr_mvalue_t)_CP,   _NA,    _CPSZ,  _NA,    true,    _NA,                           _NA,                                    _NA,                    CONNECT_MR_PROPERTIES,                  false,      NULL},
     {"session_expiry_interval",     MR_U32_DTYPE,   _NA,    0,                  false,  4,      5,      false,  _NA,                            MQTT_PROP_SESSION_EXPIRY_INTERVAL,      _NA,                    CONNECT_SESSION_EXPIRY_INTERVAL,        false,      NULL},
     {"receive_maximum",             MR_U16_DTYPE,   _NA,    0,                  false,  2,      3,      false,  _NA,                            MQTT_PROP_RECEIVE_MAXIMUM,              _NA,                    CONNECT_RECEIVE_MAXIMUM,                false,      NULL},
     {"maximum_packet_size",         MR_U32_DTYPE,   _NA,    0,                  false,  4,      5,      false,  _NA,                            MQTT_PROP_MAXIMUM_PACKET_SIZE,          _NA,                    CONNECT_MAXIMUM_PACKET_SIZE,            false,      NULL},
@@ -65,7 +67,7 @@ static const mr_mdata _CONNECT_MDATA_TEMPLATE[] = { // Same order as enum CONNEC
     {"user_properties",             MR_SPV_DTYPE,   _NA,    (mr_mvalue_t)NULL,  false,  0,      0,      false,  _NA,                            MQTT_PROP_USER_PROPERTY,                _NA,                    CONNECT_USER_PROPERTIES,                false,      NULL},
     {"authentication_method",       MR_STR_DTYPE,   _NA,    (mr_mvalue_t)NULL,  false,  0,      0,      false,  _NA,                            MQTT_PROP_AUTHENTICATION_METHOD,        _NA,                    CONNECT_AUTHENTICATION_METHOD,          false,      NULL},
     {"authentication_data",         MR_U8V_DTYPE,   _NA,    (mr_mvalue_t)NULL,  false,  0,      0,      false,  _NA,                            MQTT_PROP_AUTHENTICATION_DATA,          _NA,                    CONNECT_AUTHENTICATION_DATA,            false,      NULL},
-    {"client_identifier",           MR_STR_DTYPE,   _NA,    (mr_mvalue_t)"",    false,  1,      2,      true,   _NA,                            _NA,                                    _NA,                    CONNECT_CLIENT_IDENTIFIER,              false,      NULL},
+    {"client_identifier",           MR_STR_DTYPE,   _NA,    (mr_mvalue_t)_S0L,  false,  1,      2,      true,   _NA,                            _NA,                                    _NA,                    CONNECT_CLIENT_IDENTIFIER,              false,      NULL},
     {"will_property_length",        MR_VBI_DTYPE,   _NA,    0,                  false,  0,      0,      false,  CONNECT_WILL_USER_PROPERTIES,   _NA,                                    CONNECT_WILL_FLAG,      CONNECT_WILL_PROPERTY_LENGTH,           false,      NULL},
     {"mr_will_properties",          MR_PROPS_DTYPE, _NA,    (mr_mvalue_t)_CWP,  _NA,    _CWPSZ, _NA,    _NA,    _NA,                            _NA,                                    CONNECT_WILL_FLAG,      CONNECT_MR_WILL_PROPERTIES,             false,      NULL},
     {"will_delay_interval",         MR_U32_DTYPE,   _NA,    0,                  false,  4,      5,      false,  _NA,                            MQTT_PROP_WILL_DELAY_INTERVAL,          CONNECT_WILL_FLAG,      CONNECT_WILL_DELAY_INTERVAL,            false,      NULL},
@@ -167,8 +169,37 @@ int mr_get_connect_will_flag(mr_packet_ctx *pctx, bool *pboolean, bool *pexists)
 
 int mr_set_connect_will_flag(mr_packet_ctx *pctx, bool boolean) {
     if (mr_connect_packet_check(pctx)) return -1;
-    if (mr_set_connect_will_property_length(pctx, 0)) return -1; // sets vexists
-    return mr_set_scalar(pctx, CONNECT_WILL_FLAG, boolean);
+    if (mr_set_scalar(pctx, CONNECT_WILL_FLAG, boolean)) return -1;
+
+    if (boolean) {
+        if (mr_set_connect_will_property_length(pctx, 0)) return -1; // sets vexists
+    }
+    else {
+        if (mr_set_connect_will_qos(pctx, 0)) return -1;
+        if (mr_set_connect_will_retain(pctx, 0)) return -1;
+
+        mr_mdata *mdata = pctx->mdata0;
+        for (int i = 0; i < _CONNECT_MDATA_COUNT; i++, mdata++) {
+            if (mdata->flagid == CONNECT_WILL_FLAG) {
+                if (mdata->dtype == MR_BITS_DTYPE) {
+                    if (mr_set_scalar(pctx, mdata->idx, 0)) return -1;
+                }
+                else if (mdata->dtype != MR_PROPS_DTYPE) {
+                    if (mdata->dtype == MR_U8V_DTYPE || mdata->dtype == MR_STR_DTYPE || mdata->dtype == MR_SPV_DTYPE) {
+                        if (mr_reset_vector(pctx, mdata->idx)) return -1;
+                    }
+                    else { // some scalar dtype
+                        if (mr_reset_scalar(pctx, mdata->idx)) return -1;
+                    }
+                }
+                else {
+                    // noop
+                }
+            }
+        }
+    }
+
+    return 0;
 }
 
 // uint8_t will_qos;
@@ -507,6 +538,7 @@ int mr_get_connect_will_user_properties(mr_packet_ctx *pctx, mr_string_pair **ps
 
 int mr_set_connect_will_user_properties(mr_packet_ctx *pctx, mr_string_pair *spv0, size_t len) {
     if (mr_connect_packet_check(pctx)) return -1;
+    // dzlog_debug("mr_set_connect_will_user_properties:: len: %lu", len);
     return mr_set_vector(pctx, CONNECT_WILL_USER_PROPERTIES, spv0, len);
 }
 
@@ -605,10 +637,10 @@ static int mr_validate_connect_cross(mr_packet_ctx *pctx) {
     if (mr_get_boolean(pctx, CONNECT_USERNAME_FLAG, &username_flag, &bexists)) return -1;
     bool password_flag;
     if (mr_get_boolean(pctx, CONNECT_PASSWORD_FLAG, &password_flag, &bexists)) return -1;
-    dzlog_debug("will_flag: %d; username_flag: %d; password_flag: %d\n", will_flag, username_flag, password_flag);
+    // dzlog_debug("will_flag: %d; username_flag: %d; password_flag: %d\n", will_flag, username_flag, password_flag);
     uint8_t will_qos;
     if (mr_get_u8(pctx, CONNECT_WILL_QOS, &will_qos, &bexists)) return -1;
-    dzlog_debug("will_qos: %d", will_qos);
+    // dzlog_debug("will_qos: %d", will_qos);
 
     mr_mdata *mdata = pctx->mdata0;
     for (int i = 0; i < _CONNECT_MDATA_COUNT; i++, mdata++) {
