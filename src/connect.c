@@ -69,7 +69,7 @@ static const mr_mdata _CONNECT_MDATA_TEMPLATE[] = { // Same order as enum CONNEC
     {"authentication_data",         MR_U8V_DTYPE,   _NA,    (mr_mvalue_t)NULL,  false,  0,      0,      false,  _NA,                            MQTT_PROP_AUTHENTICATION_DATA,          _NA,                    CONNECT_AUTHENTICATION_DATA,            false,      NULL},
     {"client_identifier",           MR_STR_DTYPE,   _NA,    (mr_mvalue_t)_S0L,  false,  1,      2,      true,   _NA,                            _NA,                                    _NA,                    CONNECT_CLIENT_IDENTIFIER,              false,      NULL},
     {"will_property_length",        MR_VBI_DTYPE,   _NA,    0,                  false,  0,      0,      false,  CONNECT_WILL_USER_PROPERTIES,   _NA,                                    CONNECT_WILL_FLAG,      CONNECT_WILL_PROPERTY_LENGTH,           false,      NULL},
-    {"mr_will_properties",          MR_PROPS_DTYPE, _NA,    (mr_mvalue_t)_CWP,  _NA,    _CWPSZ, _NA,    _NA,    _NA,                            _NA,                                    CONNECT_WILL_FLAG,      CONNECT_MR_WILL_PROPERTIES,             false,      NULL},
+    {"mr_will_properties",          MR_PROPS_DTYPE, _NA,    (mr_mvalue_t)_CWP,  _NA,    _CWPSZ, _NA,    _NA,    _NA,                            _NA,                                    _NA,                    CONNECT_MR_WILL_PROPERTIES,             false,      NULL},
     {"will_delay_interval",         MR_U32_DTYPE,   _NA,    0,                  false,  4,      5,      false,  _NA,                            MQTT_PROP_WILL_DELAY_INTERVAL,          CONNECT_WILL_FLAG,      CONNECT_WILL_DELAY_INTERVAL,            false,      NULL},
     {"payload_format_indicator",    MR_U8_DTYPE,    _NA,    0,                  false,  1,      2,      false,  _NA,                            MQTT_PROP_PAYLOAD_FORMAT_INDICATOR,     CONNECT_WILL_FLAG,      CONNECT_PAYLOAD_FORMAT_INDICATOR,       false,      NULL},
     {"message_expiry_interval",     MR_U32_DTYPE,   _NA,    0,                  false,  4,      5,      false,  _NA,                            MQTT_PROP_MESSAGE_EXPIRY_INTERVAL,      CONNECT_WILL_FLAG,      CONNECT_MESSAGE_EXPIRY_INTERVAL,        false,      NULL},
@@ -172,7 +172,7 @@ int mr_set_connect_will_flag(mr_packet_ctx *pctx, bool boolean) {
     if (mr_set_scalar(pctx, CONNECT_WILL_FLAG, boolean)) return -1;
 
     if (boolean) {
-        if (mr_set_connect_will_property_length(pctx, 0)) return -1; // sets vexists
+        if (mr_set_scalar(pctx, CONNECT_WILL_PROPERTY_LENGTH, 0)) return -1; // sets vexists
     }
     else {
         if (mr_set_connect_will_qos(pctx, 0)) return -1;
@@ -184,16 +184,11 @@ int mr_set_connect_will_flag(mr_packet_ctx *pctx, bool boolean) {
                 if (mdata->dtype == MR_BITS_DTYPE) {
                     if (mr_set_scalar(pctx, mdata->idx, 0)) return -1;
                 }
-                else if (mdata->dtype != MR_PROPS_DTYPE) {
-                    if (mdata->dtype == MR_U8V_DTYPE || mdata->dtype == MR_STR_DTYPE || mdata->dtype == MR_SPV_DTYPE) {
-                        if (mr_reset_vector(pctx, mdata->idx)) return -1;
-                    }
-                    else { // some scalar dtype
-                        if (mr_reset_scalar(pctx, mdata->idx)) return -1;
-                    }
+                else if (mdata->dtype == MR_U8V_DTYPE || mdata->dtype == MR_STR_DTYPE || mdata->dtype == MR_SPV_DTYPE) {
+                    if (mr_reset_vector(pctx, mdata->idx)) return -1;
                 }
-                else {
-                    // noop
+                else { // some scalar dtype
+                    if (mr_reset_scalar(pctx, mdata->idx)) return -1;
                 }
             }
         }
@@ -210,6 +205,17 @@ int mr_get_connect_will_qos(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists) {
 
 int mr_set_connect_will_qos(mr_packet_ctx *pctx, uint8_t u8) {
     if (mr_connect_packet_check(pctx)) return -1;
+
+    if (u8 > 0) {
+        if (u8 > 2) {
+            dzlog_error("will_qos out of range (0..2): %u", u8);
+            return -1;
+        }
+        else {
+            if (mr_set_connect_will_flag(pctx, true)) return -1;
+        } // don't set false due to looping
+    }
+
     return mr_set_scalar(pctx, CONNECT_WILL_QOS, u8);
 }
 
@@ -221,6 +227,7 @@ int mr_get_connect_will_retain(mr_packet_ctx *pctx, bool *pboolean, bool *pexist
 
 int mr_set_connect_will_retain(mr_packet_ctx *pctx, bool boolean) {
     if (mr_connect_packet_check(pctx)) return -1;
+    if (boolean && mr_set_connect_will_flag(pctx, true)) return -1;
     return mr_set_scalar(pctx, CONNECT_WILL_RETAIN, boolean);
 }
 
@@ -232,13 +239,11 @@ int mr_get_connect_password_flag(mr_packet_ctx *pctx, bool *pboolean, bool *pexi
 
 // set by setting password
 
-// bool username_flag;
+// bool username_flag; - set by setting username
 int mr_get_connect_username_flag(mr_packet_ctx *pctx, bool *pboolean, bool *pexists) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_get_boolean(pctx, CONNECT_USERNAME_FLAG, pboolean, pexists);
 }
-
-// set by setting username
 
 // uint16_t keep_alive; always exists hence never reset
 int mr_get_connect_keep_alive(mr_packet_ctx *pctx, uint16_t *pu16, bool *pexists) {
@@ -281,6 +286,12 @@ int mr_get_connect_receive_maximum(mr_packet_ctx *pctx, uint16_t *pu16, bool *pe
 
 int mr_set_connect_receive_maximum(mr_packet_ctx *pctx, uint16_t u16) {
     if (mr_connect_packet_check(pctx)) return -1;
+
+    if (u16 == 0) {
+        dzlog_error("if present, receive_maximum must be > 0");
+        return -1;
+    }
+
     return mr_set_scalar(pctx, CONNECT_RECEIVE_MAXIMUM, u16);
 }
 
@@ -297,6 +308,12 @@ int mr_get_connect_maximum_packet_size(mr_packet_ctx *pctx, uint32_t *pu32, bool
 
 int mr_set_connect_maximum_packet_size(mr_packet_ctx *pctx, uint32_t u32) {
     if (mr_connect_packet_check(pctx)) return -1;
+
+    if (u32 == 0) {
+        dzlog_error("if present, receive_maximum must be > 0");
+        return -1;
+    }
+
     return mr_set_scalar(pctx, CONNECT_MAXIMUM_PACKET_SIZE, u32);
 }
 
@@ -329,6 +346,12 @@ int mr_get_connect_request_response_information(mr_packet_ctx *pctx, uint8_t *pu
 
 int mr_set_connect_request_response_information(mr_packet_ctx *pctx, uint8_t u8) {
     if (mr_connect_packet_check(pctx)) return -1;
+
+    if (u8 > 1) {
+        dzlog_error("request_response_information out of range (0..1): %u", u8);
+        return -1;
+    }
+
     return mr_set_scalar(pctx, CONNECT_REQUEST_RESPONSE_INFORMATION, u8);
 }
 
@@ -345,6 +368,12 @@ int mr_get_connect_request_problem_information(mr_packet_ctx *pctx, uint8_t *pu8
 
 int mr_set_connect_request_problem_information(mr_packet_ctx *pctx, uint8_t u8) {
     if (mr_connect_packet_check(pctx)) return -1;
+
+    if (u8 > 1) {
+        dzlog_error("request_problem_information out of range (0..1): %u", u8);
+        return -1;
+    }
+
     return mr_set_scalar(pctx, CONNECT_REQUEST_PROBLEM_INFORMATION, u8);
 }
 
@@ -412,23 +441,13 @@ int mr_set_connect_client_identifier(mr_packet_ctx *pctx, char *cv0) {
     return mr_set_vector(pctx, CONNECT_CLIENT_IDENTIFIER, cv0, strlen(cv0) + 1);
 }
 
-// uint32_t will_property_length;
+// uint32_t will_property_length; - linked to will_flag
 int mr_get_connect_will_property_length(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_get_u32(pctx, CONNECT_WILL_PROPERTY_LENGTH, pu32, pexists);
 }
 
-int mr_set_connect_will_property_length(mr_packet_ctx *pctx, uint32_t u32) {
-    if (mr_connect_packet_check(pctx)) return -1;
-    return mr_set_scalar(pctx, CONNECT_WILL_PROPERTY_LENGTH, 0); // sets vexists; value always calculated
-}
-
-int mr_reset_connect_will_property_length(mr_packet_ctx *pctx) {
-    if (mr_connect_packet_check(pctx)) return -1;
-    return mr_reset_scalar(pctx, CONNECT_WILL_PROPERTY_LENGTH);
-}
-
-// uint32_t will_delay_interval;
+ // uint32_t will_delay_interval;
 int mr_get_connect_will_delay_interval(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists) {
     if (mr_connect_packet_check(pctx)) return -1;
     return mr_get_u32(pctx, CONNECT_WILL_DELAY_INTERVAL, pu32, pexists);
@@ -436,6 +455,7 @@ int mr_get_connect_will_delay_interval(mr_packet_ctx *pctx, uint32_t *pu32, bool
 
 int mr_set_connect_will_delay_interval(mr_packet_ctx *pctx, uint32_t u32) {
     if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_set_connect_will_flag(pctx, true)) return -1;
     return mr_set_scalar(pctx, CONNECT_WILL_DELAY_INTERVAL, u32);
 }
 
@@ -452,6 +472,7 @@ int mr_get_connect_payload_format_indicator(mr_packet_ctx *pctx, uint8_t *pu8, b
 
 int mr_set_connect_payload_format_indicator(mr_packet_ctx *pctx, uint8_t u8) {
     if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_set_connect_will_flag(pctx, true)) return -1;
     return mr_set_scalar(pctx, CONNECT_PAYLOAD_FORMAT_INDICATOR, u8);
 }
 
@@ -468,6 +489,7 @@ int mr_get_connect_message_expiry_interval(mr_packet_ctx *pctx, uint32_t *pu32, 
 
 int mr_set_connect_message_expiry_interval(mr_packet_ctx *pctx, uint32_t u32) {
     if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_set_connect_will_flag(pctx, true)) return -1;
     return mr_set_scalar(pctx, CONNECT_MESSAGE_EXPIRY_INTERVAL, u32);
 }
 
@@ -484,6 +506,7 @@ int mr_get_connect_content_type(mr_packet_ctx *pctx, char **pcv0, bool *pexists)
 
 int mr_set_connect_content_type(mr_packet_ctx *pctx, char *cv0) {
     if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_set_connect_will_flag(pctx, true)) return -1;
     return mr_set_vector(pctx, CONNECT_CONTENT_TYPE, cv0, strlen(cv0) + 1);
 }
 
@@ -500,6 +523,7 @@ int mr_get_connect_response_topic(mr_packet_ctx *pctx, char **pcv0, bool *pexist
 
 int mr_set_connect_response_topic(mr_packet_ctx *pctx, char *cv0) {
     if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_set_connect_will_flag(pctx, true)) return -1;
     return mr_set_vector(pctx, CONNECT_RESPONSE_TOPIC, cv0, strlen(cv0) + 1);
 }
 
@@ -516,6 +540,7 @@ int mr_get_connect_correlation_data(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t
 
 int mr_set_connect_correlation_data(mr_packet_ctx *pctx, uint8_t *u8v0, size_t len) {
     if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_set_connect_will_flag(pctx, true)) return -1;
     return mr_set_vector(pctx, CONNECT_CORRELATION_DATA, u8v0, len);
 }
 
@@ -532,7 +557,7 @@ int mr_get_connect_will_user_properties(mr_packet_ctx *pctx, mr_string_pair **ps
 
 int mr_set_connect_will_user_properties(mr_packet_ctx *pctx, mr_string_pair *spv0, size_t len) {
     if (mr_connect_packet_check(pctx)) return -1;
-    // dzlog_debug("mr_set_connect_will_user_properties:: len: %lu", len);
+    if (mr_set_connect_will_flag(pctx, true)) return -1;
     return mr_set_vector(pctx, CONNECT_WILL_USER_PROPERTIES, spv0, len);
 }
 
@@ -549,6 +574,7 @@ int mr_get_connect_will_topic(mr_packet_ctx *pctx, char **pcv0, bool *pexists) {
 
 int mr_set_connect_will_topic(mr_packet_ctx *pctx, char *cv0) {
     if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_set_connect_will_flag(pctx, true)) return -1;
     return mr_set_vector(pctx, CONNECT_WILL_TOPIC, cv0, strlen(cv0) + 1);
 }
 
@@ -565,6 +591,7 @@ int mr_get_connect_will_payload(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *pl
 
 int mr_set_connect_will_payload(mr_packet_ctx *pctx, uint8_t *u8v0, size_t len) {
     if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_set_connect_will_flag(pctx, true)) return -1;
     return mr_set_vector(pctx, CONNECT_WILL_PAYLOAD, u8v0, len);
 }
 

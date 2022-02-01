@@ -241,8 +241,6 @@ int mr_get_connect_client_identifier(mr_packet_ctx *pctx, char **pcv0, bool *pex
 int mr_set_connect_client_identifier(mr_packet_ctx *pctx, char *cv0);
 
 int mr_get_connect_will_property_length(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists);
-int mr_set_connect_will_property_length(mr_packet_ctx *pctx, uint32_t u32);
-int mr_reset_connect_will_property_length(mr_packet_ctx *pctx);
 
 int mr_get_connect_will_delay_interval(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists);
 int mr_set_connect_will_delay_interval(mr_packet_ctx *pctx, uint32_t u32);
