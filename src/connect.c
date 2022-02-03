@@ -716,7 +716,7 @@ int mr_validate_connect_extra(mr_packet_ctx *pctx) {
             dzlog_error("payload_format_indicator out of range (0..1): %u", u8);
             return -1;
         }
-        else { // previous cross check of will_flag insures existence
+        else { // previous cross check of will_flag insures existence of will_payload
             if (u8 > 0 && mr_validate_u8vutf8(pctx, CONNECT_WILL_PAYLOAD)) return -1;
         }
     }

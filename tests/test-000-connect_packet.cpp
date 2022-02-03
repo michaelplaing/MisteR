@@ -5,12 +5,13 @@
 
 static char _S0L[] = "";
 
-TEST_CASE("default CONNECT packet", "[connect][happy]") {
-    dzlog_info("common test prolog");
+TEST_CASE("happy CONNECT packet", "[connect][happy]") {
+    dzlog_init("", "mr_init"); // enables logging from the mister library and here
+    // dzlog_info("common test prolog");
+
     // *** common test prolog ***
 
-    dzlog_init("", "mr_init");
-    int rc;
+//    int rc;
     mr_packet_ctx *pctx;
     char dump_filename[50];
     char packet_filename[50];
@@ -21,14 +22,14 @@ TEST_CASE("default CONNECT packet", "[connect][happy]") {
     // *** test sections ***
 
     SECTION("default packet") {
-        dzlog_info("section: test default");
+        // dzlog_info("section: test default");
 
         strlcpy(dump_filename, "fixtures/default_connect_mdata_dump.txt", 50);
         strlcpy(packet_filename, "fixtures/default_connect_packet.bin", 50);
     }
 
     SECTION("will/complex packet") {
-        dzlog_info("section: set will");
+        // dzlog_info("section: set will");
 
         // *** section prolog ***
 
@@ -64,14 +65,14 @@ TEST_CASE("default CONNECT packet", "[connect][happy]") {
         REQUIRE(mr_set_connect_will_payload(pctx, will_payload, will_payload_len) == 0);
 
         SECTION("+will packet") { // default + will
-            dzlog_info("section: test will");
+            // dzlog_info("section: test will");
 
             strlcpy(dump_filename, "fixtures/will_connect_mdata_dump.txt", 50);
             strlcpy(packet_filename, "fixtures/will_connect_packet.bin", 50);
         }
 
         SECTION("-will packet") { // default + will - will
-            dzlog_info("section: reset/test will");
+            // dzlog_info("section: reset/test will");
 
             strlcpy(dump_filename, "fixtures/default_connect_mdata_dump.txt", 50);
             strlcpy(packet_filename, "fixtures/default_connect_packet.bin", 50);
@@ -81,7 +82,7 @@ TEST_CASE("default CONNECT packet", "[connect][happy]") {
         }
 
         SECTION("complex packet") { // default + will + all remaining
-            dzlog_info("section: complex packet");
+            // dzlog_info("section: complex packet");
 
             // build additional vector values
             char flim[] = "flim";
@@ -114,14 +115,14 @@ TEST_CASE("default CONNECT packet", "[connect][happy]") {
             REQUIRE(mr_set_connect_password(pctx, password, sizeof(password)) == 0);
 
             SECTION("+complex packet") { // default + will + all remaining
-                dzlog_info("section: set/test complex");
+                // dzlog_info("section: set/test complex");
 
                 strlcpy(dump_filename, "fixtures/complex_connect_mdata_dump.txt", 50);
                 strlcpy(packet_filename, "fixtures/complex_connect_packet.bin", 50);
             }
 
             SECTION("-complex packet") { // default + will + all remaining - will - all remaining
-                dzlog_info("section: reset/test will & complex");
+                // dzlog_info("section: reset/test will & complex");
 
                 strlcpy(dump_filename, "fixtures/default_connect_mdata_dump.txt", 50);
                 strlcpy(packet_filename, "fixtures/default_connect_packet.bin", 50);
@@ -149,7 +150,7 @@ TEST_CASE("default CONNECT packet", "[connect][happy]") {
         }
     }
 
-    dzlog_info("common test epilog");
+    // dzlog_info("common test epilog");
     // *** common test epilog ***
 
     // validate
@@ -163,16 +164,16 @@ TEST_CASE("default CONNECT packet", "[connect][happy]") {
     char *mdata_dump;
     uint32_t mdsz;
     REQUIRE(get_binary_file_content(dump_filename, (uint8_t **)&mdata_dump, &mdsz) == 0);
-    printf("\nmdata_dump (%s)::\n%s\n\npctx->mdata::\n%s\n", dump_filename, mdata_dump, pctx->mdata_dump);
+    // printf("\nmdata_dump (%s)::\n%s\n\npctx->mdata::\n%s\n", dump_filename, mdata_dump, pctx->mdata_dump);
     REQUIRE(mdsz == strlen(pctx->mdata_dump) + 1);
     REQUIRE(strcmp(mdata_dump, pctx->mdata_dump) == 0);
     free(mdata_dump);
 
     // pack
     REQUIRE(mr_pack_connect_packet(pctx) == 0);
-    printf("\n\npacket::\n");
-    mr_print_hexdump(pctx->u8v0, pctx->u8vlen);
-    puts("\n\n");
+    // printf("\n\npacket::\n");
+    // mr_print_hexdump(pctx->u8v0, pctx->u8vlen);
+    // puts("\n\n");
     // REQUIRE(put_binary_file_content(packet_filename, pctx->u8v0, pctx->u8vlen) == 0);
 
     // check packet
@@ -199,6 +200,87 @@ TEST_CASE("default CONNECT packet", "[connect][happy]") {
 
     // free unpack context
     REQUIRE(mr_free_connect_pctx(pctx) == 0);
+
+    zlog_fini();
+}
+
+TEST_CASE("unhappy CONNECT packet", "[connect][unhappy]") {
+    dzlog_init("", "mr_init");
+    // dzlog_info("common test prolog");
+
+    // *** common test prolog ***
+
+    // get the complex packet and unpack it so we have a full deck to play with
+    mr_packet_ctx *pctx;
+    uint8_t *u8v0;
+    uint32_t u8vlen;
+    REQUIRE(get_binary_file_content("fixtures/complex_connect_packet.bin", &u8v0, &u8vlen) == 0);
+    REQUIRE(mr_init_unpack_connect_packet(&pctx, u8v0, u8vlen) == 0);
+    mr_print_hexdump(u8v0, u8vlen);
+
+    // *** test sections ***
+
+    SECTION("will_qos") {
+        CHECK(mr_set_connect_will_qos(pctx, -1) == -1);
+        CHECK(mr_set_connect_will_qos(pctx, 0) == 0);
+        CHECK(mr_set_connect_will_qos(pctx, 1) == 0);
+        CHECK(mr_set_connect_will_qos(pctx, 2) == 0);
+        CHECK(mr_set_connect_will_qos(pctx, 3) == -1);
+    }
+
+    SECTION("receive_maximum") {
+        CHECK(mr_set_connect_receive_maximum(pctx, -1) == 0);
+        CHECK(mr_set_connect_receive_maximum(pctx, 0) == -1);
+        CHECK(mr_set_connect_receive_maximum(pctx, 1) == 0);
+    }
+
+    SECTION("request_response_information") {
+        CHECK(mr_set_connect_request_response_information(pctx, -1) == -1);
+        CHECK(mr_set_connect_request_response_information(pctx, 0) == 0);
+        CHECK(mr_set_connect_request_response_information(pctx, 1) == 0);
+        CHECK(mr_set_connect_request_response_information(pctx, 2) == -1);
+    }
+
+    SECTION("request_problem_information") {
+        CHECK(mr_set_connect_request_problem_information(pctx, -1) == -1);
+        CHECK(mr_set_connect_request_problem_information(pctx, 0) == 0);
+        CHECK(mr_set_connect_request_problem_information(pctx, 1) == 0);
+        CHECK(mr_set_connect_request_problem_information(pctx, 2) == -1);
+    }
+
+    SECTION("payload_format_indicator & will_payload") {
+        // already checked above:
+        // . will_flag == false && not payload_format_indicator exists
+        // . will_flag == true  && payload_format_indicator exists && == 1 && will_payload is valid utf8
+        REQUIRE(mr_set_connect_payload_format_indicator(pctx, -1) == 0);
+        CHECK(mr_validate_connect_values(pctx) == -1);
+        REQUIRE(mr_set_connect_payload_format_indicator(pctx, 0) == 0);
+        CHECK(mr_validate_connect_values(pctx) == 0);
+        REQUIRE(mr_set_connect_payload_format_indicator(pctx, 2) == 0);
+        CHECK(mr_validate_connect_values(pctx) == -1);
+
+        uint8_t u8v[] = {'\0'}; // invalid utf8 for mqtt
+        REQUIRE(mr_set_connect_will_payload(pctx, u8v, 1) == 0);
+        REQUIRE(mr_set_connect_payload_format_indicator(pctx, 0) == 0);
+        CHECK(mr_validate_connect_values(pctx) == 0);
+        REQUIRE(mr_set_connect_payload_format_indicator(pctx, 1) == 0); // will_payload is utf8
+        CHECK(mr_validate_connect_values(pctx) == -1);
+    }
+
+    SECTION("authentication_method & authentication_data") {
+        REQUIRE(mr_reset_connect_authentication_method(pctx) == 0);
+        CHECK(mr_validate_connect_values(pctx) == -1);
+        REQUIRE(mr_reset_connect_authentication_data(pctx) == 0);
+        CHECK(mr_validate_connect_values(pctx) == 0);
+        REQUIRE(mr_set_connect_authentication_method(pctx, _S0L) == 0);
+        CHECK(mr_validate_connect_values(pctx) == 0); // ok to have a method and no data
+    }
+
+    // common test epilog
+
+    // free packet context
+    REQUIRE(mr_free_connect_pctx(pctx) == 0);
+    free(u8v0);
 
     zlog_fini();
 }
