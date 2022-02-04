@@ -1,4 +1,12 @@
-/* packet.c */
+// packet.c
+
+/**
+ * @file
+ * @brief Common code for handling packets.
+ *
+ * These functions are called by packet-specific modules to manipulate the packet context (pctx)
+ * and its mdata vector containing the packet values and associated metadata.
+*/
 
 #include <errno.h>
 #include <stdbool.h>
