@@ -807,7 +807,7 @@ int mr_validate_utf8_values(mr_packet_ctx *pctx) {
                 if (mr_validate_spv(pctx, mdata)) return -1;
             }
             else {
-                // noop
+                ; // noop
             }
         }
     }

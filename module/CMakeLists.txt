@@ -6,5 +6,4 @@ add_library(
     ${HEADER_LIST}
 )
 
-target_include_directories(mrmo PRIVATE ../include)
-target_link_libraries(mrmo PRIVATE mister mrzlog)
+target_link_libraries(mrmo PUBLIC mister)

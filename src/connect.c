@@ -651,17 +651,8 @@ int mr_validate_connect_values(mr_packet_ctx *pctx) {
 static int mr_validate_connect_cross(mr_packet_ctx *pctx) {
     // dzlog_debug("");
     bool bexists;
-
     bool will_flag;
     if (mr_get_boolean(pctx, CONNECT_WILL_FLAG, &will_flag, &bexists)) return -1;
-    bool username_flag;
-    if (mr_get_boolean(pctx, CONNECT_USERNAME_FLAG, &username_flag, &bexists)) return -1;
-    bool password_flag;
-    if (mr_get_boolean(pctx, CONNECT_PASSWORD_FLAG, &password_flag, &bexists)) return -1;
-    // dzlog_debug("will_flag: %d; username_flag: %d; password_flag: %d\n", will_flag, username_flag, password_flag);
-    uint8_t will_qos;
-    if (mr_get_u8(pctx, CONNECT_WILL_QOS, &will_qos, &bexists)) return -1;
-    // dzlog_debug("will_qos: %d", will_qos);
 
     mr_mdata *mdata = pctx->mdata0;
     for (int i = 0; i < _CONNECT_MDATA_COUNT; i++, mdata++) {
@@ -670,27 +661,18 @@ static int mr_validate_connect_cross(mr_packet_ctx *pctx) {
                 if (mdata->value) {
                     dzlog_error("will_flag is false but '%s' has a value", mdata->name);
                     return -1;
-                } // else continue loop
+                }
+                else {
+                    ; // noop
+                }
             }
-            else if (mdata->vexists) { // oops
+            else if (mdata->vexists) { // check existence for other dtypes
                 dzlog_error("will_flag is false but '%s' exists", mdata->name);
                 return -1;
             }
-        }
-        else if (mdata->flagid == CONNECT_USERNAME_FLAG && !username_flag) {
-            if (mdata->vexists) {
-                dzlog_error("username_flag is false but '%s' exists", mdata->name);
-                return -1;
+            else {
+                ; // noop
             }
-        }
-        else if (mdata->flagid == CONNECT_PASSWORD_FLAG && !password_flag) {
-            if (mdata->vexists) {
-                dzlog_error("password_flag is false but '%s' exists", mdata->name);
-                return -1;
-            }
-        }
-        else {
-            ; // noop
         }
     }
 

@@ -276,6 +276,10 @@ TEST_CASE("unhappy CONNECT packet", "[connect][unhappy]") {
         CHECK(mr_validate_connect_values(pctx) == 0); // ok to have a method and no data
     }
 
+    SECTION("u") {
+        ;
+    }
+
     // common test epilog
 
     // free packet context

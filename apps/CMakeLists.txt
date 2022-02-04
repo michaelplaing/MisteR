@@ -9,4 +9,4 @@ add_executable(
     ${HEADER_LIST}
 )
 
-target_link_libraries(mrapp PRIVATE mister mrzlog hiredis uv)
+target_link_libraries(mrapp PRIVATE mister hiredis uv)

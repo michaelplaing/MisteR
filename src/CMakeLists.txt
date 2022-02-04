@@ -9,4 +9,4 @@ add_library(
 )
 
 target_include_directories(mister PUBLIC ../include)
-target_link_libraries(mister PRIVATE mrzlog jemalloc)
+target_link_libraries(mister PUBLIC mrzlog jemalloc)

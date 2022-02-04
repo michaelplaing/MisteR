@@ -8,16 +8,15 @@ target_compile_features(testlib PRIVATE cxx_std_17)
 
 # tests must be executables
 add_executable(test-000-connect_packet test-000-connect_packet.cpp)
-
 target_compile_features(test-000-connect_packet PRIVATE cxx_std_17)
 
-# link to 'mister' and 'mrzlog' as well as our test library
-target_link_libraries(test-000-connect_packet PRIVATE mister mrzlog testlib)
+# link to 'mister' and as well as our test library
+target_link_libraries(test-000-connect_packet PRIVATE mister testlib)
 
  # COMMAND can be a target
 add_test(NAME test-000-connect_packet COMMAND test-000-connect_packet)
 
-# copy the fixture files to the build directory - configure_file watches for a change and will recopy
+# copy the fixture files to the build directory - configure_file watches for changes and will recopy
 configure_file("fixtures/default_connect_mdata_dump.txt" "fixtures/default_connect_mdata_dump.txt" COPYONLY)
 configure_file("fixtures/default_connect_packet.bin" "fixtures/default_connect_packet.bin" COPYONLY)
 configure_file("fixtures/will_connect_mdata_dump.txt" "fixtures/will_connect_mdata_dump.txt" COPYONLY)
