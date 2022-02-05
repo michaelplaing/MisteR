@@ -122,7 +122,7 @@ int mr_free_connack_packet(mr_packet_ctx *pctx) {
 
 int mr_connack_mdata_dump(mr_packet_ctx *pctx) {
     if (mr_connack_packet_check(pctx)) return -1;
-    return mr_mdata_dump(pctx);
+    return mr_printable_mdata(pctx);
 }
 
 // const uint8_t packet_type;

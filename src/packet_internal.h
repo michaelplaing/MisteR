@@ -84,7 +84,7 @@ static int mr_output_hdvalue(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_output_hexdump(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_output_string(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_output_spv(mr_packet_ctx *pctx, mr_mdata *mdata);
-int mr_mdata_dump(mr_packet_ctx *pctx);
+int mr_printable_mdata(mr_packet_ctx *pctx);
 
 int mr_reset_scalar(mr_packet_ctx *pctx, int idx);
 int mr_reset_vector(mr_packet_ctx *pctx, int idx);

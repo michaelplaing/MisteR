@@ -157,17 +157,17 @@ TEST_CASE("happy CONNECT packet", "[connect][happy]") {
     REQUIRE(mr_validate_connect_values(pctx) == 0);
 
     // dump
-    REQUIRE(mr_connect_mdata_dump(pctx) == 0);
-    // REQUIRE(put_binary_file_content(dump_filename, (uint8_t *)pctx->mdata_dump, strlen(pctx->mdata_dump) + 1) == 0);
+    REQUIRE(mr_connect_printable_mdata(pctx) == 0);
+    // REQUIRE(put_binary_file_content(dump_filename, (uint8_t *)pctx->printable_mdata, strlen(pctx->printable_mdata) + 1) == 0);
 
     // check dump
-    char *mdata_dump;
+    char *printable_mdata;
     uint32_t mdsz;
-    REQUIRE(get_binary_file_content(dump_filename, (uint8_t **)&mdata_dump, &mdsz) == 0);
-    // printf("\nmdata_dump (%s)::\n%s\n\npctx->mdata::\n%s\n", dump_filename, mdata_dump, pctx->mdata_dump);
-    REQUIRE(mdsz == strlen(pctx->mdata_dump) + 1);
-    REQUIRE(strcmp(mdata_dump, pctx->mdata_dump) == 0);
-    free(mdata_dump);
+    REQUIRE(get_binary_file_content(dump_filename, (uint8_t **)&printable_mdata, &mdsz) == 0);
+    // printf("\nmdata_dump (%s)::\n%s\n\npctx->mdata::\n%s\n", dump_filename, printable_mdata, pctx->printable_mdata);
+    REQUIRE(mdsz == strlen(pctx->printable_mdata) + 1);
+    REQUIRE(strcmp(printable_mdata, pctx->printable_mdata) == 0);
+    free(printable_mdata);
 
     // pack
     REQUIRE(mr_pack_connect_packet(pctx) == 0);
@@ -191,12 +191,12 @@ TEST_CASE("happy CONNECT packet", "[connect][happy]") {
     REQUIRE(mr_init_unpack_connect_packet(&pctx, u8v0, u8vlen) == 0);
 
     // unpack dump
-    REQUIRE(mr_connect_mdata_dump(pctx) == 0);
+    REQUIRE(mr_connect_printable_mdata(pctx) == 0);
 
     // check unpack dump
-    REQUIRE(mdsz == strlen(pctx->mdata_dump) + 1);
-    REQUIRE(strcmp(mdata_dump, pctx->mdata_dump) == 0);
-    free(mdata_dump);
+    REQUIRE(mdsz == strlen(pctx->printable_mdata) + 1);
+    REQUIRE(strcmp(printable_mdata, pctx->printable_mdata) == 0);
+    free(printable_mdata);
 
     // free unpack context
     REQUIRE(mr_free_connect_pctx(pctx) == 0);

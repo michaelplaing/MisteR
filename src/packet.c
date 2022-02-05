@@ -4,8 +4,8 @@
  * @file
  * @brief Common code for handling packets.
  *
- * These functions are called by packet-specific modules to manipulate the packet context (pctx)
- * and its mdata vector containing the packet values and associated metadata.
+ * These functions are called by packet-specific modules to manipulate the packet context
+ * (mr_packet_ctx) and its mr_mdata vector containing the packet values and associated metadata.
 */
 
 #include <errno.h>
@@ -132,7 +132,7 @@ static int mr_output_spv(mr_packet_ctx *pctx, mr_mdata *mdata) {
     return 0;
 }
 
-int mr_mdata_dump(mr_packet_ctx *pctx) {
+int mr_printable_mdata(mr_packet_ctx *pctx) {
     const mr_mdata_fn vbi_count_fn = _DTYPE[MR_VBI_DTYPE].count_fn;
 
     // traverse in reverse to calculate VBIs since their u8vlens are variable
@@ -154,10 +154,10 @@ int mr_mdata_dump(mr_packet_ctx *pctx) {
         }
     }
 
-    char *mdata_dump;
-    if (mr_calloc((void **)&mdata_dump, len, 1)) return -1;
+    char *printable_mdata;
+    if (mr_calloc((void **)&printable_mdata, len, 1)) return -1;
 
-    char *pc = mdata_dump;
+    char *pc = printable_mdata;
     mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
         if (mdata->ovalue) {
@@ -166,8 +166,8 @@ int mr_mdata_dump(mr_packet_ctx *pctx) {
         }
     }
 
-    *(pc - 1) = '\0'; // overwrite trailing '\n'
-    pctx->mdata_dump = mdata_dump;
+    *(pc - 1) = '\0'; // overwrite trailing '\n' to make a c-string
+    pctx->printable_mdata = printable_mdata;
     return 0;
 }
 
@@ -235,7 +235,6 @@ int mr_get_u32(mr_packet_ctx *pctx, int idx, uint32_t *pu32, bool *pexists) {
 int mr_set_vector(mr_packet_ctx *pctx, int idx, void *pvoid, size_t len) {
     if (mr_reset_vector(pctx, idx)) return -1;
     mr_mdata *mdata = pctx->mdata0 + idx;
-    // dzlog_debug("mr_set_vector:: name: %s; len: %lu", mdata->name, len);
     mdata->value = (mr_mvalue_t)pvoid;
     mdata->vexists = true;
     mdata->vlen = len;
@@ -415,7 +414,6 @@ static int mr_unpack_VBI(mr_packet_ctx *pctx, mr_mdata *mdata) {
  }
 
 static int mr_free_vector(mr_packet_ctx *pctx, mr_mdata *mdata) {
-    // dzlog_debug("mr_free_vector:: name: %s", mdata->name);
     if (mdata->valloc && mr_free((void *)mdata->value)) return -1;
     mdata->value = (mr_mvalue_t)NULL;
     mdata->valloc = false;
@@ -434,7 +432,7 @@ int mr_free_packet_context(mr_packet_ctx *pctx) {
     }
 
     if (pctx->u8valloc) free(pctx->u8v0);
-    free(pctx->mdata_dump);
+    free(pctx->printable_mdata);
     free(pctx);
     return 0;
 }
@@ -511,7 +509,6 @@ static int mr_count_str(mr_packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_validate_str(mr_packet_ctx *pctx, mr_mdata *mdata) {
-    // dzlog_debug("name: %s; pointer value: %lu", mdata->name, mdata->value);
     if (!mdata->value) {
         dzlog_error("NULL pointer: packet: %s; name: %s", pctx->mqtt_packet_name, mdata->name);
         return -1;
@@ -651,7 +648,6 @@ static int mr_validate_spv(mr_packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_free_spv(mr_packet_ctx *pctx, mr_mdata *mdata) {
-    // dzlog_debug("mr_free_spv:: name: %s; vlen: %lu", mdata->name, mdata->vlen);
     mr_string_pair *spv0 = (mr_string_pair *)mdata->value;
 
     if (mdata->valloc) {
@@ -666,11 +662,6 @@ static int mr_free_spv(mr_packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_unpack_props(mr_packet_ctx *pctx, mr_mdata *mdata) {
-    // dzlog_debug(
-    //     "mr_unpack_props:: packet: %s; name: %s",
-    //     pctx->mqtt_packet_name, mdata->name
-    // );
-
     mdata->vexists = true;
     size_t end_pos = pctx->u8vpos + (mdata - 1)->value; // use property_length
     uint8_t *pu8, *pprop_index;
@@ -803,7 +794,6 @@ static int mr_unpack_bits(mr_packet_ctx *pctx, mr_mdata *mdata) {  // don't adva
 }
 
 int mr_validate_utf8_values(mr_packet_ctx *pctx) {
-    // dzlog_debug("");
     mr_mdata *mdata = pctx->mdata0;
 
     for (int i = 0; i < pctx->mdata_count; i++, mdata++) {

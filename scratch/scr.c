@@ -89,16 +89,16 @@ int main(void) {
     mr_validate_connect_values(pctx);
 
     // dump
-    mr_connect_mdata_dump(pctx);
-    // put_binary_file_content(dump_filename, (uint8_t *)pctx->mdata_dump, strlen(pctx->mdata_dump) + 1);
+    mr_connect_printable_mdata(pctx);
+    // put_binary_file_content(dump_filename, (uint8_t *)pctx->printable_mdata, strlen(pctx->printable_mdata) + 1);
 
     // check dump
-    char *mdata_dump;
+    char *printable_mdata;
     uint32_t mdsz;
-    get_binary_file_content(dump_filename, (uint8_t **)&mdata_dump, &mdsz);
-    printf("\nmdata_dump (%s)::\n%s\n\npctx->mdata::\n%s\n", dump_filename, mdata_dump, pctx->mdata_dump);
-    strcmp(mdata_dump, pctx->mdata_dump);
-    free(mdata_dump);
+    get_binary_file_content(dump_filename, (uint8_t **)&printable_mdata, &mdsz);
+    printf("\nmdata_dump (%s)::\n%s\n\npctx->mdata::\n%s\n", dump_filename, printable_mdata, pctx->printable_mdata);
+    strcmp(printable_mdata, pctx->printable_mdata);
+    free(printable_mdata);
 
     // pack
     mr_pack_connect_packet(pctx);
@@ -119,11 +119,11 @@ int main(void) {
     mr_init_unpack_connect_packet(&pctx, u8v0, u8vlen);
 
     // unpack dump
-    mr_connect_mdata_dump(pctx);
+    mr_connect_printable_mdata(pctx);
 
     // check unpack dump
-    strcmp(mdata_dump, pctx->mdata_dump);
-    free(mdata_dump);
+    strcmp(printable_mdata, pctx->printable_mdata);
+    free(printable_mdata);
 
     // free unpack context
     mr_free_connect_pctx(pctx);

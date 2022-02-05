@@ -1,4 +1,13 @@
-/* connect.c */
+// connect.c
+
+/**
+ * @file
+ * @brief The CONNECT packet metadata (mr_mdata vector) and functions.
+ *
+ * This packet specifies the vector of mr_mdata instances that characterize the CONNECT
+ * values. It provides functions to get, set & reset them as well as validate. There are
+ * additional functions for cross-validation.
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -115,9 +124,9 @@ int mr_free_connect_pctx(mr_packet_ctx *pctx) {
     return mr_free_packet_context(pctx);
 }
 
-int mr_connect_mdata_dump(mr_packet_ctx *pctx) {
+int mr_connect_printable_mdata(mr_packet_ctx *pctx) {
     if (mr_connect_packet_check(pctx)) return -1;
-    return mr_mdata_dump(pctx);
+    return mr_printable_mdata(pctx);
 }
 
 // const uint8_t packet_type;

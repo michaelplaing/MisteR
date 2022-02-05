@@ -143,7 +143,7 @@ int mr_free(void *pv);
 typedef struct mr_packet_ctx {
     uint8_t mqtt_packet_type;
     char *mqtt_packet_name;
-    char *mdata_dump;
+    char *printable_mdata;
     uint8_t *u8v0;
     bool u8valloc;
     size_t u8vlen;
@@ -171,7 +171,7 @@ int mr_init_unpack_connect_packet(mr_packet_ctx **ppctx, uint8_t *u8v0, size_t u
 static int mr_connect_packet_check(mr_packet_ctx *pctx);
 int mr_pack_connect_packet(mr_packet_ctx *pctx);
 int mr_free_connect_pctx(mr_packet_ctx *pctx);
-int mr_connect_mdata_dump(mr_packet_ctx *pctx);
+int mr_connect_printable_mdata(mr_packet_ctx *pctx);
 int mr_validate_connect_values(mr_packet_ctx *pctx);
 
 int mr_get_connect_packet_type(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists);
