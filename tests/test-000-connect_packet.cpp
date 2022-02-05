@@ -157,7 +157,7 @@ TEST_CASE("happy CONNECT packet", "[connect][happy]") {
     REQUIRE(mr_validate_connect_values(pctx) == 0);
 
     // dump
-    REQUIRE(mr_connect_printable_mdata(pctx) == 0);
+    REQUIRE(mr_connect_printable_mdata(pctx, false) == 0);
     // REQUIRE(put_binary_file_content(dump_filename, (uint8_t *)pctx->printable_mdata, strlen(pctx->printable_mdata) + 1) == 0);
 
     // check dump
@@ -191,12 +191,15 @@ TEST_CASE("happy CONNECT packet", "[connect][happy]") {
     REQUIRE(mr_init_unpack_connect_packet(&pctx, u8v0, u8vlen) == 0);
 
     // unpack dump
-    REQUIRE(mr_connect_printable_mdata(pctx) == 0);
+    REQUIRE(mr_connect_printable_mdata(pctx, false) == 0);
 
     // check unpack dump
     REQUIRE(mdsz == strlen(pctx->printable_mdata) + 1);
     REQUIRE(strcmp(printable_mdata, pctx->printable_mdata) == 0);
     free(printable_mdata);
+
+    REQUIRE(mr_connect_printable_mdata(pctx, true) == 0); // test true flag
+    // printf("\n\npctx->mdata::\n%s\n", pctx->printable_mdata);
 
     // free unpack context
     REQUIRE(mr_free_connect_pctx(pctx) == 0);

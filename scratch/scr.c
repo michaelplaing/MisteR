@@ -89,7 +89,7 @@ int main(void) {
     mr_validate_connect_values(pctx);
 
     // dump
-    mr_connect_printable_mdata(pctx);
+    mr_connect_printable_mdata(pctx, false);
     // put_binary_file_content(dump_filename, (uint8_t *)pctx->printable_mdata, strlen(pctx->printable_mdata) + 1);
 
     // check dump
@@ -119,7 +119,7 @@ int main(void) {
     mr_init_unpack_connect_packet(&pctx, u8v0, u8vlen);
 
     // unpack dump
-    mr_connect_printable_mdata(pctx);
+    mr_connect_printable_mdata(pctx, false);
 
     // check unpack dump
     strcmp(printable_mdata, pctx->printable_mdata);

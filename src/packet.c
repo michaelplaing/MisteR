@@ -51,9 +51,11 @@ static const mr_dtype _DTYPE[] = { // same order as mr_dtypes enum
     {MR_U8V_DTYPE,      "binary data - uint8 vec",  mr_count_u8v,   mr_pack_u8v,        mr_unpack_u8v,      mr_output_hexdump,  NULL,               mr_free_vector},
     {MR_STR_DTYPE,      "utf8 prefix string",       mr_count_str,   mr_pack_u8v,        mr_unpack_u8v,      mr_output_string,   mr_validate_str,    mr_free_vector},
     {MR_SPV_DTYPE,      "string pair vector",       mr_count_spv,   mr_pack_spv,        mr_unpack_spv,      mr_output_spv,      mr_validate_spv,    mr_free_spv},
-    {MR_FLAGS_DTYPE,    "uint8 flag",               NULL,           mr_pack_incr1,      mr_unpack_u8,       mr_output_hdvalue,  NULL,               NULL},
+    {MR_FLAGS_DTYPE,    "uint8 flag",               NULL,           mr_pack_incr1,      mr_unpack_u8,       mr_output_hexvalue, NULL,               NULL},
     {MR_PROPS_DTYPE,    "properties",               NULL,           NULL,               mr_unpack_props,    NULL,               NULL,               NULL}
 };
+
+static const char _S0L[] = "";
 
 static int mr_output_scalar(mr_packet_ctx *pctx, mr_mdata *mdata) {
     char cv[32] = {'\0'};
@@ -61,7 +63,6 @@ static int mr_output_scalar(mr_packet_ctx *pctx, mr_mdata *mdata) {
     sprintf(cv, "%u", (uint32_t)mdata->value);
     if (mr_calloc((void **)&ovalue, strlen(cv) + 1, 1)) return -1;
     strlcpy(ovalue, cv, 32);
-    mdata->ovalloc = true;
     mdata->ovalue = ovalue;
     return 0;
 }
@@ -76,11 +77,10 @@ static int mr_output_hexdump(mr_packet_ctx *pctx, mr_mdata *mdata) {
     if (mr_calloc((void **)&ovalue, slen + 1, 1)) return -1;
     strlcpy(ovalue, cv, slen + 1);
     mdata->ovalue = ovalue;
-    mdata->ovalloc = true;
     return 0;
 }
 
-static int mr_output_hdvalue(mr_packet_ctx *pctx, mr_mdata *mdata) {
+static int mr_output_hexvalue(mr_packet_ctx *pctx, mr_mdata *mdata) {
     char cv[200] = {'\0'};
     uint8_t u8v[4];
     uint32_t u32 = mdata->value;
@@ -95,7 +95,6 @@ static int mr_output_hdvalue(mr_packet_ctx *pctx, mr_mdata *mdata) {
     if (mr_calloc((void **)&ovalue, slen + 1, 1)) return -1;
     strlcpy(ovalue, cv, slen + 1);
     mdata->ovalue = ovalue;
-    mdata->ovalloc = true;
     return 0;
 }
 
@@ -105,7 +104,6 @@ static int mr_output_string(mr_packet_ctx *pctx, mr_mdata *mdata) {
     if (mr_calloc((void **)&ovalue, slen + 1, 1)) return -1;
     strlcpy(ovalue, (char *)mdata->value, slen + 1);
     mdata->ovalue = ovalue;
-    mdata->ovalloc = true;
     return 0;
 }
 
@@ -128,11 +126,25 @@ static int mr_output_spv(mr_packet_ctx *pctx, mr_mdata *mdata) {
 
     *(pc - 1) = '\0'; // overwrite trailing ';'
     mdata->ovalue = ovalue;
-    mdata->ovalloc = true;
     return 0;
 }
 
-int mr_printable_mdata(mr_packet_ctx *pctx) {
+static const char _NOOVALUE[] = "*** no output value ***";
+/**
+ * @brief Create mr_packet_ctx::printable_mdata by creating and catenating the packet's mr_mdata::ovalue's.
+ *
+ * @details Free currently allocated printable_mdata and any output values as we go.
+ *
+ *          Invoke the mr_dtype::output_fn for each mr_mdata in the mr_packet_ctx::mdata0 vector. The output_fn's
+ *          are one of these static functions: mr_output_scalar for an integer; mr_output_hexdump for a u8 vector;
+ *          mr_output_hexvalue for an integer bit field, typically a flag byte; mr_output_string for a c-string,
+ *          and mr_output_spv for a mr_string_pair vector.
+ *
+ *          Catenate the mr_mdata::name's and the printable mr_mdata::ovalue's into the
+ *          mr_packet_ctx::printable_mdata c-string.
+ */
+int mr_printable_mdata(mr_packet_ctx *pctx, bool ballflag) {
+    if (mr_free(pctx->printable_mdata)) return -1;
     const mr_mdata_fn vbi_count_fn = _DTYPE[MR_VBI_DTYPE].count_fn;
 
     // traverse in reverse to calculate VBIs since their u8vlens are variable
@@ -144,6 +156,7 @@ int mr_printable_mdata(mr_packet_ctx *pctx) {
     size_t len = 0;
     mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
+        if (_DTYPE[mdata->dtype].output_fn && mr_free(mdata->ovalue)) return -1;
         if (mdata->vexists) {
             mr_mdata_fn output_fn = _DTYPE[mdata->dtype].output_fn;
 
@@ -163,6 +176,13 @@ int mr_printable_mdata(mr_packet_ctx *pctx) {
         if (mdata->ovalue) {
             sprintf(pc, "%s:%s\n", mdata->name, mdata->ovalue);
             pc += strlen(mdata->name) + 1 + strlen(mdata->ovalue) + 1; // ditto
+        }
+        else if (ballflag) {
+            sprintf(pc, "%s:%s\n", mdata->name, _NOOVALUE);
+            pc += strlen(mdata->name) + 1 + strlen(_NOOVALUE) + 1; // ditto
+        }
+        else {
+            ; //noop
         }
     }
 
@@ -189,6 +209,7 @@ int mr_validate_u8vutf8(mr_packet_ctx *pctx, int idx) {
 
 int mr_set_scalar(mr_packet_ctx *pctx, int idx, mr_mvalue_t value) {
     mr_mdata *mdata = pctx->mdata0 + idx;
+    if (mr_free(mdata->ovalue)) return -1;
     mr_mdata_fn validate_fn = _DTYPE[mdata->dtype].validate_fn;
     mdata->value = value;
     mdata->vexists = true; // don't update vlen or u8vlen for scalars
@@ -233,7 +254,7 @@ int mr_get_u32(mr_packet_ctx *pctx, int idx, uint32_t *pu32, bool *pexists) {
 }
 
 int mr_set_vector(mr_packet_ctx *pctx, int idx, void *pvoid, size_t len) {
-    if (mr_reset_vector(pctx, idx)) return -1;
+    if (mr_reset_vector(pctx, idx)) return -1; // frees ovalue
     mr_mdata *mdata = pctx->mdata0 + idx;
     mdata->value = (mr_mvalue_t)pvoid;
     mdata->vexists = true;
@@ -277,12 +298,14 @@ int mr_get_spv(mr_packet_ctx *pctx, int idx, mr_string_pair **pspv0, size_t *ple
 
 int mr_reset_vector(mr_packet_ctx *pctx, int idx) {
     mr_mdata *mdata = pctx->mdata0 + idx;
+    if (mr_free(mdata->ovalue)) return -1;
     mr_mdata_fn free_fn = _DTYPE[mdata->dtype].free_fn;
     return free_fn(pctx, mdata);
 }
 
 int mr_reset_scalar(mr_packet_ctx *pctx, int idx) {
     mr_mdata *mdata = pctx->mdata0 + idx;
+    if (mr_free(mdata->ovalue)) return -1;
     mdata->value = 0;
     mdata->vexists = false;
     return 0;
@@ -424,16 +447,16 @@ static int mr_free_vector(mr_packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 int mr_free_packet_context(mr_packet_ctx *pctx) {
-    mr_mdata_fn free_fn;
     mr_mdata *mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; i++, mdata++) {
-        free_fn = _DTYPE[mdata->dtype].free_fn;
+        if (_DTYPE[mdata->dtype].free_fn && mr_free(mdata->ovalue)) return -1;
+        mr_mdata_fn free_fn = _DTYPE[mdata->dtype].free_fn;
         if (mdata->valloc && free_fn && free_fn(pctx, mdata)) return -1;
     }
 
-    if (pctx->u8valloc) free(pctx->u8v0);
-    free(pctx->printable_mdata);
-    free(pctx);
+    if (pctx->u8valloc & mr_free(pctx->u8v0)) return -1;
+    if (mr_free(pctx->printable_mdata)) return -1;
+    if (mr_free(pctx)) return -1;;
     return 0;
 }
 

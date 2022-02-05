@@ -11,21 +11,19 @@ typedef unsigned long mr_mvalue_t;
 struct mr_mdata;
 
 typedef struct mr_mdata {
-    const char *name;
-    const int dtype;        // data type
-    const uint8_t bpos;     // bit position
-    mr_mvalue_t value;      // for any mdata value including pointers
-    bool valloc;            // is value allocated
-    size_t vlen;            // byte size of an integer scalar, # of bits for a sub-byte scalar,
-                            // length of a vector - includes trailing '/0' for a string, i.e. strlen() + 1
-    size_t u8vlen;          // byte count of packed value as a uint8_t vector
-    bool vexists;           // value has been set
-    const int link;         // end of range for VBI; byte to stuff for sub-byte scalar
-    const int propid;       // property id if any
-    const int flagid;       // flag id if any
-    const int idx;          // integer position in the mdata vector
-    bool ovalloc;           // is ovalue allocated?
-    char *ovalue;           // stringified printable output value
+    const char *name;       ///< field name from spec
+    const int dtype;        ///< data type
+    const uint8_t bpos;     ///< bit position
+    mr_mvalue_t value;      ///< for any mdata scalar value or pointer
+    bool valloc;            ///< value allocated?
+    size_t vlen;            ///< integer byte size OR sub-byte # of bits OR vector byte length
+    size_t u8vlen;          ///< byte count of packed value as a uint8_t vector
+    bool vexists;           ///< value set?
+    const int link;         ///< end of range for VBI; byte to stuff for sub-byte scalar
+    const int propid;       ///< property id if any
+    const int flagid;       ///< controlling flag id if any
+    const int idx;          ///< offset of the mdata in the packet's mdata0 vector
+    char *ovalue;           ///< stringified printable output value
 } mr_mdata;
 
 typedef int (*mr_mdata_fn)(struct mr_packet_ctx *pctx, struct mr_mdata *mdata);
@@ -80,11 +78,11 @@ int mr_validate_u8vutf8(mr_packet_ctx *pctx, int idx);
 int mr_free_packet_context(mr_packet_ctx *pctx);
 
 static int mr_output_scalar(mr_packet_ctx *pctx, mr_mdata *mdata);
-static int mr_output_hdvalue(mr_packet_ctx *pctx, mr_mdata *mdata);
+static int mr_output_hexvalue(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_output_hexdump(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_output_string(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_output_spv(mr_packet_ctx *pctx, mr_mdata *mdata);
-int mr_printable_mdata(mr_packet_ctx *pctx);
+int mr_printable_mdata(mr_packet_ctx *pctx, bool ballflag);
 
 int mr_reset_scalar(mr_packet_ctx *pctx, int idx);
 int mr_reset_vector(mr_packet_ctx *pctx, int idx);

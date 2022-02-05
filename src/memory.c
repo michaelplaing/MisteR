@@ -50,5 +50,6 @@ int mr_realloc(void **ppv, size_t size) {
 
 int mr_free(void *pv) {
     free(pv);
+    pv = NULL;
     return 0;
 }
