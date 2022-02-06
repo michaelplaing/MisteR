@@ -174,116 +174,116 @@ int mr_free_connect_pctx(mr_packet_ctx *pctx);
 int mr_connect_printable_mdata(mr_packet_ctx *pctx, bool all_flag);
 int mr_validate_connect_values(mr_packet_ctx *pctx);
 
-int mr_get_connect_packet_type(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists);
-int mr_get_connect_remaining_length(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists);
-int mr_get_connect_protocol_name(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *plen, bool *pexists);
-int mr_get_connect_protocol_version(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists);
-int mr_get_connect_reserved(mr_packet_ctx *pctx, bool *pboolean, bool *pexists);
+int mr_get_connect_packet_type(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag);
+int mr_get_connect_remaining_length(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag);
+int mr_get_connect_protocol_name(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *plen, bool *pexists_flag);
+int mr_get_connect_protocol_version(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag);
+int mr_get_connect_reserved(mr_packet_ctx *pctx, bool *pflag_value, bool *pexists_flag);
 
-int mr_get_connect_clean_start(mr_packet_ctx *pctx, bool *pboolean, bool *pexists);
-int mr_set_connect_clean_start(mr_packet_ctx *pctx, bool boolean);
+int mr_get_connect_clean_start(mr_packet_ctx *pctx, bool *pflag_value, bool *pexists_flag);
+int mr_set_connect_clean_start(mr_packet_ctx *pctx, const bool flag_value);
 
-int mr_get_connect_will_flag(mr_packet_ctx *pctx, bool *pboolean, bool *pexists);
-int mr_set_connect_will_flag(mr_packet_ctx *pctx, bool boolean);
+int mr_get_connect_will_flag(mr_packet_ctx *pctx, bool *pflag_value, bool *pexists_flag);
+int mr_set_connect_will_flag(mr_packet_ctx *pctx, const bool flag_value);
 
-int mr_get_connect_will_qos(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists);
-int mr_set_connect_will_qos(mr_packet_ctx *pctx, uint8_t u8);
+int mr_get_connect_will_qos(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag);
+int mr_set_connect_will_qos(mr_packet_ctx *pctx, const uint8_t u8);
 
-int mr_get_connect_will_retain(mr_packet_ctx *pctx, bool *pboolean, bool *pexists);
-int mr_set_connect_will_retain(mr_packet_ctx *pctx, bool boolean);
+int mr_get_connect_will_retain(mr_packet_ctx *pctx, bool *pflag_value, bool *pexists_flag);
+int mr_set_connect_will_retain(mr_packet_ctx *pctx, const bool flag_value);
 
-int mr_get_connect_password_flag(mr_packet_ctx *pctx, bool *pboolean, bool *pexists);
+int mr_get_connect_password_flag(mr_packet_ctx *pctx, bool *pflag_value, bool *pexists_flag);
 
-int mr_get_connect_username_flag(mr_packet_ctx *pctx, bool *pboolean, bool *pexists);
+int mr_get_connect_username_flag(mr_packet_ctx *pctx, bool *pflag_value, bool *pexists_flag);
 
-int mr_get_connect_keep_alive(mr_packet_ctx *pctx, uint16_t *pu16, bool *pexists);
-int mr_set_connect_keep_alive(mr_packet_ctx *pctx, uint16_t u16);
+int mr_get_connect_keep_alive(mr_packet_ctx *pctx, uint16_t *pu16, bool *pexists_flag);
+int mr_set_connect_keep_alive(mr_packet_ctx *pctx, const uint16_t u16);
 
-int mr_get_connect_property_length(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists);
+int mr_get_connect_property_length(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag);
 
-int mr_get_connect_session_expiry_interval(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists);
-int mr_set_connect_session_expiry_interval(mr_packet_ctx *pctx, uint32_t u32);
+int mr_get_connect_session_expiry_interval(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag);
+int mr_set_connect_session_expiry_interval(mr_packet_ctx *pctx, const uint32_t u32);
 int mr_reset_connect_session_expiry_interval(mr_packet_ctx *pctx);
 
-int mr_get_connect_receive_maximum(mr_packet_ctx *pctx, uint16_t *pu16, bool *pexists);
-int mr_set_connect_receive_maximum(mr_packet_ctx *pctx, uint16_t u16);
+int mr_get_connect_receive_maximum(mr_packet_ctx *pctx, uint16_t *pu16, bool *pexists_flag);
+int mr_set_connect_receive_maximum(mr_packet_ctx *pctx, const uint16_t u16);
 int mr_reset_connect_receive_maximum(mr_packet_ctx *pctx);
 
-int mr_get_connect_maximum_packet_size(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists);
-int mr_set_connect_maximum_packet_size(mr_packet_ctx *pctx, uint32_t u32);
+int mr_get_connect_maximum_packet_size(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag);
+int mr_set_connect_maximum_packet_size(mr_packet_ctx *pctx, const uint32_t u32);
 int mr_reset_connect_maximum_packet_size(mr_packet_ctx *pctx);
 
-int mr_get_connect_topic_alias_maximum(mr_packet_ctx *pctx, uint16_t *pu16, bool *pexists);
-int mr_set_connect_topic_alias_maximum(mr_packet_ctx *pctx, uint16_t u16);
+int mr_get_connect_topic_alias_maximum(mr_packet_ctx *pctx, uint16_t *pu16, bool *pexists_flag);
+int mr_set_connect_topic_alias_maximum(mr_packet_ctx *pctx, const uint16_t u16);
 int mr_reset_connect_topic_alias_maximum(mr_packet_ctx *pctx);
 
-int mr_get_connect_request_response_information(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists);
-int mr_set_connect_request_response_information(mr_packet_ctx *pctx, uint8_t u8);
+int mr_get_connect_request_response_information(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag);
+int mr_set_connect_request_response_information(mr_packet_ctx *pctx, const uint8_t u8);
 int mr_reset_connect_request_response_information(mr_packet_ctx *pctx);
 
-int mr_get_connect_request_problem_information(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists);
-int mr_set_connect_request_problem_information(mr_packet_ctx *pctx, uint8_t u8);
+int mr_get_connect_request_problem_information(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag);
+int mr_set_connect_request_problem_information(mr_packet_ctx *pctx, const uint8_t u8);
 int mr_reset_connect_request_problem_information(mr_packet_ctx *pctx);
 
-int mr_get_connect_user_properties(mr_packet_ctx *pctx, mr_string_pair **pspv0, size_t *plen, bool *pexists);
-int mr_set_connect_user_properties(mr_packet_ctx *pctx, mr_string_pair *spv0, size_t len);
+int mr_get_connect_user_properties(mr_packet_ctx *pctx, mr_string_pair **pspv0, size_t *plen, bool *pexists_flag);
+int mr_set_connect_user_properties(mr_packet_ctx *pctx, const mr_string_pair *spv0, const size_t len);
 int mr_reset_connect_user_properties(mr_packet_ctx *pctx);
 
-int mr_get_connect_authentication_method(mr_packet_ctx *pctx, char **cv0, bool *pexists);
-int mr_set_connect_authentication_method(mr_packet_ctx *pctx, char *cv0);
+int mr_get_connect_authentication_method(mr_packet_ctx *pctx, char **cv0, bool *pexists_flag);
+int mr_set_connect_authentication_method(mr_packet_ctx *pctx, const char *cv0);
 int mr_reset_connect_authentication_method(mr_packet_ctx *pctx);
 
-int mr_get_connect_authentication_data(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *plen, bool *pexists);
-int mr_set_connect_authentication_data(mr_packet_ctx *pctx, uint8_t *u8v0, size_t len);
+int mr_get_connect_authentication_data(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *plen, bool *pexists_flag);
+int mr_set_connect_authentication_data(mr_packet_ctx *pctx, const uint8_t *u8v0, const size_t len);
 int mr_reset_connect_authentication_data(mr_packet_ctx *pctx);
 
-int mr_get_connect_client_identifier(mr_packet_ctx *pctx, char **pcv0, bool *pexists);
-int mr_set_connect_client_identifier(mr_packet_ctx *pctx, char *cv0);
+int mr_get_connect_client_identifier(mr_packet_ctx *pctx, char **pcv0, bool *pexists_flag);
+int mr_set_connect_client_identifier(mr_packet_ctx *pctx, const char *cv0);
 
-int mr_get_connect_will_property_length(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists);
+int mr_get_connect_will_property_length(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag);
 
-int mr_get_connect_will_delay_interval(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists);
-int mr_set_connect_will_delay_interval(mr_packet_ctx *pctx, uint32_t u32);
+int mr_get_connect_will_delay_interval(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag);
+int mr_set_connect_will_delay_interval(mr_packet_ctx *pctx, const uint32_t u32);
 int mr_reset_connect_will_delay_interval(mr_packet_ctx *pctx);
 
-int mr_get_connect_payload_format_indicator(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists);
-int mr_set_connect_payload_format_indicator(mr_packet_ctx *pctx, uint8_t u8);
+int mr_get_connect_payload_format_indicator(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag);
+int mr_set_connect_payload_format_indicator(mr_packet_ctx *pctx, const uint8_t u8);
 int mr_reset_connect_payload_format_indicator(mr_packet_ctx *pctx);
 
-int mr_get_connect_message_expiry_interval(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists);
-int mr_set_connect_message_expiry_interval(mr_packet_ctx *pctx, uint32_t u32);
+int mr_get_connect_message_expiry_interval(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag);
+int mr_set_connect_message_expiry_interval(mr_packet_ctx *pctx, const uint32_t u32);
 int mr_reset_connect_message_expiry_interval(mr_packet_ctx *pctx);
 
-int mr_get_connect_content_type(mr_packet_ctx *pctx, char **pcv0, bool *pexists);
-int mr_set_connect_content_type(mr_packet_ctx *pctx, char *cv0);
+int mr_get_connect_content_type(mr_packet_ctx *pctx, char **pcv0, bool *pexists_flag);
+int mr_set_connect_content_type(mr_packet_ctx *pctx, const char *cv0);
 int mr_reset_connect_content_type(mr_packet_ctx *pctx);
 
-int mr_get_connect_response_topic(mr_packet_ctx *pctx, char **pcv0, bool *pexists);
-int mr_set_connect_response_topic(mr_packet_ctx *pctx, char *cv0);
+int mr_get_connect_response_topic(mr_packet_ctx *pctx, char **pcv0, bool *pexists_flag);
+int mr_set_connect_response_topic(mr_packet_ctx *pctx, const char *cv0);
 int mr_reset_connect_response_topic(mr_packet_ctx *pctx);
 
-int mr_get_connect_correlation_data(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *plen, bool *pexists);
-int mr_set_connect_correlation_data(mr_packet_ctx *pctx, uint8_t *u8v0, size_t len);
+int mr_get_connect_correlation_data(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *plen, bool *pexists_flag);
+int mr_set_connect_correlation_data(mr_packet_ctx *pctx, const uint8_t *u8v0, const size_t len);
 int mr_reset_connect_correlation_data(mr_packet_ctx *pctx);
 
-int mr_get_connect_will_user_properties(mr_packet_ctx *pctx, mr_string_pair **pspv0, size_t *plen, bool *pexists);
-int mr_set_connect_will_user_properties(mr_packet_ctx *pctx, mr_string_pair *spv0, size_t len);
+int mr_get_connect_will_user_properties(mr_packet_ctx *pctx, mr_string_pair **pspv0, size_t *plen, bool *pexists_flag);
+int mr_set_connect_will_user_properties(mr_packet_ctx *pctx, const mr_string_pair *spv0, const size_t len);
 int mr_reset_connect_will_user_properties(mr_packet_ctx *pctx);
 
-int mr_get_connect_will_topic(mr_packet_ctx *pctx, char **pcv0, bool *pexists);
-int mr_set_connect_will_topic(mr_packet_ctx *pctx, char *cv0);
+int mr_get_connect_will_topic(mr_packet_ctx *pctx, char **pcv0, bool *pexists_flag);
+int mr_set_connect_will_topic(mr_packet_ctx *pctx, const char *cv0);
 int mr_reset_connect_will_topic(mr_packet_ctx *pctx);
 
-int mr_get_connect_will_payload(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *plen, bool *pexists);
-int mr_set_connect_will_payload(mr_packet_ctx *pctx, uint8_t *u8v0, size_t len);
+int mr_get_connect_will_payload(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *plen, bool *pexists_flag);
+int mr_set_connect_will_payload(mr_packet_ctx *pctx, const uint8_t *u8v0, const size_t len);
 int mr_reset_connect_will_payload(mr_packet_ctx *pctx);
 
-int mr_get_connect_user_name(mr_packet_ctx *pctx, char **pcv0, bool *pexists);
-int mr_set_connect_user_name(mr_packet_ctx *pctx, char *cv0);
+int mr_get_connect_user_name(mr_packet_ctx *pctx, char **pcv0, bool *pexists_flag);
+int mr_set_connect_user_name(mr_packet_ctx *pctx, const char *cv0);
 int mr_reset_connect_user_name(mr_packet_ctx *pctx);
 
-int mr_get_connect_password(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *plen, bool *pexists);
-int mr_set_connect_password(mr_packet_ctx *pctx, uint8_t *u8v0, size_t len);
+int mr_get_connect_password(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *plen, bool *pexists_flag);
+int mr_set_connect_password(mr_packet_ctx *pctx, const uint8_t *u8v0, const size_t len);
 int mr_reset_connect_password(mr_packet_ctx *pctx);
 
 // connack packet
@@ -295,87 +295,87 @@ int mr_pack_connack_packet(mr_packet_ctx *pctx);
 int mr_free_connack_packet(mr_packet_ctx *pctx);
 int mr_connack_printable_mdata(mr_packet_ctx *pctx, bool ball);
 
-int mr_get_connack_packet_type(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists);
-int mr_get_connack_remaining_length(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists);
+int mr_get_connack_packet_type(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag);
+int mr_get_connack_remaining_length(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag);
 
-int mr_get_connack_session_present(mr_packet_ctx *pctx, bool *pboolean, bool *pexists);
-int mr_set_connack_session_present(mr_packet_ctx *pctx, bool boolean);
+int mr_get_connack_session_present(mr_packet_ctx *pctx, bool *pflag_value, bool *pexists_flag);
+int mr_set_connack_session_present(mr_packet_ctx *pctx, const bool flag_value);
 int mr_reset_connack_session_present(mr_packet_ctx *pctx);
 
-int mr_get_connack_reserved(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists);
+int mr_get_connack_reserved(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag);
 
-int mr_get_connack_connect_reason_code(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists);
-int mr_set_connack_connect_reason_code(mr_packet_ctx *pctx, uint8_t u8);
+int mr_get_connack_connect_reason_code(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag);
+int mr_set_connack_connect_reason_code(mr_packet_ctx *pctx, const uint8_t u8);
 int mr_reset_connack_connect_reason_code(mr_packet_ctx *pctx);
 
-int mr_get_connack_property_length(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists);
+int mr_get_connack_property_length(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag);
 
-int mr_get_connack_session_expiry_interval(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists);
-int mr_set_connack_session_expiry_interval(mr_packet_ctx *pctx, uint32_t u32);
+int mr_get_connack_session_expiry_interval(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag);
+int mr_set_connack_session_expiry_interval(mr_packet_ctx *pctx, const uint32_t u32);
 int mr_reset_connack_session_expiry_interval(mr_packet_ctx *pctx);
 
-int mr_get_connack_receive_maximum(mr_packet_ctx *pctx, uint16_t *pu16, bool *pexists);
-int mr_set_connack_receive_maximum(mr_packet_ctx *pctx, uint16_t u16);
+int mr_get_connack_receive_maximum(mr_packet_ctx *pctx, uint16_t *pu16, bool *pexists_flag);
+int mr_set_connack_receive_maximum(mr_packet_ctx *pctx, const uint16_t u16);
 int mr_reset_connack_receive_maximum(mr_packet_ctx *pctx);
 
-int mr_get_connack_maximum_qos(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists);
-int mr_set_connack_maximum_qos(mr_packet_ctx *pctx, uint8_t u8);
+int mr_get_connack_maximum_qos(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag);
+int mr_set_connack_maximum_qos(mr_packet_ctx *pctx, const uint8_t u8);
 int mr_reset_connack_maximum_qos(mr_packet_ctx *pctx);
 
-int mr_get_connack_retain_available(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists);
-int mr_set_connack_retain_available(mr_packet_ctx *pctx, uint8_t u8);
+int mr_get_connack_retain_available(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag);
+int mr_set_connack_retain_available(mr_packet_ctx *pctx, const uint8_t u8);
 int mr_reset_connack_retain_available(mr_packet_ctx *pctx);
 
-int mr_get_connack_maximum_packet_size(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists);
-int mr_set_connack_maximum_packet_size(mr_packet_ctx *pctx, uint32_t u32);
+int mr_get_connack_maximum_packet_size(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag);
+int mr_set_connack_maximum_packet_size(mr_packet_ctx *pctx, const uint32_t u32);
 int mr_reset_connack_maximum_packet_size(mr_packet_ctx *pctx);
 
-int mr_get_connack_assigned_client_identifier(mr_packet_ctx *pctx, char **pcv0, bool *pexists);
-int mr_set_connack_assigned_client_identifier(mr_packet_ctx *pctx, char *cv0);
+int mr_get_connack_assigned_client_identifier(mr_packet_ctx *pctx, char **pcv0, bool *pexists_flag);
+int mr_set_connack_assigned_client_identifier(mr_packet_ctx *pctx, const char *cv0);
 int mr_reset_connack_assigned_client_identifier(mr_packet_ctx *pctx);
 
-int mr_get_connack_topic_alias_maximum(mr_packet_ctx *pctx, uint16_t *pu16, bool *pexists);
-int mr_set_connack_topic_alias_maximum(mr_packet_ctx *pctx, uint16_t u16);
+int mr_get_connack_topic_alias_maximum(mr_packet_ctx *pctx, uint16_t *pu16, bool *pexists_flag);
+int mr_set_connack_topic_alias_maximum(mr_packet_ctx *pctx, const uint16_t u16);
 int mr_reset_connack_topic_alias_maximum(mr_packet_ctx *pctx);
 
-int mr_get_connack_reason_string(mr_packet_ctx *pctx, char **pcv0, bool *pexists);
-int mr_set_connack_reason_string(mr_packet_ctx *pctx, char *cv0);
+int mr_get_connack_reason_string(mr_packet_ctx *pctx, char **pcv0, bool *pexists_flag);
+int mr_set_connack_reason_string(mr_packet_ctx *pctx, const char *cv0);
 int mr_reset_connack_reason_string(mr_packet_ctx *pctx);
 
-int mr_get_connack_user_properties(mr_packet_ctx *pctx, mr_string_pair **pspv0, size_t *plen, bool *pexists);
-int mr_set_connack_user_properties(mr_packet_ctx *pctx, mr_string_pair *spv0, size_t len);
+int mr_get_connack_user_properties(mr_packet_ctx *pctx, mr_string_pair **pspv0, size_t *plen, bool *pexists_flag);
+int mr_set_connack_user_properties(mr_packet_ctx *pctx, const mr_string_pair *spv0, const size_t len);
 int mr_reset_connack_user_properties(mr_packet_ctx *pctx);
 
-int mr_get_connack_wildcard_subscription_available(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists);
-int mr_set_connack_wildcard_subscription_available(mr_packet_ctx *pctx, uint8_t u8);
+int mr_get_connack_wildcard_subscription_available(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag);
+int mr_set_connack_wildcard_subscription_available(mr_packet_ctx *pctx, const uint8_t u8);
 int mr_reset_connack_wildcard_subscription_available(mr_packet_ctx *pctx);
 
-int mr_get_connack_subscription_identifiers_available(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists);
-int mr_set_connack_subscription_identifiers_available(mr_packet_ctx *pctx, uint8_t u8);
+int mr_get_connack_subscription_identifiers_available(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag);
+int mr_set_connack_subscription_identifiers_available(mr_packet_ctx *pctx, const uint8_t u8);
 int mr_reset_connack_subscription_identifiers_available(mr_packet_ctx *pctx);
 
-int mr_get_connack_shared_subscription_available(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists);
-int mr_set_connack_shared_subscription_available(mr_packet_ctx *pctx, uint8_t u8);
+int mr_get_connack_shared_subscription_available(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag);
+int mr_set_connack_shared_subscription_available(mr_packet_ctx *pctx, const uint8_t u8);
 int mr_reset_connack_shared_subscription_available(mr_packet_ctx *pctx);
 
-int mr_get_connack_server_keep_alive(mr_packet_ctx *pctx, uint16_t *pu16, bool *pexists);
-int mr_set_connack_server_keep_alive(mr_packet_ctx *pctx, uint16_t u16);
+int mr_get_connack_server_keep_alive(mr_packet_ctx *pctx, uint16_t *pu16, bool *pexists_flag);
+int mr_set_connack_server_keep_alive(mr_packet_ctx *pctx, const uint16_t u16);
 int mr_reset_connack_server_keep_alive(mr_packet_ctx *pctx);
 
-int mr_get_connack_response_information(mr_packet_ctx *pctx, char **pcv0, bool *pexists);
-int mr_set_connack_response_information(mr_packet_ctx *pctx, char *cv0);
+int mr_get_connack_response_information(mr_packet_ctx *pctx, char **pcv0, bool *pexists_flag);
+int mr_set_connack_response_information(mr_packet_ctx *pctx, const char *cv0);
 int mr_reset_connack_response_information(mr_packet_ctx *pctx);
 
-int mr_get_connack_server_reference(mr_packet_ctx *pctx, char **pcv0, bool *pexists);
-int mr_set_connack_server_reference(mr_packet_ctx *pctx, char *cv0);
+int mr_get_connack_server_reference(mr_packet_ctx *pctx, char **pcv0, bool *pexists_flag);
+int mr_set_connack_server_reference(mr_packet_ctx *pctx, const char *cv0);
 int mr_reset_connack_server_reference(mr_packet_ctx *pctx);
 
-int mr_get_connack_authentication_method(mr_packet_ctx *pctx, char **pcv0, bool *pexists);
-int mr_set_connack_authentication_method(mr_packet_ctx *pctx, char *cv0);
+int mr_get_connack_authentication_method(mr_packet_ctx *pctx, char **pcv0, bool *pexists_flag);
+int mr_set_connack_authentication_method(mr_packet_ctx *pctx, const char *cv0);
 int mr_reset_connack_authentication_method(mr_packet_ctx *pctx);
 
-int mr_get_connack_authentication_data(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *plen, bool *pexists);
-int mr_set_connack_authentication_data(mr_packet_ctx *pctx, uint8_t *u8v0, size_t len);
+int mr_get_connack_authentication_data(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *plen, bool *pexists_flag);
+int mr_set_connack_authentication_data(mr_packet_ctx *pctx, const uint8_t *u8v0, const size_t len);
 int mr_reset_connack_authentication_data(mr_packet_ctx *pctx);
 
 int mr_validate_connack_values(mr_packet_ctx *pctx);

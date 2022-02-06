@@ -126,38 +126,38 @@ int mr_connack_printable_mdata(mr_packet_ctx *pctx, bool all_flag) {
 }
 
 // const uint8_t packet_type;
-int mr_get_connack_packet_type(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists) {
+int mr_get_connack_packet_type(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag) {
     if (mr_connack_packet_check(pctx)) return -1;
-    return mr_get_u8(pctx, CONNACK_PACKET_TYPE, pu8, pexists);
+    return mr_get_u8(pctx, CONNACK_PACKET_TYPE, pu8, pexists_flag);
 }
 
 // uint32_t remaining_length;
-int mr_get_connack_remaining_length(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists) {
+int mr_get_connack_remaining_length(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag) {
     if (mr_connack_packet_check(pctx)) return -1;
-    return mr_get_u32(pctx, CONNACK_REMAINING_LENGTH, pu32, pexists);
+    return mr_get_u32(pctx, CONNACK_REMAINING_LENGTH, pu32, pexists_flag);
 }
 
 // bool session_present;
-int mr_get_connack_session_present(mr_packet_ctx *pctx, bool *pboolean, bool *pexists) {
+int mr_get_connack_session_present(mr_packet_ctx *pctx, bool *pflag_value, bool *pexists_flag) {
     if (mr_connack_packet_check(pctx)) return -1;
-    return mr_get_boolean(pctx, CONNACK_SESSION_PRESENT, pboolean, pexists);
+    return mr_get_boolean(pctx, CONNACK_SESSION_PRESENT, pflag_value, pexists_flag);
 }
 
-int mr_set_connack_session_present(mr_packet_ctx *pctx, bool boolean) {
+int mr_set_connack_session_present(mr_packet_ctx *pctx, bool flag_value) {
     if (mr_connack_packet_check(pctx)) return -1;
-    return mr_set_scalar(pctx, CONNACK_SESSION_PRESENT, boolean);
+    return mr_set_scalar(pctx, CONNACK_SESSION_PRESENT, flag_value);
 }
 
 // uint8_t reserved; // bits 1-7
-int mr_get_connack_reserved(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists) {
+int mr_get_connack_reserved(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag) {
     if (mr_connack_packet_check(pctx)) return -1;
-    return mr_get_u8(pctx, CONNACK_RESERVED, pu8, pexists);
+    return mr_get_u8(pctx, CONNACK_RESERVED, pu8, pexists_flag);
 }
 
 // uint8_t connect_reason_code;
-int mr_get_connack_connect_reason_code(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists) {
+int mr_get_connack_connect_reason_code(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag) {
     if (mr_connack_packet_check(pctx)) return -1;
-    return mr_get_u8(pctx, CONNACK_CONNECT_REASON_CODE, pu8, pexists);
+    return mr_get_u8(pctx, CONNACK_CONNECT_REASON_CODE, pu8, pexists_flag);
 }
 
 int mr_set_connack_connect_reason_code(mr_packet_ctx *pctx, uint8_t u8) {
@@ -166,15 +166,15 @@ int mr_set_connack_connect_reason_code(mr_packet_ctx *pctx, uint8_t u8) {
 }
 
 // uint32_t property_length;
-int mr_get_connack_property_length(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists) {
+int mr_get_connack_property_length(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag) {
     if (mr_connack_packet_check(pctx)) return -1;
-    return mr_get_u32(pctx, CONNACK_PROPERTY_LENGTH, pu32, pexists);
+    return mr_get_u32(pctx, CONNACK_PROPERTY_LENGTH, pu32, pexists_flag);
 }
 
 // uint32_t session_expiry_interval;
-int mr_get_connack_session_expiry_interval(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists) {
+int mr_get_connack_session_expiry_interval(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag) {
     if (mr_connack_packet_check(pctx)) return -1;
-    return mr_get_u32(pctx, CONNACK_SESSION_EXPIRY_INTERVAL, pu32, pexists);
+    return mr_get_u32(pctx, CONNACK_SESSION_EXPIRY_INTERVAL, pu32, pexists_flag);
 }
 
 int mr_set_connack_session_expiry_interval(mr_packet_ctx *pctx, uint32_t u32) {
@@ -188,9 +188,9 @@ int mr_reset_connack_session_expiry_interval(mr_packet_ctx *pctx) {
 }
 
 // uint16_t receive_maximum;
-int mr_get_connack_receive_maximum(mr_packet_ctx *pctx, uint16_t *pu16, bool *pexists) {
+int mr_get_connack_receive_maximum(mr_packet_ctx *pctx, uint16_t *pu16, bool *pexists_flag) {
     if (mr_connack_packet_check(pctx)) return -1;
-    return mr_get_u16(pctx, CONNACK_RECEIVE_MAXIMUM, pu16, pexists);
+    return mr_get_u16(pctx, CONNACK_RECEIVE_MAXIMUM, pu16, pexists_flag);
 }
 
 int mr_set_connack_receive_maximum(mr_packet_ctx *pctx, uint16_t u16) {
@@ -204,9 +204,9 @@ int mr_reset_connack_receive_maximum(mr_packet_ctx *pctx) {
 }
 
 // uint8_t maximum_qos;
-int mr_get_connack_maximum_qos(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists) {
+int mr_get_connack_maximum_qos(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag) {
     if (mr_connack_packet_check(pctx)) return -1;
-    return mr_get_u8(pctx, CONNACK_MAXIMUM_QOS, pu8, pexists);
+    return mr_get_u8(pctx, CONNACK_MAXIMUM_QOS, pu8, pexists_flag);
 }
 
 int mr_set_connack_maximum_qos(mr_packet_ctx *pctx, uint8_t u8) {
@@ -220,9 +220,9 @@ int mr_reset_connack_maximum_qos(mr_packet_ctx *pctx) {
 }
 
 // uint8_t retain_available;
-int mr_get_connack_retain_available(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists) {
+int mr_get_connack_retain_available(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag) {
     if (mr_connack_packet_check(pctx)) return -1;
-    return mr_get_u8(pctx, CONNACK_RETAIN_AVAILABLE, pu8, pexists);
+    return mr_get_u8(pctx, CONNACK_RETAIN_AVAILABLE, pu8, pexists_flag);
 }
 
 int mr_set_connack_retain_available(mr_packet_ctx *pctx, uint8_t u8) {
@@ -236,9 +236,9 @@ int mr_reset_connack_retain_available(mr_packet_ctx *pctx) {
 }
 
 // uint32_t maximum_packet_size;
-int mr_get_connack_maximum_packet_size(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists) {
+int mr_get_connack_maximum_packet_size(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag) {
     if (mr_connack_packet_check(pctx)) return -1;
-    return mr_get_u32(pctx, CONNACK_MAXIMUM_PACKET_SIZE, pu32, pexists);
+    return mr_get_u32(pctx, CONNACK_MAXIMUM_PACKET_SIZE, pu32, pexists_flag);
 }
 
 int mr_set_connack_maximum_packet_size(mr_packet_ctx *pctx, uint32_t u32) {
@@ -252,12 +252,12 @@ int mr_reset_connack_maximum_packet_size(mr_packet_ctx *pctx) {
 }
 
 // uint8_t *assigned_client_identifier;
-int mr_get_connack_assigned_client_identifier(mr_packet_ctx *pctx, char **pcv0, bool *pexists) {
+int mr_get_connack_assigned_client_identifier(mr_packet_ctx *pctx, char **pcv0, bool *pexists_flag) {
     if (mr_connack_packet_check(pctx)) return -1;
-    return mr_get_str(pctx, CONNACK_ASSIGNED_CLIENT_IDENTIFIER, pcv0, pexists);
+    return mr_get_str(pctx, CONNACK_ASSIGNED_CLIENT_IDENTIFIER, pcv0, pexists_flag);
 }
 
-int mr_set_connack_assigned_client_identifier(mr_packet_ctx *pctx, char *cv0) {
+int mr_set_connack_assigned_client_identifier(mr_packet_ctx *pctx, const char *cv0) {
     if (mr_connack_packet_check(pctx)) return -1;
     return mr_set_vector(pctx, CONNACK_ASSIGNED_CLIENT_IDENTIFIER, cv0, strlen(cv0) + 1);
 }
@@ -268,9 +268,9 @@ int mr_reset_connack_assigned_client_identifier(mr_packet_ctx *pctx) {
 }
 
 // uint16_t topic_alias_maximum;
-int mr_get_connack_topic_alias_maximum(mr_packet_ctx *pctx, uint16_t *pu16, bool *pexists) {
+int mr_get_connack_topic_alias_maximum(mr_packet_ctx *pctx, uint16_t *pu16, bool *pexists_flag) {
     if (mr_connack_packet_check(pctx)) return -1;
-    return mr_get_u16(pctx, CONNACK_TOPIC_ALIAS_MAXIMUM, pu16, pexists);
+    return mr_get_u16(pctx, CONNACK_TOPIC_ALIAS_MAXIMUM, pu16, pexists_flag);
 }
 
 int mr_set_connack_topic_alias_maximum(mr_packet_ctx *pctx, uint16_t u16) {
@@ -284,12 +284,12 @@ int mr_reset_connack_topic_alias_maximum(mr_packet_ctx *pctx) {
 }
 
 // uint8_t *reason_string;
-int mr_get_connack_reason_string(mr_packet_ctx *pctx, char **pcv0, bool *pexists) {
+int mr_get_connack_reason_string(mr_packet_ctx *pctx, char **pcv0, bool *pexists_flag) {
     if (mr_connack_packet_check(pctx)) return -1;
-    return mr_get_str(pctx, CONNACK_REASON_STRING, pcv0, pexists);
+    return mr_get_str(pctx, CONNACK_REASON_STRING, pcv0, pexists_flag);
 }
 
-int mr_set_connack_reason_string(mr_packet_ctx *pctx, char *cv0) {
+int mr_set_connack_reason_string(mr_packet_ctx *pctx, const char *cv0) {
     if (mr_connack_packet_check(pctx)) return -1;
     return mr_set_vector(pctx, CONNACK_REASON_STRING, cv0, strlen(cv0) + 1);
 }
@@ -300,12 +300,12 @@ int mr_reset_connack_reason_string(mr_packet_ctx *pctx) {
 }
 
 // mr_string_pair *user_properties;
-int mr_get_connack_user_properties(mr_packet_ctx *pctx, mr_string_pair **pspv0, size_t *plen, bool *pexists) {
+int mr_get_connack_user_properties(mr_packet_ctx *pctx, mr_string_pair **pspv0, size_t *plen, bool *pexists_flag) {
     if (mr_connack_packet_check(pctx)) return -1;
-    return mr_get_spv(pctx, CONNACK_USER_PROPERTIES, pspv0, plen, pexists);
+    return mr_get_spv(pctx, CONNACK_USER_PROPERTIES, pspv0, plen, pexists_flag);
 }
 
-int mr_set_connack_user_properties(mr_packet_ctx *pctx, mr_string_pair *spv0, size_t len) {
+int mr_set_connack_user_properties(mr_packet_ctx *pctx, const mr_string_pair *spv0, const size_t len) {
     if (mr_connack_packet_check(pctx)) return -1;
     return mr_set_vector(pctx, CONNACK_USER_PROPERTIES, spv0, len);
 }
@@ -316,9 +316,9 @@ int mr_reset_connack_user_properties(mr_packet_ctx *pctx) {
 }
 
 // uint8_t wildcard_subscription_available;
-int mr_get_connack_wildcard_subscription_available(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists) {
+int mr_get_connack_wildcard_subscription_available(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag) {
     if (mr_connack_packet_check(pctx)) return -1;
-    return mr_get_u8(pctx, CONNACK_WILDCARD_SUBSCRIPTION_AVAILABLE, pu8, pexists);
+    return mr_get_u8(pctx, CONNACK_WILDCARD_SUBSCRIPTION_AVAILABLE, pu8, pexists_flag);
 }
 
 int mr_set_connack_wildcard_subscription_available(mr_packet_ctx *pctx, uint8_t u8) {
@@ -332,9 +332,9 @@ int mr_reset_connack_wildcard_subscription_available(mr_packet_ctx *pctx) {
 }
 
 // uint8_t subscription_identifiers_available;
-int mr_get_connack_subscription_identifiers_available(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists) {
+int mr_get_connack_subscription_identifiers_available(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag) {
     if (mr_connack_packet_check(pctx)) return -1;
-    return mr_get_u8(pctx, CONNACK_SUBSCRIPTION_IDENTIFIERS_AVAILABLE, pu8, pexists);
+    return mr_get_u8(pctx, CONNACK_SUBSCRIPTION_IDENTIFIERS_AVAILABLE, pu8, pexists_flag);
 }
 
 int mr_set_connack_subscription_identifiers_available(mr_packet_ctx *pctx, uint8_t u8) {
@@ -348,9 +348,9 @@ int mr_reset_connack_subscription_identifiers_available(mr_packet_ctx *pctx) {
 }
 
 // uint8_t shared_subscription_available;
-int mr_get_connack_shared_subscription_available(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists) {
+int mr_get_connack_shared_subscription_available(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag) {
     if (mr_connack_packet_check(pctx)) return -1;
-    return mr_get_u8(pctx, CONNACK_SHARED_SUBSCRIPTION_AVAILABLE, pu8, pexists);
+    return mr_get_u8(pctx, CONNACK_SHARED_SUBSCRIPTION_AVAILABLE, pu8, pexists_flag);
 }
 
 int mr_set_connack_shared_subscription_available(mr_packet_ctx *pctx, uint8_t u8) {
@@ -364,9 +364,9 @@ int mr_reset_connack_shared_subscription_available(mr_packet_ctx *pctx) {
 }
 
 // uint16_t server_keep_alive;
-int mr_get_connack_server_keep_alive(mr_packet_ctx *pctx, uint16_t *pu16, bool *pexists) {
+int mr_get_connack_server_keep_alive(mr_packet_ctx *pctx, uint16_t *pu16, bool *pexists_flag) {
     if (mr_connack_packet_check(pctx)) return -1;
-    return mr_get_u16(pctx, CONNACK_SERVER_KEEP_ALIVE, pu16, pexists);
+    return mr_get_u16(pctx, CONNACK_SERVER_KEEP_ALIVE, pu16, pexists_flag);
 }
 
 int mr_set_connack_server_keep_alive(mr_packet_ctx *pctx, uint16_t u16) {
@@ -379,12 +379,12 @@ int mr_reset_connack_server_keep_alive(mr_packet_ctx *pctx) {
     return mr_reset_scalar(pctx, CONNACK_SERVER_KEEP_ALIVE);
 }
 // uint8_t *response_information;
-int mr_get_connack_response_information(mr_packet_ctx *pctx, char **pcv0, bool *pexists) {
+int mr_get_connack_response_information(mr_packet_ctx *pctx, char **pcv0, bool *pexists_flag) {
     if (mr_connack_packet_check(pctx)) return -1;
-    return mr_get_str(pctx, CONNACK_RESPONSE_INFORMATION, pcv0, pexists);
+    return mr_get_str(pctx, CONNACK_RESPONSE_INFORMATION, pcv0, pexists_flag);
 }
 
-int mr_set_connack_response_information(mr_packet_ctx *pctx, char *cv0) {
+int mr_set_connack_response_information(mr_packet_ctx *pctx, const char *cv0) {
     if (mr_connack_packet_check(pctx)) return -1;
     return mr_set_vector(pctx, CONNACK_RESPONSE_INFORMATION, cv0, strlen(cv0) + 1);
 }
@@ -395,12 +395,12 @@ int mr_reset_connack_response_information(mr_packet_ctx *pctx) {
 }
 
 // uint8_t *server_reference;
-int mr_get_connack_server_reference(mr_packet_ctx *pctx, char **pcv0, bool *pexists) {
+int mr_get_connack_server_reference(mr_packet_ctx *pctx, char **pcv0, bool *pexists_flag) {
     if (mr_connack_packet_check(pctx)) return -1;
-    return mr_get_str(pctx, CONNACK_SERVER_REFERENCE, pcv0, pexists);
+    return mr_get_str(pctx, CONNACK_SERVER_REFERENCE, pcv0, pexists_flag);
 }
 
-int mr_set_connack_server_reference(mr_packet_ctx *pctx, char *cv0) {
+int mr_set_connack_server_reference(mr_packet_ctx *pctx, const char *cv0) {
     if (mr_connack_packet_check(pctx)) return -1;
     return mr_set_vector(pctx, CONNACK_SERVER_REFERENCE, cv0, strlen(cv0) + 1);
 }
@@ -411,12 +411,12 @@ int mr_reset_connack_server_reference(mr_packet_ctx *pctx) {
 }
 
 // uint8_t *authentication_method;
-int mr_get_connack_authentication_method(mr_packet_ctx *pctx, char **pcv0, bool *pexists) {
+int mr_get_connack_authentication_method(mr_packet_ctx *pctx, char **pcv0, bool *pexists_flag) {
     if (mr_connack_packet_check(pctx)) return -1;
-    return mr_get_str(pctx, CONNACK_AUTHENTICATION_METHOD, pcv0, pexists);
+    return mr_get_str(pctx, CONNACK_AUTHENTICATION_METHOD, pcv0, pexists_flag);
 }
 
-int mr_set_connack_authentication_method(mr_packet_ctx *pctx, char *cv0) {
+int mr_set_connack_authentication_method(mr_packet_ctx *pctx, const char *cv0) {
     if (mr_connack_packet_check(pctx)) return -1;
     return mr_set_vector(pctx, CONNACK_AUTHENTICATION_METHOD, cv0, strlen(cv0) + 1);
 }
@@ -427,12 +427,12 @@ int mr_reset_connack_authentication_method(mr_packet_ctx *pctx) {
 }
 
 // uint8_t *authentication_data;
-int mr_get_connack_authentication_data(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *plen, bool *pexists) {
+int mr_get_connack_authentication_data(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *plen, bool *pexists_flag) {
     if (mr_connack_packet_check(pctx)) return -1;
-    return mr_get_u8v(pctx, CONNACK_AUTHENTICATION_DATA, pu8v0, plen, pexists);
+    return mr_get_u8v(pctx, CONNACK_AUTHENTICATION_DATA, pu8v0, plen, pexists_flag);
 }
 
-int mr_set_connack_authentication_data(mr_packet_ctx *pctx, uint8_t *u8v0, size_t len) {
+int mr_set_connack_authentication_data(mr_packet_ctx *pctx, const uint8_t *u8v0, const size_t len) {
     if (mr_connack_packet_check(pctx)) return -1;
     return mr_set_vector(pctx, CONNACK_AUTHENTICATION_DATA, u8v0, len);
 }

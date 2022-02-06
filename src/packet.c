@@ -255,7 +255,7 @@ int mr_get_u32(mr_packet_ctx *pctx, const int idx, uint32_t *pu32, bool *pexists
     return 0;
 }
 
-int mr_set_vector(mr_packet_ctx *pctx, const int idx, void *pvoid, size_t len) {
+int mr_set_vector(mr_packet_ctx *pctx, const int idx, const void *pvoid, const size_t len) {
     if (mr_reset_vector(pctx, idx)) return -1; // frees printable
     mr_mdata *mdata = pctx->mdata0 + idx;
     mdata->value = (mr_mvalue_t)pvoid;

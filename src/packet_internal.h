@@ -58,6 +58,10 @@ typedef struct mr_ptype {
     const mr_ptype_fn ptype_fn;
 } mr_ptype;
 
+int mr_init_packet(
+    mr_packet_ctx **ppctx, const mr_mdata *MDATA_TEMPLATE, const size_t mdata_count
+);
+
 static int mr_unpack_packet(mr_packet_ctx *pctx);
 
 int mr_init_unpack_packet(
@@ -66,10 +70,6 @@ int mr_init_unpack_packet(
     const size_t mdata_count,
     const uint8_t *u8v0,
     const size_t ulen
-);
-
-int mr_init_packet(
-    mr_packet_ctx **ppctx, const mr_mdata *MDATA_TEMPLATE, const size_t mdata_count
 );
 
 int mr_pack_packet(mr_packet_ctx *pctx);
@@ -105,7 +105,7 @@ static int mr_pack_incr1(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_unpack_bits(mr_packet_ctx *pctx, mr_mdata *mdata);
 
 static int mr_get_vector(mr_packet_ctx *pctx, const int idx, mr_mvalue_t *ppvoid, size_t *plen, bool *pexists);
-int mr_set_vector(mr_packet_ctx *pctx, const int idx, void *pvoid, size_t len);
+int mr_set_vector(mr_packet_ctx *pctx, const int idx, const void *pvoid, const size_t len);
 int mr_reset_vector(mr_packet_ctx *pctx, const int idx);
 static int mr_free_vector(mr_packet_ctx *pctx, mr_mdata *mdata);
 
