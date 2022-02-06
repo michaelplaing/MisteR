@@ -129,7 +129,7 @@ static int mr_output_spv(mr_packet_ctx *pctx, mr_mdata *mdata) {
     return 0;
 }
 
-static const char _NOOVALUE[] = "*** no output value ***";
+static const char _NOT_PRINTABLE[] = "***";
 /**
  * @brief Create mr_packet_ctx::printable_mdata by creating and catenating the packet's mr_mdata::ovalue's.
  *
@@ -143,7 +143,7 @@ static const char _NOOVALUE[] = "*** no output value ***";
  *          Catenate the mr_mdata::name's and the printable mr_mdata::ovalue's into the
  *          mr_packet_ctx::printable_mdata c-string.
  */
-int mr_printable_mdata(mr_packet_ctx *pctx, bool ballflag) {
+int mr_printable_mdata(mr_packet_ctx *pctx, bool allflag) {
     if (mr_free(pctx->printable_mdata)) return -1;
     const mr_mdata_fn vbi_count_fn = _DTYPE[MR_VBI_DTYPE].count_fn;
 
@@ -177,9 +177,9 @@ int mr_printable_mdata(mr_packet_ctx *pctx, bool ballflag) {
             sprintf(pc, "%s:%s\n", mdata->name, mdata->ovalue);
             pc += strlen(mdata->name) + 1 + strlen(mdata->ovalue) + 1; // ditto
         }
-        else if (ballflag) {
-            sprintf(pc, "%s:%s\n", mdata->name, _NOOVALUE);
-            pc += strlen(mdata->name) + 1 + strlen(_NOOVALUE) + 1; // ditto
+        else if (allflag) {
+            sprintf(pc, "%s:%s\n", mdata->name, _NOT_PRINTABLE);
+            pc += strlen(mdata->name) + 1 + strlen(_NOT_PRINTABLE) + 1; // ditto
         }
         else {
             ; //noop

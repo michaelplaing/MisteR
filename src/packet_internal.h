@@ -82,7 +82,7 @@ static int mr_output_hexvalue(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_output_hexdump(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_output_string(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_output_spv(mr_packet_ctx *pctx, mr_mdata *mdata);
-int mr_printable_mdata(mr_packet_ctx *pctx, bool ballflag);
+int mr_printable_mdata(mr_packet_ctx *pctx, bool allflag);
 
 int mr_reset_scalar(mr_packet_ctx *pctx, int idx);
 int mr_reset_vector(mr_packet_ctx *pctx, int idx);

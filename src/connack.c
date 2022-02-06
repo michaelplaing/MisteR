@@ -120,9 +120,9 @@ int mr_free_connack_packet(mr_packet_ctx *pctx) {
     return mr_free_packet_context(pctx);
 }
 
-int mr_connack_printable_mdata(mr_packet_ctx *pctx, bool ballflag) {
+int mr_connack_printable_mdata(mr_packet_ctx *pctx, bool allflag) {
     if (mr_connack_packet_check(pctx)) return -1;
-    return mr_printable_mdata(pctx, ballflag);
+    return mr_printable_mdata(pctx, allflag);
 }
 
 // const uint8_t packet_type;

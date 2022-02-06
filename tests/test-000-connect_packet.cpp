@@ -13,7 +13,7 @@ TEST_CASE("happy CONNECT packet", "[connect][happy]") {
 
 //    int rc;
     mr_packet_ctx *pctx;
-    char dump_filename[50];
+    char printable_filename[50];
     char packet_filename[50];
 
     // init
@@ -24,7 +24,7 @@ TEST_CASE("happy CONNECT packet", "[connect][happy]") {
     SECTION("default packet") {
         // dzlog_info("section: test default");
 
-        strlcpy(dump_filename, "fixtures/default_connect_mdata_dump.txt", 50);
+        strlcpy(printable_filename, "fixtures/default_connect_printable_mdata.txt", 50);
         strlcpy(packet_filename, "fixtures/default_connect_packet.bin", 50);
     }
 
@@ -67,14 +67,14 @@ TEST_CASE("happy CONNECT packet", "[connect][happy]") {
         SECTION("+will packet") { // default + will
             // dzlog_info("section: test will");
 
-            strlcpy(dump_filename, "fixtures/will_connect_mdata_dump.txt", 50);
+            strlcpy(printable_filename, "fixtures/will_connect_printable_mdata.txt", 50);
             strlcpy(packet_filename, "fixtures/will_connect_packet.bin", 50);
         }
 
         SECTION("-will packet") { // default + will - will
             // dzlog_info("section: reset/test will");
 
-            strlcpy(dump_filename, "fixtures/default_connect_mdata_dump.txt", 50);
+            strlcpy(printable_filename, "fixtures/default_connect_printable_mdata.txt", 50);
             strlcpy(packet_filename, "fixtures/default_connect_packet.bin", 50);
 
             // reset all the will-related values set above by setting the will_flag to false
@@ -117,22 +117,22 @@ TEST_CASE("happy CONNECT packet", "[connect][happy]") {
             SECTION("+complex packet") { // default + will + all remaining
                 // dzlog_info("section: set/test complex");
 
-                strlcpy(dump_filename, "fixtures/complex_connect_mdata_dump.txt", 50);
+                strlcpy(printable_filename, "fixtures/complex_connect_printable_mdata.txt", 50);
                 strlcpy(packet_filename, "fixtures/complex_connect_packet.bin", 50);
             }
 
             SECTION("-complex packet") { // default + will + all remaining - will - all remaining
                 // dzlog_info("section: reset/test will & complex");
 
-                strlcpy(dump_filename, "fixtures/default_connect_mdata_dump.txt", 50);
+                strlcpy(printable_filename, "fixtures/default_connect_printable_mdata.txt", 50);
                 strlcpy(packet_filename, "fixtures/default_connect_packet.bin", 50);
 
                 // reset all the will-related values set above by setting the will_flag to false
                 REQUIRE(mr_set_connect_will_flag(pctx, false) == 0);
 
                 // reset the additional values
-                REQUIRE(mr_set_connect_clean_start(pctx, false) == 0);
-                REQUIRE(mr_set_connect_keep_alive(pctx, 0) == 0); // keep_alive always exists hence is not reset
+                REQUIRE(mr_set_connect_clean_start(pctx, false) == 0); // bit_flags always exist ∴ cannot be reset
+                REQUIRE(mr_set_connect_keep_alive(pctx, 0) == 0); // keep_alive always exists ∴ cannot be reset
                 REQUIRE(mr_reset_connect_session_expiry_interval(pctx) == 0);
                 REQUIRE(mr_reset_connect_receive_maximum(pctx) == 0);
                 REQUIRE(mr_reset_connect_maximum_packet_size(pctx) == 0);
@@ -158,22 +158,22 @@ TEST_CASE("happy CONNECT packet", "[connect][happy]") {
 
     // dump
     REQUIRE(mr_connect_printable_mdata(pctx, false) == 0);
-    // REQUIRE(put_binary_file_content(dump_filename, (uint8_t *)pctx->printable_mdata, strlen(pctx->printable_mdata) + 1) == 0);
+    // REQUIRE(put_binary_file_content(printable_filename, (uint8_t *)pctx->printable_mdata, strlen(pctx->printable_mdata) + 1) == 0);
 
     // check dump
     char *printable_mdata;
     uint32_t mdsz;
-    REQUIRE(get_binary_file_content(dump_filename, (uint8_t **)&printable_mdata, &mdsz) == 0);
-    // printf("\nmdata_dump (%s)::\n%s\n\npctx->mdata::\n%s\n", dump_filename, printable_mdata, pctx->printable_mdata);
+    REQUIRE(get_binary_file_content(printable_filename, (uint8_t **)&printable_mdata, &mdsz) == 0);
+    // printf("\nprintable_mdata (%s)::\n%s\n\npctx->mdata::\n%s\n", printable_filename, printable_mdata, pctx->printable_mdata);
     REQUIRE(mdsz == strlen(pctx->printable_mdata) + 1);
     REQUIRE(strcmp(printable_mdata, pctx->printable_mdata) == 0);
     free(printable_mdata);
 
     // pack
     REQUIRE(mr_pack_connect_packet(pctx) == 0);
-    // printf("\n\npacket::\n");
+    // printf("\npacket::\n");
     // mr_print_hexdump(pctx->u8v0, pctx->u8vlen);
-    // puts("\n\n");
+    // puts("");
     // REQUIRE(put_binary_file_content(packet_filename, pctx->u8v0, pctx->u8vlen) == 0);
 
     // check packet
@@ -199,7 +199,7 @@ TEST_CASE("happy CONNECT packet", "[connect][happy]") {
     free(printable_mdata);
 
     REQUIRE(mr_connect_printable_mdata(pctx, true) == 0); // test true flag
-    // printf("\n\npctx->mdata::\n%s\n", pctx->printable_mdata);
+    printf("\npctx->mdata::\n%s\n", pctx->printable_mdata);
 
     // free unpack context
     REQUIRE(mr_free_connect_pctx(pctx) == 0);
@@ -219,7 +219,8 @@ TEST_CASE("unhappy CONNECT packet", "[connect][unhappy]") {
     uint32_t u8vlen;
     REQUIRE(get_binary_file_content("fixtures/complex_connect_packet.bin", &u8v0, &u8vlen) == 0);
     REQUIRE(mr_init_unpack_connect_packet(&pctx, u8v0, u8vlen) == 0);
-    mr_print_hexdump(u8v0, u8vlen);
+    // puts("");
+    // mr_print_hexdump(u8v0, u8vlen);
 
     // *** test sections ***
 

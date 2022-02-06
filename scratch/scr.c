@@ -39,7 +39,7 @@ int main(void) {
     dzlog_init("", "mr_init");
     int rc;
     mr_packet_ctx *pctx;
-    char dump_filename[50];
+    char printable_filename[50];
     char packet_filename[50];
 
     // init
@@ -80,7 +80,7 @@ int main(void) {
     mr_set_connect_will_topic(pctx, will_topic);
     mr_set_connect_will_payload(pctx, will_payload, will_payload_len);
 
-    strlcpy(dump_filename, "../tests/fixtures/will_connect_mdata_dump.txt", 50);
+    strlcpy(printable_filename, "../tests/fixtures/will_connect_printable_mdata.txt", 50);
     strlcpy(packet_filename, "../tests/fixtures/will_connect_packet.bin", 50);
 
     // *** common test epilog ***
@@ -90,13 +90,13 @@ int main(void) {
 
     // dump
     mr_connect_printable_mdata(pctx, false);
-    // put_binary_file_content(dump_filename, (uint8_t *)pctx->printable_mdata, strlen(pctx->printable_mdata) + 1);
+    // put_binary_file_content(printable_filename, (uint8_t *)pctx->printable_mdata, strlen(pctx->printable_mdata) + 1);
 
     // check dump
     char *printable_mdata;
     uint32_t mdsz;
-    get_binary_file_content(dump_filename, (uint8_t **)&printable_mdata, &mdsz);
-    printf("\nmdata_dump (%s)::\n%s\n\npctx->mdata::\n%s\n", dump_filename, printable_mdata, pctx->printable_mdata);
+    get_binary_file_content(printable_filename, (uint8_t **)&printable_mdata, &mdsz);
+    printf("\nprintable_mdata (%s)::\n%s\n\npctx->mdata::\n%s\n", printable_filename, printable_mdata, pctx->printable_mdata);
     strcmp(printable_mdata, pctx->printable_mdata);
     free(printable_mdata);
 

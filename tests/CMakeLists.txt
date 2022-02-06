@@ -17,9 +17,9 @@ target_link_libraries(test-000-connect_packet PRIVATE mister testlib)
 add_test(NAME test-000-connect_packet COMMAND test-000-connect_packet)
 
 # copy the fixture files to the build directory - configure_file watches for changes and will recopy
-configure_file("fixtures/default_connect_mdata_dump.txt" "fixtures/default_connect_mdata_dump.txt" COPYONLY)
+configure_file("fixtures/default_connect_printable_mdata.txt" "fixtures/default_connect_printable_mdata.txt" COPYONLY)
 configure_file("fixtures/default_connect_packet.bin" "fixtures/default_connect_packet.bin" COPYONLY)
-configure_file("fixtures/will_connect_mdata_dump.txt" "fixtures/will_connect_mdata_dump.txt" COPYONLY)
+configure_file("fixtures/will_connect_printable_mdata.txt" "fixtures/will_connect_printable_mdata.txt" COPYONLY)
 configure_file("fixtures/will_connect_packet.bin" "fixtures/will_connect_packet.bin" COPYONLY)
-configure_file("fixtures/complex_connect_mdata_dump.txt" "fixtures/complex_connect_mdata_dump.txt" COPYONLY)
+configure_file("fixtures/complex_connect_printable_mdata.txt" "fixtures/complex_connect_printable_mdata.txt" COPYONLY)
 configure_file("fixtures/complex_connect_packet.bin" "fixtures/complex_connect_packet.bin" COPYONLY)
