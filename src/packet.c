@@ -42,28 +42,28 @@ static mr_ptype _PTYPE[] = { // same order as mqtt_packet_type
 };
 
 static const mr_dtype _DTYPE[] = { // same order as mr_dtypes enum
-//   dtype idx          name                        count_fn        pack_fn             unpack_fn           output_fn           validate_fn         free_fn
-    {MR_U8_DTYPE,       "uint8",                    NULL,           mr_pack_u8,         mr_unpack_u8,       mr_output_scalar,   NULL,               NULL},
-    {MR_U16_DTYPE,      "uint16",                   NULL,           mr_pack_u16,        mr_unpack_u16,      mr_output_scalar,   NULL,               NULL},
-    {MR_U32_DTYPE,      "uint32",                   NULL,           mr_pack_u32,        mr_unpack_u32,      mr_output_scalar,   NULL,               NULL},
-    {MR_VBI_DTYPE,      "variable byte int",        mr_count_VBI,   mr_pack_VBI,        mr_unpack_VBI,      mr_output_scalar,   NULL,               NULL},
-    {MR_BITS_DTYPE,     "bits in uint8 flag",       NULL,           mr_pack_bits,       mr_unpack_bits,     mr_output_scalar,   NULL,               NULL},
-    {MR_U8V_DTYPE,      "binary data - uint8 vec",  mr_count_u8v,   mr_pack_u8v,        mr_unpack_u8v,      mr_output_hexdump,  NULL,               mr_free_vector},
-    {MR_STR_DTYPE,      "utf8 prefix string",       mr_count_str,   mr_pack_u8v,        mr_unpack_u8v,      mr_output_string,   mr_validate_str,    mr_free_vector},
-    {MR_SPV_DTYPE,      "string pair vector",       mr_count_spv,   mr_pack_spv,        mr_unpack_spv,      mr_output_spv,      mr_validate_spv,    mr_free_spv},
-    {MR_FLAGS_DTYPE,    "uint8 flag",               NULL,           mr_pack_incr1,      mr_unpack_u8,       mr_output_hexvalue, NULL,               NULL},
-    {MR_PROPS_DTYPE,    "properties",               NULL,           NULL,               mr_unpack_props,    NULL,               NULL,               NULL}
+//   dtype idx              name                        count_fn        pack_fn             unpack_fn               output_fn           validate_fn         free_fn
+    {MR_U8_DTYPE,           "uint8",                    NULL,           mr_pack_u8,         mr_unpack_u8,           mr_output_scalar,   NULL,               NULL},
+    {MR_U16_DTYPE,          "uint16",                   NULL,           mr_pack_u16,        mr_unpack_u16,          mr_output_scalar,   NULL,               NULL},
+    {MR_U32_DTYPE,          "uint32",                   NULL,           mr_pack_u32,        mr_unpack_u32,          mr_output_scalar,   NULL,               NULL},
+    {MR_VBI_DTYPE,          "variable byte int",        mr_count_VBI,   mr_pack_VBI,        mr_unpack_VBI,          mr_output_scalar,   NULL,               NULL},
+    {MR_BITS_DTYPE,         "bits in uint8 flag",       NULL,           mr_pack_bits,       mr_unpack_bits,         mr_output_scalar,   NULL,               NULL},
+    {MR_U8V_DTYPE,          "binary data - uint8 vec",  mr_count_u8v,   mr_pack_u8v,        mr_unpack_u8v,          mr_output_hexdump,  NULL,               mr_free_vector},
+    {MR_STR_DTYPE,          "utf8 prefix string",       mr_count_str,   mr_pack_u8v,        mr_unpack_u8v,          mr_output_string,   mr_validate_str,    mr_free_vector},
+    {MR_SPV_DTYPE,          "string pair vector",       mr_count_spv,   mr_pack_spv,        mr_unpack_spv,          mr_output_spv,      mr_validate_spv,    mr_free_spv},
+    {MR_FLAGS_DTYPE,        "uint8 flag",               NULL,           mr_pack_incr1,      mr_unpack_u8,           mr_output_hexvalue, NULL,               NULL},
+    {MR_PROPERTIES_DTYPE,   "properties",               NULL,           NULL,               mr_unpack_properties,   NULL,               NULL,               NULL}
 };
 
 static const char _S0L[] = "";
 
 static int mr_output_scalar(mr_packet_ctx *pctx, mr_mdata *mdata) {
     char cv[32] = {'\0'};
-    char *ovalue;
+    char *printable;
     sprintf(cv, "%u", (uint32_t)mdata->value);
-    if (mr_calloc((void **)&ovalue, strlen(cv) + 1, 1)) return -1;
-    strlcpy(ovalue, cv, 32);
-    mdata->ovalue = ovalue;
+    if (mr_calloc((void **)&printable, strlen(cv) + 1, 1)) return -1;
+    strlcpy(printable, cv, 32);
+    mdata->printable = printable;
     return 0;
 }
 
@@ -73,10 +73,10 @@ static int mr_output_hexdump(mr_packet_ctx *pctx, mr_mdata *mdata) {
     if (mr_get_hexdump(cv, sizeof(cv), (uint8_t *)mdata->value, len)) return -1;
     mr_compress_spaces_lines(cv); // make into a single line
     size_t slen = strlen(cv);
-    char *ovalue;
-    if (mr_calloc((void **)&ovalue, slen + 1, 1)) return -1;
-    strlcpy(ovalue, cv, slen + 1);
-    mdata->ovalue = ovalue;
+    char *printable;
+    if (mr_calloc((void **)&printable, slen + 1, 1)) return -1;
+    strlcpy(printable, cv, slen + 1);
+    mdata->printable = printable;
     return 0;
 }
 
@@ -91,24 +91,24 @@ static int mr_output_hexvalue(mr_packet_ctx *pctx, mr_mdata *mdata) {
     if (mr_get_hexdump(cv, sizeof(cv), u8v, 4)) return -1;
     mr_compress_spaces_lines(cv); // make into a single line
     size_t slen = strlen(cv);
-    char *ovalue;
-    if (mr_calloc((void **)&ovalue, slen + 1, 1)) return -1;
-    strlcpy(ovalue, cv, slen + 1);
-    mdata->ovalue = ovalue;
+    char *printable;
+    if (mr_calloc((void **)&printable, slen + 1, 1)) return -1;
+    strlcpy(printable, cv, slen + 1);
+    mdata->printable = printable;
     return 0;
 }
 
 static int mr_output_string(mr_packet_ctx *pctx, mr_mdata *mdata) {
-    char *ovalue;
+    char *printable;
     size_t slen = strlen((char *)mdata->value);
-    if (mr_calloc((void **)&ovalue, slen + 1, 1)) return -1;
-    strlcpy(ovalue, (char *)mdata->value, slen + 1);
-    mdata->ovalue = ovalue;
+    if (mr_calloc((void **)&printable, slen + 1, 1)) return -1;
+    strlcpy(printable, (char *)mdata->value, slen + 1);
+    mdata->printable = printable;
     return 0;
 }
 
 static int mr_output_spv(mr_packet_ctx *pctx, mr_mdata *mdata) {
-    char *ovalue;
+    char *printable;
     size_t sz = 0;
     mr_string_pair *spv = (mr_string_pair *)mdata->value;
 
@@ -116,34 +116,36 @@ static int mr_output_spv(mr_packet_ctx *pctx, mr_mdata *mdata) {
         sz += strlen(spv[i].name) + 1 + strlen(spv[i].value) + 1; // ':' and ';'
     }
 
-    if (mr_calloc((void **)&ovalue, sz, 1)) return -1;
+    if (mr_calloc((void **)&printable, sz, 1)) return -1;
 
-    char *pc = ovalue;
+    char *pc = printable;
     for (int i = 0; i < mdata->vlen; i++) {
         sprintf(pc, "%s:%s;", spv[i].name, spv[i].value);
         pc += strlen(spv[i].name) + 1 + strlen(spv[i].value) + 1; // ditto
     }
 
     *(pc - 1) = '\0'; // overwrite trailing ';'
-    mdata->ovalue = ovalue;
+    mdata->printable = printable;
     return 0;
 }
 
 static const char _NOT_PRINTABLE[] = "***";
+
 /**
- * @brief Create mr_packet_ctx::printable_mdata by creating and catenating the packet's mr_mdata::ovalue's.
+ * @brief Create the packet's printable_mdata by creating and catenating the packet's mdata printable's.
  *
- * @details Free currently allocated printable_mdata and any output values as we go.
+ * @details
+ * Free currently allocated printable_mdata and mdata output values as we go.
  *
- *          Invoke the mr_dtype::output_fn for each mr_mdata in the mr_packet_ctx::mdata0 vector. The output_fn's
- *          are one of these static functions: mr_output_scalar for an integer; mr_output_hexdump for a u8 vector;
- *          mr_output_hexvalue for an integer bit field, typically a flag byte; mr_output_string for a c-string,
- *          and mr_output_spv for a mr_string_pair vector.
+ * Invoke the mr_dtype::output_fn for each mr_mdata in the mr_packet_ctx::mdata0 vector. The output_fn's
+ * are one of these static functions: mr_output_scalar for an integer; mr_output_hexdump for a u8 vector;
+ * mr_output_hexvalue for an integer bit field, typically a flag byte; mr_output_string for a c-string,
+ * and mr_output_spv for a mr_string_pair vector.
  *
- *          Catenate the mr_mdata::name's and the printable mr_mdata::ovalue's into the
- *          mr_packet_ctx::printable_mdata c-string.
+ * Catenate the mr_mdata::name's and the printable mr_mdata::printable's into the
+ * mr_packet_ctx::printable_mdata c-string.
  */
-int mr_printable_mdata(mr_packet_ctx *pctx, bool allflag) {
+int mr_printable_mdata(mr_packet_ctx *pctx, const bool all_flag) {
     if (mr_free(pctx->printable_mdata)) return -1;
     const mr_mdata_fn vbi_count_fn = _DTYPE[MR_VBI_DTYPE].count_fn;
 
@@ -156,13 +158,13 @@ int mr_printable_mdata(mr_packet_ctx *pctx, bool allflag) {
     size_t len = 0;
     mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
-        if (_DTYPE[mdata->dtype].output_fn && mr_free(mdata->ovalue)) return -1;
+        if (_DTYPE[mdata->dtype].output_fn && mr_free(mdata->printable)) return -1;
         if (mdata->vexists) {
             mr_mdata_fn output_fn = _DTYPE[mdata->dtype].output_fn;
 
             if (output_fn) {
                 if (output_fn(pctx, mdata)) return -1;
-                len += strlen(mdata->name) + 1 + strlen(mdata->ovalue) + 1; // ':' and '\n'
+                len += strlen(mdata->name) + 1 + strlen(mdata->printable) + 1; // ':' and '\n'
             }
         }
     }
@@ -173,11 +175,11 @@ int mr_printable_mdata(mr_packet_ctx *pctx, bool allflag) {
     char *pc = printable_mdata;
     mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
-        if (mdata->ovalue) {
-            sprintf(pc, "%s:%s\n", mdata->name, mdata->ovalue);
-            pc += strlen(mdata->name) + 1 + strlen(mdata->ovalue) + 1; // ditto
+        if (mdata->printable) {
+            sprintf(pc, "%s:%s\n", mdata->name, mdata->printable);
+            pc += strlen(mdata->name) + 1 + strlen(mdata->printable) + 1; // ditto
         }
-        else if (allflag) {
+        else if (all_flag) {
             sprintf(pc, "%s:%s\n", mdata->name, _NOT_PRINTABLE);
             pc += strlen(mdata->name) + 1 + strlen(_NOT_PRINTABLE) + 1; // ditto
         }
@@ -191,7 +193,7 @@ int mr_printable_mdata(mr_packet_ctx *pctx, bool allflag) {
     return 0;
 }
 
-int mr_validate_u8vutf8(mr_packet_ctx *pctx, int idx) {
+int mr_validate_u8vutf8(mr_packet_ctx *pctx, const int idx) {
     mr_mdata *mdata = pctx->mdata0 + idx;
     int err_pos = utf8val((uint8_t *)mdata->value, mdata->vlen);
 
@@ -207,9 +209,9 @@ int mr_validate_u8vutf8(mr_packet_ctx *pctx, int idx) {
     return 0;
 }
 
-int mr_set_scalar(mr_packet_ctx *pctx, int idx, mr_mvalue_t value) {
+int mr_set_scalar(mr_packet_ctx *pctx, const int idx, const mr_mvalue_t value) {
     mr_mdata *mdata = pctx->mdata0 + idx;
-    if (mr_free(mdata->ovalue)) return -1;
+    if (mr_free(mdata->printable)) return -1;
     mr_mdata_fn validate_fn = _DTYPE[mdata->dtype].validate_fn;
     mdata->value = value;
     mdata->vexists = true; // don't update vlen or u8vlen for scalars
@@ -218,43 +220,43 @@ int mr_set_scalar(mr_packet_ctx *pctx, int idx, mr_mvalue_t value) {
     return 0;
 }
 
-static int mr_get_scalar(mr_packet_ctx *pctx, int idx, mr_mvalue_t *pvalue, bool *pexists) {
+static int mr_get_scalar(mr_packet_ctx *pctx, const int idx, mr_mvalue_t *pvalue, bool *pexists) {
     mr_mdata *mdata = pctx->mdata0 + idx;
     *pvalue = mdata->value;
     *pexists = mdata->vexists;
     return 0;
 }
 
-int mr_get_boolean(mr_packet_ctx *pctx, int idx, bool *pboolean, bool *pexists) {
+int mr_get_boolean(mr_packet_ctx *pctx, const int idx, bool *pboolean, bool *pexists) {
     mr_mvalue_t value;
     mr_get_scalar(pctx, idx, &value, pexists);
     *pboolean = (bool)value;
     return 0;
 }
 
-int mr_get_u8(mr_packet_ctx *pctx, int idx, uint8_t *pu8, bool *pexists) {
+int mr_get_u8(mr_packet_ctx *pctx, const int idx, uint8_t *pu8, bool *pexists) {
     mr_mvalue_t value;
     mr_get_scalar(pctx, idx, &value, pexists);
     *pu8 = (uint8_t)value;
     return 0;
 }
 
-int mr_get_u16(mr_packet_ctx *pctx, int idx, uint16_t *pu16, bool *pexists) {
+int mr_get_u16(mr_packet_ctx *pctx, const int idx, uint16_t *pu16, bool *pexists) {
     mr_mvalue_t value;
     mr_get_scalar(pctx, idx, &value, pexists);
     *pu16 = (uint16_t)value;
     return 0;
 }
 
-int mr_get_u32(mr_packet_ctx *pctx, int idx, uint32_t *pu32, bool *pexists) {
+int mr_get_u32(mr_packet_ctx *pctx, const int idx, uint32_t *pu32, bool *pexists) {
     mr_mvalue_t value;
     mr_get_scalar(pctx, idx, &value, pexists);
     *pu32 = (uint32_t)value;
     return 0;
 }
 
-int mr_set_vector(mr_packet_ctx *pctx, int idx, void *pvoid, size_t len) {
-    if (mr_reset_vector(pctx, idx)) return -1; // frees ovalue
+int mr_set_vector(mr_packet_ctx *pctx, const int idx, void *pvoid, size_t len) {
+    if (mr_reset_vector(pctx, idx)) return -1; // frees printable
     mr_mdata *mdata = pctx->mdata0 + idx;
     mdata->value = (mr_mvalue_t)pvoid;
     mdata->vexists = true;
@@ -266,7 +268,7 @@ int mr_set_vector(mr_packet_ctx *pctx, int idx, void *pvoid, size_t len) {
     return 0;
 }
 
-static int mr_get_vector(mr_packet_ctx *pctx, int idx, mr_mvalue_t *ppvoid, size_t *plen, bool *pexists) {
+static int mr_get_vector(mr_packet_ctx *pctx, const int idx, mr_mvalue_t *ppvoid, size_t *plen, bool *pexists) {
     mr_mdata *mdata = pctx->mdata0 + idx;
     *ppvoid = mdata->value; // for a vector, value is a pointer to something or NULL
     *plen = mdata->vlen;
@@ -274,7 +276,7 @@ static int mr_get_vector(mr_packet_ctx *pctx, int idx, mr_mvalue_t *ppvoid, size
     return 0;
 }
 
-int mr_get_str(mr_packet_ctx *pctx, int idx, char **pcv0, bool *pexists) {
+int mr_get_str(mr_packet_ctx *pctx, const int idx, char **pcv0, bool *pexists) {
     mr_mvalue_t pvoid;
     size_t len;
     mr_get_vector(pctx, idx, &pvoid, &len, pexists);
@@ -282,30 +284,30 @@ int mr_get_str(mr_packet_ctx *pctx, int idx, char **pcv0, bool *pexists) {
     return 0;
 }
 
-int mr_get_u8v(mr_packet_ctx *pctx, int idx, uint8_t **pu8v0, size_t *plen, bool *pexists) {
+int mr_get_u8v(mr_packet_ctx *pctx, const int idx, uint8_t **pu8v0, size_t *plen, bool *pexists) {
     mr_mvalue_t pvoid;
     mr_get_vector(pctx, idx, &pvoid, plen, pexists);
     *pu8v0 = (uint8_t *)pvoid;
     return 0;
 }
 
-int mr_get_spv(mr_packet_ctx *pctx, int idx, mr_string_pair **pspv0, size_t *plen, bool *pexists) {
+int mr_get_spv(mr_packet_ctx *pctx, const int idx, mr_string_pair **pspv0, size_t *plen, bool *pexists) {
     mr_mvalue_t pvoid;
     mr_get_vector(pctx, idx, &pvoid, plen, pexists);
     *pspv0 = (mr_string_pair *)pvoid;
     return 0;
 }
 
-int mr_reset_vector(mr_packet_ctx *pctx, int idx) {
+int mr_reset_vector(mr_packet_ctx *pctx, const int idx) {
     mr_mdata *mdata = pctx->mdata0 + idx;
-    if (mr_free(mdata->ovalue)) return -1;
+    if (mr_free(mdata->printable)) return -1;
     mr_mdata_fn free_fn = _DTYPE[mdata->dtype].free_fn;
     return free_fn(pctx, mdata);
 }
 
-int mr_reset_scalar(mr_packet_ctx *pctx, int idx) {
+int mr_reset_scalar(mr_packet_ctx *pctx, const int idx) {
     mr_mdata *mdata = pctx->mdata0 + idx;
-    if (mr_free(mdata->ovalue)) return -1;
+    if (mr_free(mdata->printable)) return -1;
     mdata->value = 0;
     mdata->vexists = false;
     return 0;
@@ -341,12 +343,14 @@ int mr_pack_packet(mr_packet_ctx *pctx) {
 
 int mr_init_unpack_packet(
     mr_packet_ctx **ppctx,
-    const mr_mdata *MDATA_TEMPLATE, size_t mdata_count,
-    uint8_t *u8v0, size_t u8vlen
+    const mr_mdata *MDATA_TEMPLATE,
+    const size_t mdata_count,
+    const uint8_t *u8v0,
+    const size_t u8vlen
 ) {
     if (mr_init_packet(ppctx, MDATA_TEMPLATE, mdata_count)) return -1;
     mr_packet_ctx *pctx = *ppctx;
-    pctx->u8v0 = u8v0;
+    pctx->u8v0 = (uint8_t *)u8v0;
     pctx->u8vlen = u8vlen;
     pctx->u8valloc = false;
     if (mr_unpack_packet(pctx)) return -1;
@@ -449,7 +453,7 @@ static int mr_free_vector(mr_packet_ctx *pctx, mr_mdata *mdata) {
 int mr_free_packet_context(mr_packet_ctx *pctx) {
     mr_mdata *mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; i++, mdata++) {
-        if (_DTYPE[mdata->dtype].free_fn && mr_free(mdata->ovalue)) return -1;
+        if (_DTYPE[mdata->dtype].free_fn && mr_free(mdata->printable)) return -1;
         mr_mdata_fn free_fn = _DTYPE[mdata->dtype].free_fn;
         if (mdata->valloc && free_fn && free_fn(pctx, mdata)) return -1;
     }
@@ -684,7 +688,7 @@ static int mr_free_spv(mr_packet_ctx *pctx, mr_mdata *mdata) {
     return mr_free_vector(pctx, mdata);
 }
 
-static int mr_unpack_props(mr_packet_ctx *pctx, mr_mdata *mdata) {
+static int mr_unpack_properties(mr_packet_ctx *pctx, mr_mdata *mdata) {
     mdata->vexists = true;
     size_t end_pos = pctx->u8vpos + (mdata - 1)->value; // use property_length
     uint8_t *pu8, *pprop_index;
@@ -774,7 +778,7 @@ static const uint8_t _BIT_MASKS[] = {
 };
 
 static int mr_pack_bits_in_value(mr_packet_ctx *pctx, mr_mdata *mdata) {
-    uint8_t bitpos = mdata->bpos;
+    uint8_t bitpos = mdata->bitpos;
     mr_mdata *flags_mdata = pctx->mdata0 + mdata->link;
     uint8_t flags_u8 = flags_mdata->value;
 
@@ -790,7 +794,7 @@ static int mr_pack_bits_in_value(mr_packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_pack_bits(mr_packet_ctx *pctx, mr_mdata *mdata) { // don't advance pctx->u8vpos
-    uint8_t bitpos = mdata->bpos;
+    uint8_t bitpos = mdata->bitpos;
     uint8_t *pu8 = pctx->u8v0 + pctx->u8vpos;
 
     *pu8 &= ~(_BIT_MASKS[mdata->vlen] << bitpos); // reset
@@ -809,7 +813,7 @@ static int mr_pack_incr1(mr_packet_ctx *pctx, mr_mdata *mdata) { // now advance 
 }
 
 static int mr_unpack_bits(mr_packet_ctx *pctx, mr_mdata *mdata) {  // don't advance pctx->u8vpos; unpacking
-    uint8_t bitpos = mdata->bpos;                               // the following flags byte will do that
+    uint8_t bitpos = mdata->bitpos;                               // the following flags byte will do that
     uint8_t *pu8 = pctx->u8v0 + pctx->u8vpos;
     mdata->value = *pu8 >> bitpos & _BIT_MASKS[mdata->vlen];
     mdata->vexists = true;

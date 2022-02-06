@@ -60,7 +60,7 @@ static const uint8_t _CP[] = {
 #define _NA 0
 
 static const mr_mdata _CONNACK_MDATA_TEMPLATE[] = {
-//   name                                   dtype           bpos    value               valloc  vlen    u8vlen  vexists link                            propid                                          flagid  idx                                         ovalue
+//   name                                   dtype           bitpos    value               valloc  vlen    u8vlen  vexists link                            propid                                          flagid  idx                                         printable
     {"packet_type",                         MR_U8_DTYPE,    _NA,    MQTT_CONNACK,       false,  1,      1,      true,   _NA,                            _NA,                                            _NA,    CONNACK_PACKET_TYPE,                        NULL},
     {"remaining_length",                    MR_VBI_DTYPE,   _NA,    0,                  false,  0,      0,      true,   CONNACK_AUTHENTICATION_DATA,    _NA,                                            _NA,    CONNACK_REMAINING_LENGTH,                   NULL},
     {"session_present",                     MR_BITS_DTYPE,  0,      0,                  false,  1,      0,      true,   CONNACK_MR_FLAGS,               _NA,                                            _NA,    CONNACK_SESSION_PRESENT,                    NULL},
@@ -68,7 +68,7 @@ static const mr_mdata _CONNACK_MDATA_TEMPLATE[] = {
     {"mr_flags",                            MR_FLAGS_DTYPE, _NA,    0,                  false,  1,      1,      true,   _NA,                            _NA,                                            _NA,    CONNACK_MR_FLAGS,                           NULL},
     {"connect_reason_code",                 MR_U8_DTYPE,    _NA,    0,                  false,  1,      1,      true,   _NA,                            _NA,                                            _NA,    CONNACK_CONNECT_REASON_CODE,                NULL},
     {"property_length",                     MR_VBI_DTYPE,   _NA,    0,                  false,  0,      0,      true,   CONNACK_AUTHENTICATION_DATA,    _NA,                                            _NA,    CONNACK_PROPERTY_LENGTH,                    NULL},
-    {"mr_properties",                       MR_PROPS_DTYPE, _NA,    (mr_mvalue_t)_CP,   _NA,    _CPSZ,  _NA,    true,   _NA,                            _NA,                                            _NA,    CONNACK_MR_PROPERTIES,                      NULL},
+    {"mr_properties",                       MR_PROPERTIES_DTYPE, _NA,    (mr_mvalue_t)_CP,   _NA,    _CPSZ,  _NA,    true,   _NA,                            _NA,                                            _NA,    CONNACK_MR_PROPERTIES,                      NULL},
     {"session_expiry_interval",             MR_U32_DTYPE,   _NA,    0,                  false,  4,      5,      false,  _NA,                            MQTT_PROP_SESSION_EXPIRY_INTERVAL,              _NA,    CONNACK_SESSION_EXPIRY_INTERVAL,            NULL},
     {"receive_maximum",                     MR_U16_DTYPE,   _NA,    0,                  false,  2,      3,      false,  _NA,                            MQTT_PROP_RECEIVE_MAXIMUM,                      _NA,    CONNACK_RECEIVE_MAXIMUM,                    NULL},
     {"maximum_qos",                         MR_U8_DTYPE,    _NA,    0,                  false,  1,      2,      false,  _NA,                            MQTT_PROP_MAXIMUM_QOS,                          _NA,    CONNACK_MAXIMUM_QOS,                        NULL},
@@ -86,7 +86,7 @@ static const mr_mdata _CONNACK_MDATA_TEMPLATE[] = {
     {"server_reference",                    MR_STR_DTYPE,   _NA,    (mr_mvalue_t)NULL,  false,  0,      0,      false,  _NA,                            MQTT_PROP_SERVER_REFERENCE,                     _NA,    CONNACK_SERVER_REFERENCE,                   NULL},
     {"authentication_method",               MR_STR_DTYPE,   _NA,    (mr_mvalue_t)NULL,  false,  0,      0,      false,  _NA,                            MQTT_PROP_AUTHENTICATION_METHOD,                _NA,    CONNACK_AUTHENTICATION_METHOD,              NULL},
     {"authentication_data",                 MR_U8V_DTYPE,   _NA,    (mr_mvalue_t)NULL,  false,  0,      0,      false,  _NA,                            MQTT_PROP_AUTHENTICATION_DATA,                  _NA,    CONNACK_AUTHENTICATION_DATA,                NULL}
-//   name                                   dtype           bpos    value               valloc  vlen    u8vlen  vexists link                            propid                                          flagid  idx                                         ovalue
+//   name                                   dtype           bitpos    value               valloc  vlen    u8vlen  vexists link                            propid                                          flagid  idx                                         printable
 };
 
 static const size_t _CONNACK_MDATA_COUNT = sizeof(_CONNACK_MDATA_TEMPLATE) / sizeof(mr_mdata);
@@ -120,9 +120,9 @@ int mr_free_connack_packet(mr_packet_ctx *pctx) {
     return mr_free_packet_context(pctx);
 }
 
-int mr_connack_printable_mdata(mr_packet_ctx *pctx, bool allflag) {
+int mr_connack_printable_mdata(mr_packet_ctx *pctx, bool all_flag) {
     if (mr_connack_packet_check(pctx)) return -1;
-    return mr_printable_mdata(pctx, allflag);
+    return mr_printable_mdata(pctx, all_flag);
 }
 
 // const uint8_t packet_type;
