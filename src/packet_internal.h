@@ -37,7 +37,7 @@ typedef struct mr_dtype {
     const mr_mdata_fn free_fn;
 } mr_dtype;
 
-enum mr_dtypes {
+enum mr_data_types {
     MR_U8_DTYPE,
     MR_U16_DTYPE,
     MR_U32_DTYPE,
@@ -81,7 +81,7 @@ static int mr_get_scalar(mr_packet_ctx *pctx, const int idx, mr_mvalue_t *pvalue
 int mr_set_scalar(mr_packet_ctx *pctx, const int idx, const mr_mvalue_t value);
 int mr_reset_scalar(mr_packet_ctx *pctx, const int idx);
 
-int mr_get_boolean(mr_packet_ctx *pctx, const int idx, bool *pboolean, bool *pexists);
+int mr_get_boolean(mr_packet_ctx *pctx, const int idx, bool *pflag_value, bool *pexists);
 
 int mr_get_u8(mr_packet_ctx *pctx, const int idx, uint8_t *pu8, bool *pexists);
 static int mr_pack_u8(mr_packet_ctx *pctx, mr_mdata *mdata);

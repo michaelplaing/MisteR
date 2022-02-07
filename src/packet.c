@@ -19,7 +19,7 @@
 #include "packet_internal.h"
 #include "connect_internal.h"
 
-static mr_ptype _PTYPE[] = { // same order as mqtt_packet_type
+static mr_ptype _PACKET_TYPE[] = { // same order as mqtt_packet_type
 // Note: mqtt_packet_type index is 1-based, hence the dummy row 0
 // The left 4-bit nibble (>> 4) of the mqtt_packet_type is the index
 //   mqtt_packet_type   mqtt_packet_name    ptype_fn - invoked at the end of unpacking the packet
@@ -41,7 +41,7 @@ static mr_ptype _PTYPE[] = { // same order as mqtt_packet_type
     {MQTT_AUTH,         "AUTH",             NULL}
 };
 
-static const mr_dtype _DTYPE[] = { // same order as mr_dtypes enum
+static const mr_dtype _DATA_TYPE[] = { // same order as mr_data_types enum
 //   dtype idx              name                        count_fn        pack_fn             unpack_fn               output_fn           validate_fn         free_fn
     {MR_U8_DTYPE,           "uint8",                    NULL,           mr_pack_u8,         mr_unpack_u8,           mr_output_scalar,   NULL,               NULL},
     {MR_U16_DTYPE,          "uint16",                   NULL,           mr_pack_u16,        mr_unpack_u16,          mr_output_scalar,   NULL,               NULL},
@@ -54,8 +54,6 @@ static const mr_dtype _DTYPE[] = { // same order as mr_dtypes enum
     {MR_FLAGS_DTYPE,        "uint8 flag",               NULL,           mr_pack_incr1,      mr_unpack_u8,           mr_output_hexvalue, NULL,               NULL},
     {MR_PROPERTIES_DTYPE,   "properties",               NULL,           NULL,               mr_unpack_properties,   NULL,               NULL,               NULL}
 };
-
-static const char _S0L[] = "";
 
 static int mr_output_scalar(mr_packet_ctx *pctx, mr_mdata *mdata) {
     char cv[32] = {'\0'};
@@ -81,7 +79,7 @@ static int mr_output_hexdump(mr_packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_output_hexvalue(mr_packet_ctx *pctx, mr_mdata *mdata) {
-    char cv[200] = {'\0'};
+    char cv[100] = {'\0'};
     uint8_t u8v[4];
     uint32_t u32 = mdata->value;
     u8v[0] = (u32 >> 24) & 0xFF;
@@ -135,19 +133,19 @@ static const char _NOT_PRINTABLE[] = "***";
  * @brief Create the packet's printable_mdata by creating and catenating the packet's mdata printable's.
  *
  * @details
- * Free currently allocated printable_mdata and mdata output values as we go.
+ * Free currently allocated printable_mdata and mdata printable's as we go.
  *
  * Invoke the mr_dtype::output_fn for each mr_mdata in the mr_packet_ctx::mdata0 vector. The output_fn's
  * are one of these static functions: mr_output_scalar for an integer; mr_output_hexdump for a u8 vector;
  * mr_output_hexvalue for an integer bit field, typically a flag byte; mr_output_string for a c-string,
  * and mr_output_spv for a mr_string_pair vector.
  *
- * Catenate the mr_mdata::name's and the printable mr_mdata::printable's into the
+ * Catenate the mr_mdata::name's and the mr_mdata::printable's into the
  * mr_packet_ctx::printable_mdata c-string.
  */
 int mr_printable_mdata(mr_packet_ctx *pctx, const bool all_flag) {
     if (mr_free(pctx->printable_mdata)) return -1;
-    const mr_mdata_fn vbi_count_fn = _DTYPE[MR_VBI_DTYPE].count_fn;
+    const mr_mdata_fn vbi_count_fn = _DATA_TYPE[MR_VBI_DTYPE].count_fn;
 
     // traverse in reverse to calculate VBIs since their u8vlens are variable
     mr_mdata *mdata = pctx->mdata0 + pctx->mdata_count - 1; // last one
@@ -158,9 +156,10 @@ int mr_printable_mdata(mr_packet_ctx *pctx, const bool all_flag) {
     size_t len = 0;
     mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
-        if (_DTYPE[mdata->dtype].output_fn && mr_free(mdata->printable)) return -1;
+        if (_DATA_TYPE[mdata->dtype].output_fn && mr_free(mdata->printable)) return -1;
+
         if (mdata->vexists) {
-            mr_mdata_fn output_fn = _DTYPE[mdata->dtype].output_fn;
+            mr_mdata_fn output_fn = _DATA_TYPE[mdata->dtype].output_fn;
 
             if (output_fn) {
                 if (output_fn(pctx, mdata)) return -1;
@@ -212,7 +211,7 @@ int mr_validate_u8vutf8(mr_packet_ctx *pctx, const int idx) {
 int mr_set_scalar(mr_packet_ctx *pctx, const int idx, const mr_mvalue_t value) {
     mr_mdata *mdata = pctx->mdata0 + idx;
     if (mr_free(mdata->printable)) return -1;
-    mr_mdata_fn validate_fn = _DTYPE[mdata->dtype].validate_fn;
+    mr_mdata_fn validate_fn = _DATA_TYPE[mdata->dtype].validate_fn;
     mdata->value = value;
     mdata->vexists = true; // don't update vlen or u8vlen for scalars
     if (validate_fn && validate_fn(pctx, mdata)) return -1;
@@ -227,10 +226,10 @@ static int mr_get_scalar(mr_packet_ctx *pctx, const int idx, mr_mvalue_t *pvalue
     return 0;
 }
 
-int mr_get_boolean(mr_packet_ctx *pctx, const int idx, bool *pboolean, bool *pexists) {
+int mr_get_boolean(mr_packet_ctx *pctx, const int idx, bool *pflag_value, bool *pexists) {
     mr_mvalue_t value;
     mr_get_scalar(pctx, idx, &value, pexists);
-    *pboolean = (bool)value;
+    *pflag_value = (bool)value;
     return 0;
 }
 
@@ -261,9 +260,9 @@ int mr_set_vector(mr_packet_ctx *pctx, const int idx, const void *pvoid, const s
     mdata->value = (mr_mvalue_t)pvoid;
     mdata->vexists = true;
     mdata->vlen = len;
-    mr_mdata_fn count_fn = _DTYPE[mdata->dtype].count_fn;
+    mr_mdata_fn count_fn = _DATA_TYPE[mdata->dtype].count_fn;
     if (count_fn(pctx, mdata)) return -1; // sets u8vlen
-    mr_mdata_fn validate_fn = _DTYPE[mdata->dtype].validate_fn;
+    mr_mdata_fn validate_fn = _DATA_TYPE[mdata->dtype].validate_fn;
     if (mdata->value && validate_fn && validate_fn(pctx, mdata)) return -1;
     return 0;
 }
@@ -301,7 +300,7 @@ int mr_get_spv(mr_packet_ctx *pctx, const int idx, mr_string_pair **pspv0, size_
 int mr_reset_vector(mr_packet_ctx *pctx, const int idx) {
     mr_mdata *mdata = pctx->mdata0 + idx;
     if (mr_free(mdata->printable)) return -1;
-    mr_mdata_fn free_fn = _DTYPE[mdata->dtype].free_fn;
+    mr_mdata_fn free_fn = _DATA_TYPE[mdata->dtype].free_fn;
     return free_fn(pctx, mdata);
 }
 
@@ -315,7 +314,7 @@ int mr_reset_scalar(mr_packet_ctx *pctx, const int idx) {
 
 int mr_pack_packet(mr_packet_ctx *pctx) {
     if (pctx->u8valloc && mr_free(pctx->u8v0)) return -1;
-    const mr_mdata_fn vbi_count_fn = _DTYPE[MR_VBI_DTYPE].count_fn;
+    const mr_mdata_fn vbi_count_fn = _DATA_TYPE[MR_VBI_DTYPE].count_fn;
     mr_mdata *mdata = pctx->mdata0 + pctx->mdata_count - 1; // last one
 
     for (int i = pctx->mdata_count - 1; i > -1; mdata--, i--) { // go in reverse to calculate VBIs
@@ -333,7 +332,7 @@ int mr_pack_packet(mr_packet_ctx *pctx) {
     mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
         if (mdata->vexists) {
-            mr_mdata_fn pack_fn = _DTYPE[mdata->dtype].pack_fn;
+            mr_mdata_fn pack_fn = _DATA_TYPE[mdata->dtype].pack_fn;
             if (pack_fn && pack_fn(pctx, mdata)) return -1; // each pack_fn increments pctx->u8vpos
         }
     }
@@ -362,20 +361,20 @@ int mr_init_unpack_packet(
 static int mr_unpack_packet(mr_packet_ctx *pctx) {
     mr_mdata *mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
-        if (!mdata->propid) { // properties are handled separately
+        if (!mdata->propid) { // properties are handled by the MR_PROPERTIES_DTYPE unpack_fn
             if (mdata->flagid && mdata->dtype != MR_BITS_DTYPE) { // controlling flagid exists
                 mr_mdata *flag_mdata = pctx->mdata0 + mdata->flagid;
                 if (!flag_mdata->value) continue; // skip this mdata if flag is not set
             }
 
-            mr_mdata_fn unpack_fn = _DTYPE[mdata->dtype].unpack_fn;
+            mr_mdata_fn unpack_fn = _DATA_TYPE[mdata->dtype].unpack_fn;
             if (unpack_fn && unpack_fn(pctx, mdata)) return -1;
-            mr_mdata_fn validate_fn = _DTYPE[mdata->dtype].validate_fn;
+            mr_mdata_fn validate_fn = _DATA_TYPE[mdata->dtype].validate_fn;
             if (validate_fn && validate_fn(pctx, mdata)) return -1;
         }
     }
 
-    mr_ptype_fn ptype_fn = _PTYPE[pctx->mqtt_packet_type >> 4].ptype_fn; // index is left nibble
+    mr_ptype_fn ptype_fn = _PACKET_TYPE[pctx->mqtt_packet_type >> 4].ptype_fn; // index is left nibble
     if (ptype_fn && ptype_fn(pctx)) return -1;
 
     if (pctx->u8vpos == pctx->u8vlen) {
@@ -453,8 +452,8 @@ static int mr_free_vector(mr_packet_ctx *pctx, mr_mdata *mdata) {
 int mr_free_packet_context(mr_packet_ctx *pctx) {
     mr_mdata *mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; i++, mdata++) {
-        if (_DTYPE[mdata->dtype].free_fn && mr_free(mdata->printable)) return -1;
-        mr_mdata_fn free_fn = _DTYPE[mdata->dtype].free_fn;
+        if (_DATA_TYPE[mdata->dtype].free_fn && mr_free(mdata->printable)) return -1;
+        mr_mdata_fn free_fn = _DATA_TYPE[mdata->dtype].free_fn;
         if (mdata->valloc && free_fn && free_fn(pctx, mdata)) return -1;
     }
 
@@ -473,7 +472,7 @@ int mr_init_packet(mr_packet_ctx **ppctx, const mr_mdata *MDATA_TEMPLATE, size_t
     memcpy(mdata0, MDATA_TEMPLATE, mdata_count * sizeof(mr_mdata));
     pctx->mdata0 = mdata0;
     pctx->mqtt_packet_type = mdata0->value; // always the value of the 0th mdata row
-    pctx->mqtt_packet_name = _PTYPE[pctx->mqtt_packet_type >> 4].mqtt_packet_name; // left nibble is index
+    pctx->mqtt_packet_name = _PACKET_TYPE[pctx->mqtt_packet_type >> 4].mqtt_packet_name; // left nibble is index
     *ppctx = pctx;
     return 0;
 }
@@ -722,9 +721,9 @@ static int mr_unpack_properties(mr_packet_ctx *pctx, mr_mdata *mdata) {
             return -1;
         }
 
-        unpack_fn = _DTYPE[prop_mdata->dtype].unpack_fn;
+        unpack_fn = _DATA_TYPE[prop_mdata->dtype].unpack_fn;
         if (unpack_fn(pctx, prop_mdata)) return -1;
-        validate_fn = _DTYPE[mdata->dtype].validate_fn;
+        validate_fn = _DATA_TYPE[mdata->dtype].validate_fn;
         if (validate_fn && validate_fn(pctx, mdata)) return -1;
     }
 
@@ -738,15 +737,10 @@ static int mr_count_u8v(mr_packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_pack_u8v(mr_packet_ctx *pctx, mr_mdata *mdata) {
-    if (!mdata->value) {
-        dzlog_error("NULL pointer: packet: %s; name: %s", pctx->mqtt_packet_name, mdata->name);
-        return -1;
-    }
-
-    bool bstr = mdata->dtype == MR_STR_DTYPE;
+    bool str_flag = mdata->dtype == MR_STR_DTYPE;
     uint8_t propid = mdata->propid;
     if (propid) pctx->u8v0[pctx->u8vpos++] = propid;
-    uint16_t u16 = mdata->vlen - (bstr ? 1 : 0);
+    uint16_t u16 = mdata->vlen - (str_flag ? 1 : 0);
     pctx->u8v0[pctx->u8vpos++] = (u16 >> 8) & 0xFF;
     pctx->u8v0[pctx->u8vpos++] = u16 & 0xFF;
     memcpy(pctx->u8v0 + pctx->u8vpos, (uint8_t *)mdata->value, u16);
@@ -755,11 +749,11 @@ static int mr_pack_u8v(mr_packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_unpack_u8v(mr_packet_ctx *pctx, mr_mdata *mdata) {
-    bool bstr = mdata->dtype == MR_STR_DTYPE;
+    bool str_flag = mdata->dtype == MR_STR_DTYPE;
     uint8_t *u8v = pctx->u8v0 + pctx->u8vpos;
     uint16_t u16v[] = {u8v[0], u8v[1]}; u8v += 2;
     size_t u8vlen = (u16v[0] << 8) + u16v[1];
-    size_t vlen = u8vlen + (bstr ? 1 : 0);
+    size_t vlen = u8vlen + (str_flag ? 1 : 0);
     uint8_t *value;
     if (mr_calloc((void **)&value, vlen, 1)) return -1;
     memcpy(value, u8v, u8vlen);
@@ -812,8 +806,8 @@ static int mr_pack_incr1(mr_packet_ctx *pctx, mr_mdata *mdata) { // now advance 
     return 0;
 }
 
-static int mr_unpack_bits(mr_packet_ctx *pctx, mr_mdata *mdata) {  // don't advance pctx->u8vpos; unpacking
-    uint8_t bitpos = mdata->bitpos;                               // the following flags byte will do that
+static int mr_unpack_bits(mr_packet_ctx *pctx, mr_mdata *mdata) {   // don't advance pctx->u8vpos; unpacking
+    uint8_t bitpos = mdata->bitpos;                                 // the following flags byte will do that
     uint8_t *pu8 = pctx->u8v0 + pctx->u8vpos;
     mdata->value = *pu8 >> bitpos & _BIT_MASKS[mdata->vlen];
     mdata->vexists = true;

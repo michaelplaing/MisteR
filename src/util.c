@@ -239,49 +239,51 @@ int mr_get_hexdump(char *cv0, size_t cvlen, const uint8_t *u8v, size_t u8vlen) {
 void mr_compress_spaces_lines(char *cv) {
     if (!*cv) return;
     size_t slen = strlen(cv);
-    char *d = cv;
-    char *s = cv;
+    char *pc_dest = cv;
+    char *pc_src = cv;
     bool bs = true;
 
-    for ( ; *s; s++) { // compress spaces in place
-        if (*s == ' ' && bs) continue;
-        bs = *s == ' ';
-        *d++ = *s;
+    // compress spaces in place
+    for ( ; *pc_src; pc_src++) {
+        if (*pc_src == ' ' && bs) continue;
+        bs = *pc_src == ' ';
+        *pc_dest++ = *pc_src;
     }
 
-    *d = '\0';
+    *pc_dest = '\0';
 
-    for (d--; *d == ' ' || *d == '\n'; d--) { // remove trailing whitespace
-        *d = '\0';
+    for (pc_dest--; *pc_dest == ' ' || *pc_dest == '\n'; pc_dest--) { // remove trailing whitespace
+        *pc_dest = '\0';
     }
 
-    char result[slen + 1];
-    for (int i = 0; i <= slen; i++) result[i] = '\0';
-    d = result;
-    s = cv;
-    size_t replace = 0, compress = slen - strlen(cv);
+    // compress lines into a temporary result
+    char resultv[slen + 1];
+    for (int i = 0; i <= slen; i++) resultv[i] = '\0';
+    pc_dest = resultv;
+    pc_src = cv;
+    size_t replace_pos = 0, compress_pos = slen - strlen(cv);
 
-    for (int i = 0; *s && replace < compress; i++, s++) {
-        if (*s == '\n') {
+    for (int i = 0; *pc_src && replace_pos < compress_pos; i++, pc_src++) {
+        if (*pc_src == '\n') { // replace newline with padded '/'
             // add a leading space if there is room and it is needed
-            if (replace + 1 < compress && i && *(s - 1) != ' ') {
-                *d++ = ' ';
-                replace++;
+            if (replace_pos + 1 < compress_pos && i && *(pc_src - 1) != ' ') {
+                *pc_dest++ = ' ';
+                replace_pos++;
             }
 
-            *d++ = '/'; // break the line
-            replace++;
+            *pc_dest++ = '/'; // break the line
+            replace_pos++;
 
             // add a trailing space if there is room and it is needed
-            if (replace + 1 < compress && *(s + 1) != ' ') {
-                *d++ = ' ';
-                replace++;
+            if (replace_pos + 1 < compress_pos && *(pc_src + 1) != ' ') {
+                *pc_dest++ = ' ';
+                replace_pos++;
             }
         }
         else {
-            *d++ = *s;
+            *pc_dest++ = *pc_src;
         }
     }
 
-    strlcpy(cv, result, slen);
+    strlcpy(cv, resultv, slen);
 }
