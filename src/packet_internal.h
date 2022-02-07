@@ -128,11 +128,11 @@ static int mr_free_spv(mr_packet_ctx *pctx, mr_mdata *mdata);
 
 static int mr_unpack_properties(mr_packet_ctx *pctx, mr_mdata *mdata);
 
-static int mr_output_scalar(mr_packet_ctx *pctx, mr_mdata *mdata);
-static int mr_output_hexvalue(mr_packet_ctx *pctx, mr_mdata *mdata);
-static int mr_output_hexdump(mr_packet_ctx *pctx, mr_mdata *mdata);
-static int mr_output_string(mr_packet_ctx *pctx, mr_mdata *mdata);
-static int mr_output_spv(mr_packet_ctx *pctx, mr_mdata *mdata);
+static int mr_printable_scalar(mr_packet_ctx *pctx, mr_mdata *mdata);
+static int mr_printable_hexvalue(mr_packet_ctx *pctx, mr_mdata *mdata);
+static int mr_printable_hexdump(mr_packet_ctx *pctx, mr_mdata *mdata);
+static int mr_printable_string(mr_packet_ctx *pctx, mr_mdata *mdata);
+static int mr_printable_spv(mr_packet_ctx *pctx, mr_mdata *mdata);
 int mr_printable_mdata(mr_packet_ctx *pctx, const bool all_flag);
 
 

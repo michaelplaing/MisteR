@@ -46,6 +46,7 @@ enum MR_CONNECT_MDATA_FIELDS { // Same order as _CONNECT_MDATA_TEMPLATE
     CONNECT_PASSWORD
 };
 
+static int mr_check_connect_packet(mr_packet_ctx *pctx);
 static int mr_validate_connect_cross(mr_packet_ctx *pctx);
 int mr_validate_connect_extra(mr_packet_ctx *pctx);
 

@@ -194,9 +194,8 @@ int mr_get_hexdump(char *cv0, size_t cvlen, const uint8_t *u8v, size_t u8vlen) {
     if (u8vlines > cvlines) u8vlines = cvlines;
     if (u8vlen > u8vlines * 16) u8vlen = u8vlines * 16;
 
-    char cv[16 + 1]; // char vector is our reusable string
-    cv[16] = '\0'; // and needs termination
-    char *pc = cv0; // pointer to next position in output buffer cv0 - increment as we go
+    char cv[16 + 1] = {'\0'}; // char vector is our reusable string
+    char *pc = cv0; // pointer to next char in output buffer cv0 - increment as we go
 
     for (int i = 0; i < u8vlen; i++) {
         sprintf(pc, "%02hhX ", (uint8_t)u8v[i]); // hex

@@ -157,7 +157,7 @@ typedef struct mr_string_pair {
     char *value;
 } mr_string_pair;
 
-// packet utilities
+// utilities
 
 int mr_print_hexdump(uint8_t *u8v, const size_t u8vlen);
 int mr_get_hexdump(char *cv0, const size_t cvlen, const uint8_t *u8v, const size_t u8vlen);
@@ -168,7 +168,6 @@ void mr_compress_spaces_lines(char *cv);
 int mr_init_connect_pctx(mr_packet_ctx **ppctx);
 int mr_init_unpack_connect_packet(mr_packet_ctx **ppctx, uint8_t *u8v0, size_t ulen);
 
-static int mr_connect_packet_check(mr_packet_ctx *pctx);
 int mr_pack_connect_packet(mr_packet_ctx *pctx);
 int mr_free_connect_pctx(mr_packet_ctx *pctx);
 int mr_connect_printable_mdata(mr_packet_ctx *pctx, bool all_flag);

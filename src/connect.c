@@ -103,7 +103,7 @@ int mr_init_unpack_connect_packet(mr_packet_ctx **ppctx, uint8_t *u8v0, size_t u
     return mr_init_unpack_packet(ppctx, _CONNECT_MDATA_TEMPLATE, _CONNECT_MDATA_COUNT, u8v0, u8vlen);
 }
 
-static int mr_connect_packet_check(mr_packet_ctx *pctx) {
+static int mr_check_connect_packet(mr_packet_ctx *pctx) {
     if (pctx->mqtt_packet_type == MQTT_CONNECT) {
         return 0;
     }
@@ -114,70 +114,70 @@ static int mr_connect_packet_check(mr_packet_ctx *pctx) {
 }
 
 int mr_pack_connect_packet(mr_packet_ctx *pctx) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     if (mr_validate_connect_values(pctx)) return -1;
     return mr_pack_packet(pctx);
 }
 
 int mr_free_connect_pctx(mr_packet_ctx *pctx) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_free_packet_context(pctx);
 }
 
 int mr_connect_printable_mdata(mr_packet_ctx *pctx, bool all_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_printable_mdata(pctx, all_flag);
 }
 
 // const uint8_t packet_type;
 int mr_get_connect_packet_type(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_u8(pctx, CONNECT_PACKET_TYPE, pu8, pexists_flag);
 }
 
 // uint32_t remaining_length;
 int mr_get_connect_remaining_length(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_u32(pctx, CONNECT_REMAINING_LENGTH, pu32, pexists_flag);
 }
 
 // const uint8_t *protocol_name;
 int mr_get_connect_protocol_name(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *plen, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_u8v(pctx, CONNECT_PROTOCOL_NAME, pu8v0, plen, pexists_flag);
 }
 
 // const uint8_t protocol_version;
 int mr_get_connect_protocol_version(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_u8(pctx, CONNECT_PROTOCOL_VERSION, pu8, pexists_flag);
 }
 
 // const bool reserved;
 int mr_get_connect_reserved(mr_packet_ctx *pctx, bool *pflag_value, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_boolean(pctx, CONNECT_RESERVED, pflag_value, pexists_flag);
 }
 
 // bool clean_start;
 int mr_get_connect_clean_start(mr_packet_ctx *pctx, bool *pflag_value, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_boolean(pctx, CONNECT_CLEAN_START, pflag_value, pexists_flag);
 }
 
 int mr_set_connect_clean_start(mr_packet_ctx *pctx, const bool flag_value) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_set_scalar(pctx, CONNECT_CLEAN_START, flag_value);
 }
 
 // bool will_flag;
 int mr_get_connect_will_flag(mr_packet_ctx *pctx, bool *pflag_value, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_boolean(pctx, CONNECT_WILL_FLAG, pflag_value, pexists_flag);
 }
 
 int mr_set_connect_will_flag(mr_packet_ctx *pctx, const bool flag_value) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     if (mr_set_scalar(pctx, CONNECT_WILL_FLAG, flag_value)) return -1;
 
     if (flag_value) {
@@ -208,12 +208,12 @@ int mr_set_connect_will_flag(mr_packet_ctx *pctx, const bool flag_value) {
 
 // uint8_t will_qos;
 int mr_get_connect_will_qos(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_u8(pctx, CONNECT_WILL_QOS, pu8, pexists_flag);
 }
 
 int mr_set_connect_will_qos(mr_packet_ctx *pctx, const uint8_t u8) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
 
     if (u8 > 0) {
         if (u8 > 2) {
@@ -230,19 +230,19 @@ int mr_set_connect_will_qos(mr_packet_ctx *pctx, const uint8_t u8) {
 
 // bool will_retain;
 int mr_get_connect_will_retain(mr_packet_ctx *pctx, bool *pflag_value, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_boolean(pctx, CONNECT_WILL_RETAIN, pflag_value, pexists_flag);
 }
 
 int mr_set_connect_will_retain(mr_packet_ctx *pctx, const bool flag_value) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     if (flag_value && mr_set_connect_will_flag(pctx, true)) return -1;
     return mr_set_scalar(pctx, CONNECT_WILL_RETAIN, flag_value);
 }
 
 // bool password_flag;
 int mr_get_connect_password_flag(mr_packet_ctx *pctx, bool *pflag_value, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_boolean(pctx, CONNECT_PASSWORD_FLAG, pflag_value, pexists_flag);
 }
 
@@ -250,51 +250,51 @@ int mr_get_connect_password_flag(mr_packet_ctx *pctx, bool *pflag_value, bool *p
 
 // bool username_flag; - set by setting username
 int mr_get_connect_username_flag(mr_packet_ctx *pctx, bool *pflag_value, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_boolean(pctx, CONNECT_USERNAME_FLAG, pflag_value, pexists_flag);
 }
 
 // uint16_t keep_alive; always exists hence never reset
 int mr_get_connect_keep_alive(mr_packet_ctx *pctx, uint16_t *pu16, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_u16(pctx, CONNECT_KEEP_ALIVE, pu16, pexists_flag);
 }
 
 int mr_set_connect_keep_alive(mr_packet_ctx *pctx, const uint16_t u16) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_set_scalar(pctx, CONNECT_KEEP_ALIVE, u16);
 }
 
 // uint32_t property_length;
 int mr_get_connect_property_length(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_u32(pctx, CONNECT_PROPERTY_LENGTH, pu32, pexists_flag);
 }
 
 // uint32_t session_expiry_interval;
 int mr_get_connect_session_expiry_interval(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_u32(pctx, CONNECT_SESSION_EXPIRY_INTERVAL, pu32, pexists_flag);
 }
 
 int mr_set_connect_session_expiry_interval(mr_packet_ctx *pctx, const uint32_t u32) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_set_scalar(pctx, CONNECT_SESSION_EXPIRY_INTERVAL, u32);
 }
 
 int mr_reset_connect_session_expiry_interval(mr_packet_ctx *pctx) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_reset_scalar(pctx, CONNECT_SESSION_EXPIRY_INTERVAL);
 }
 
 // uint16_t receive_maximum;
 int mr_get_connect_receive_maximum(mr_packet_ctx *pctx, uint16_t *pu16, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_u16(pctx, CONNECT_RECEIVE_MAXIMUM, pu16, pexists_flag);
 }
 
 int mr_set_connect_receive_maximum(mr_packet_ctx *pctx, const uint16_t u16) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
 
     if (u16 == 0) {
         dzlog_error("if present, receive_maximum must be > 0");
@@ -305,18 +305,18 @@ int mr_set_connect_receive_maximum(mr_packet_ctx *pctx, const uint16_t u16) {
 }
 
 int mr_reset_connect_receive_maximum(mr_packet_ctx *pctx) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_reset_scalar(pctx, CONNECT_RECEIVE_MAXIMUM);
 }
 
 // uint32_t maximum_packet_size;
 int mr_get_connect_maximum_packet_size(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_u32(pctx, CONNECT_MAXIMUM_PACKET_SIZE, pu32, pexists_flag);
 }
 
 int mr_set_connect_maximum_packet_size(mr_packet_ctx *pctx, const uint32_t u32) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
 
     if (u32 == 0) {
         dzlog_error("if present, receive_maximum must be > 0");
@@ -327,34 +327,34 @@ int mr_set_connect_maximum_packet_size(mr_packet_ctx *pctx, const uint32_t u32) 
 }
 
 int mr_reset_connect_maximum_packet_size(mr_packet_ctx *pctx) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_reset_scalar(pctx, CONNECT_MAXIMUM_PACKET_SIZE);
 }
 
 // uint16_t topic_alias_maximum;
 int mr_get_connect_topic_alias_maximum(mr_packet_ctx *pctx, uint16_t *pu16, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_u16(pctx, CONNECT_TOPIC_ALIAS_MAXIMUM, pu16, pexists_flag);
 }
 
 int mr_set_connect_topic_alias_maximum(mr_packet_ctx *pctx, const uint16_t u16) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_set_scalar(pctx, CONNECT_TOPIC_ALIAS_MAXIMUM, u16);
 }
 
 int mr_reset_connect_topic_alias_maximum(mr_packet_ctx *pctx) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_reset_scalar(pctx, CONNECT_TOPIC_ALIAS_MAXIMUM);
 }
 
 // uint8_t request_response_information;
 int mr_get_connect_request_response_information(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_u8(pctx, CONNECT_REQUEST_RESPONSE_INFORMATION, pu8, pexists_flag);
 }
 
 int mr_set_connect_request_response_information(mr_packet_ctx *pctx, const uint8_t u8) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
 
     if (u8 > 1) {
         dzlog_error("request_response_information out of range (0..1): %u", u8);
@@ -365,18 +365,18 @@ int mr_set_connect_request_response_information(mr_packet_ctx *pctx, const uint8
 }
 
 int mr_reset_connect_request_response_information(mr_packet_ctx *pctx) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_reset_scalar(pctx, CONNECT_REQUEST_RESPONSE_INFORMATION);
 }
 
 // uint8_t request_problem_information;
 int mr_get_connect_request_problem_information(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_u8(pctx, CONNECT_REQUEST_PROBLEM_INFORMATION, pu8, pexists_flag);
 }
 
 int mr_set_connect_request_problem_information(mr_packet_ctx *pctx, const uint8_t u8) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
 
     if (u8 > 1) {
         dzlog_error("request_problem_information out of range (0..1): %u", u8);
@@ -387,260 +387,260 @@ int mr_set_connect_request_problem_information(mr_packet_ctx *pctx, const uint8_
 }
 
 int mr_reset_connect_request_problem_information(mr_packet_ctx *pctx) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_reset_scalar(pctx, CONNECT_REQUEST_PROBLEM_INFORMATION);
 }
 
 // mr_string_pair *user_properties;
 int mr_get_connect_user_properties(mr_packet_ctx *pctx, mr_string_pair **pspv0, size_t *plen, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_spv(pctx, CONNECT_USER_PROPERTIES, pspv0, plen, pexists_flag);
 }
 
 int mr_set_connect_user_properties(mr_packet_ctx *pctx, const mr_string_pair *spv0, const size_t len) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_set_vector(pctx, CONNECT_USER_PROPERTIES, spv0, len);
 }
 
 int mr_reset_connect_user_properties(mr_packet_ctx *pctx) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_reset_vector(pctx, CONNECT_USER_PROPERTIES);
 }
 
 // char *authentication_method;
 int mr_get_connect_authentication_method(mr_packet_ctx *pctx, char **pcv0, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_str(pctx, CONNECT_AUTHENTICATION_METHOD, pcv0, pexists_flag);
 }
 
 int mr_set_connect_authentication_method(mr_packet_ctx *pctx, const char *cv0) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_set_vector(pctx, CONNECT_AUTHENTICATION_METHOD, cv0, strlen(cv0) + 1);
 }
 
 int mr_reset_connect_authentication_method(mr_packet_ctx *pctx) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_reset_vector(pctx, CONNECT_AUTHENTICATION_METHOD);
 }
 
 // uint8_t *authentication_data;
 int mr_get_connect_authentication_data(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *plen, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_u8v(pctx, CONNECT_AUTHENTICATION_DATA, pu8v0, plen, pexists_flag);
 }
 
 int mr_set_connect_authentication_data(mr_packet_ctx *pctx, const uint8_t *u8v0, const size_t len) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_set_vector(pctx, CONNECT_AUTHENTICATION_DATA, u8v0, len);
 }
 
 int mr_reset_connect_authentication_data(mr_packet_ctx *pctx) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_reset_vector(pctx, CONNECT_AUTHENTICATION_DATA);
 }
 
 // char *client_identifier;
 int mr_get_connect_client_identifier(mr_packet_ctx *pctx, char **pcv0, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_str(pctx, CONNECT_CLIENT_IDENTIFIER, pcv0, pexists_flag);
 }
 
 int mr_set_connect_client_identifier(mr_packet_ctx *pctx, const char *cv0) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_set_vector(pctx, CONNECT_CLIENT_IDENTIFIER, cv0, strlen(cv0) + 1);
 }
 
 // uint32_t will_property_length; - linked to will_flag
 int mr_get_connect_will_property_length(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_u32(pctx, CONNECT_WILL_PROPERTY_LENGTH, pu32, pexists_flag);
 }
 
  // uint32_t will_delay_interval;
 int mr_get_connect_will_delay_interval(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_u32(pctx, CONNECT_WILL_DELAY_INTERVAL, pu32, pexists_flag);
 }
 
 int mr_set_connect_will_delay_interval(mr_packet_ctx *pctx, const uint32_t u32) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     if (mr_set_connect_will_flag(pctx, true)) return -1;
     return mr_set_scalar(pctx, CONNECT_WILL_DELAY_INTERVAL, u32);
 }
 
 int mr_reset_connect_will_delay_interval(mr_packet_ctx *pctx) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_reset_scalar(pctx, CONNECT_WILL_DELAY_INTERVAL);
 }
 
 // uint8_t payload_format_indicator;
 int mr_get_connect_payload_format_indicator(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_u8(pctx, CONNECT_PAYLOAD_FORMAT_INDICATOR, pu8, pexists_flag);
 }
 
 int mr_set_connect_payload_format_indicator(mr_packet_ctx *pctx, const uint8_t u8) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     if (mr_set_connect_will_flag(pctx, true)) return -1;
     return mr_set_scalar(pctx, CONNECT_PAYLOAD_FORMAT_INDICATOR, u8);
 }
 
 int mr_reset_connect_payload_format_indicator(mr_packet_ctx *pctx) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_reset_vector(pctx, CONNECT_PAYLOAD_FORMAT_INDICATOR);
 }
 
 // uint32_t message_expiry_interval;
 int mr_get_connect_message_expiry_interval(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_u32(pctx, CONNECT_MESSAGE_EXPIRY_INTERVAL, pu32, pexists_flag);
 }
 
 int mr_set_connect_message_expiry_interval(mr_packet_ctx *pctx, const uint32_t u32) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     if (mr_set_connect_will_flag(pctx, true)) return -1;
     return mr_set_scalar(pctx, CONNECT_MESSAGE_EXPIRY_INTERVAL, u32);
 }
 
 int mr_reset_connect_message_expiry_interval(mr_packet_ctx *pctx) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_reset_scalar(pctx, CONNECT_MESSAGE_EXPIRY_INTERVAL);
 }
 
 // char *content_type;
 int mr_get_connect_content_type(mr_packet_ctx *pctx, char **pcv0, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_str(pctx, CONNECT_CONTENT_TYPE, pcv0, pexists_flag);
 }
 
 int mr_set_connect_content_type(mr_packet_ctx *pctx, const char *cv0) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     if (mr_set_connect_will_flag(pctx, true)) return -1;
     return mr_set_vector(pctx, CONNECT_CONTENT_TYPE, cv0, strlen(cv0) + 1);
 }
 
 int mr_reset_connect_content_type(mr_packet_ctx *pctx) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_reset_vector(pctx, CONNECT_CONTENT_TYPE);
 }
 
 // char *response_topic;
 int mr_get_connect_response_topic(mr_packet_ctx *pctx, char **pcv0, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_str(pctx, CONNECT_RESPONSE_TOPIC, pcv0, pexists_flag);
 }
 
 int mr_set_connect_response_topic(mr_packet_ctx *pctx, const char *cv0) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     if (mr_set_connect_will_flag(pctx, true)) return -1;
     return mr_set_vector(pctx, CONNECT_RESPONSE_TOPIC, cv0, strlen(cv0) + 1);
 }
 
 int mr_reset_connect_response_topic(mr_packet_ctx *pctx) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_reset_vector(pctx, CONNECT_RESPONSE_TOPIC);
 }
 
 // uint8_t *correlation_data;
 int mr_get_connect_correlation_data(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *plen, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_u8v(pctx, CONNECT_CORRELATION_DATA, pu8v0, plen, pexists_flag);
 }
 
 int mr_set_connect_correlation_data(mr_packet_ctx *pctx, const uint8_t *u8v0, const size_t len) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     if (mr_set_connect_will_flag(pctx, true)) return -1;
     return mr_set_vector(pctx, CONNECT_CORRELATION_DATA, u8v0, len);
 }
 
 int mr_reset_connect_correlation_data(mr_packet_ctx *pctx) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_reset_vector(pctx, CONNECT_CORRELATION_DATA);
 }
 
 // mr_string_pair *will_user_properties;
 int mr_get_connect_will_user_properties(mr_packet_ctx *pctx, mr_string_pair **pspv0, size_t *plen, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_spv(pctx, CONNECT_WILL_USER_PROPERTIES, pspv0, plen, pexists_flag);
 }
 
 int mr_set_connect_will_user_properties(mr_packet_ctx *pctx, const mr_string_pair *spv0, const size_t len) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     if (mr_set_connect_will_flag(pctx, true)) return -1;
     return mr_set_vector(pctx, CONNECT_WILL_USER_PROPERTIES, spv0, len);
 }
 
 int mr_reset_connect_will_user_properties(mr_packet_ctx *pctx) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_reset_vector(pctx, CONNECT_WILL_USER_PROPERTIES);
 }
 
 // char *will_topic;
 int mr_get_connect_will_topic(mr_packet_ctx *pctx, char **pcv0, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_str(pctx, CONNECT_WILL_TOPIC, pcv0, pexists_flag);
 }
 
 int mr_set_connect_will_topic(mr_packet_ctx *pctx, const char *cv0) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     if (mr_set_connect_will_flag(pctx, true)) return -1;
     return mr_set_vector(pctx, CONNECT_WILL_TOPIC, cv0, strlen(cv0) + 1);
 }
 
 int mr_reset_connect_will_topic(mr_packet_ctx *pctx) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_reset_vector(pctx, CONNECT_WILL_TOPIC);
 }
 
 // uint8_t *will_payload;
 int mr_get_connect_will_payload(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *plen, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_u8v(pctx, CONNECT_WILL_PAYLOAD, pu8v0, plen, pexists_flag);
 }
 
 int mr_set_connect_will_payload(mr_packet_ctx *pctx, const uint8_t *u8v0, const size_t len) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     if (mr_set_connect_will_flag(pctx, true)) return -1;
     return mr_set_vector(pctx, CONNECT_WILL_PAYLOAD, u8v0, len);
 }
 
 int mr_reset_connect_will_payload(mr_packet_ctx *pctx) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_reset_vector(pctx, CONNECT_WILL_PAYLOAD);
 }
 
 // char *user_name;
 int mr_get_connect_user_name(mr_packet_ctx *pctx, char **pcv0, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_str(pctx, CONNECT_USER_NAME, pcv0, pexists_flag);
 }
 
 int mr_set_connect_user_name(mr_packet_ctx *pctx, const char *cv0) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     if (mr_set_scalar(pctx, CONNECT_USERNAME_FLAG, true)) return -1;
     return mr_set_vector(pctx, CONNECT_USER_NAME, cv0, strlen(cv0) + 1);
 }
 
 int mr_reset_connect_user_name(mr_packet_ctx *pctx) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     if (mr_set_scalar(pctx, CONNECT_USERNAME_FLAG, false)) return -1;
     return mr_reset_vector(pctx, CONNECT_USER_NAME);
 }
 
 // uint8_t *password;
 int mr_get_connect_password(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *plen, bool *pexists_flag) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_u8v(pctx, CONNECT_PASSWORD, pu8v0, plen, pexists_flag);
 }
 
 int mr_set_connect_password(mr_packet_ctx *pctx, const uint8_t *u8v0, const size_t len) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     if (mr_set_scalar(pctx, CONNECT_PASSWORD_FLAG, true)) return -1;
     return mr_set_vector(pctx, CONNECT_PASSWORD, u8v0, len);
 }
 
 int mr_reset_connect_password(mr_packet_ctx *pctx) {
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     if (mr_set_scalar(pctx, CONNECT_PASSWORD_FLAG, false)) return -1;
     return mr_reset_vector(pctx, CONNECT_PASSWORD);
 }
@@ -649,7 +649,7 @@ int mr_reset_connect_password(mr_packet_ctx *pctx) {
 
 int mr_validate_connect_values(mr_packet_ctx *pctx) {
     // dzlog_debug("");
-    if (mr_connect_packet_check(pctx)) return -1;
+    if (mr_check_connect_packet(pctx)) return -1;
     if (mr_validate_connect_cross(pctx)) return -1;
     if (mr_validate_utf8_values(pctx)) return -1;
     if (mr_validate_connect_extra(pctx)) return -1;
