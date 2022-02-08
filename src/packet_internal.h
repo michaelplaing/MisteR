@@ -26,6 +26,18 @@ typedef struct mr_mdata {
 
 typedef int (*mr_mdata_fn)(struct mr_packet_ctx *pctx, struct mr_mdata *mdata);
 
+typedef struct mr_packet_ctx {
+    uint8_t mqtt_packet_type;
+    const char *mqtt_packet_name;
+    char *printable_mdata;
+    uint8_t *u8v0;
+    bool u8valloc;
+    size_t u8vlen;
+    size_t u8vpos;
+    struct mr_mdata *mdata0;
+    size_t mdata_count;
+} mr_packet_ctx;
+
 typedef struct mr_dtype {
     const int idx;
     const char *name;
@@ -72,7 +84,7 @@ int mr_init_unpack_packet(
     const size_t ulen
 );
 
-int mr_pack_packet(mr_packet_ctx *pctx);
+int mr_pack_packet(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *pu8vlen);
 int mr_free_packet_context(mr_packet_ctx *pctx);
 
 int mr_validate_utf8_values(mr_packet_ctx *pctx);
@@ -133,7 +145,8 @@ static int mr_printable_hexvalue(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_printable_hexdump(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_printable_string(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_printable_spv(mr_packet_ctx *pctx, mr_mdata *mdata);
-int mr_printable_mdata(mr_packet_ctx *pctx, const bool all_flag);
+// int mr_create_printable(mr_packet_ctx *pctx, const bool all_flag);
+int mr_get_printable(mr_packet_ctx *pctx, const bool all_flag, char **pcv);
 
 
 #ifdef __cplusplus

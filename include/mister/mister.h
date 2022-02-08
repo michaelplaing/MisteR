@@ -139,18 +139,7 @@ int mr_realloc(void **ppv, size_t sz);
 int mr_free(void *pv);
 
 // packets
-
-typedef struct mr_packet_ctx {
-    uint8_t mqtt_packet_type;
-    const char *mqtt_packet_name;
-    char *printable_mdata;
-    uint8_t *u8v0;
-    bool u8valloc;
-    size_t u8vlen;
-    size_t u8vpos;
-    struct mr_mdata *mdata0;
-    size_t mdata_count;
-} mr_packet_ctx;
+typedef struct mr_packet_ctx mr_packet_ctx;
 
 typedef struct mr_string_pair {
     char *name;
@@ -168,9 +157,9 @@ void mr_compress_spaces_lines(char *cv);
 int mr_init_connect_pctx(mr_packet_ctx **ppctx);
 int mr_init_unpack_connect_packet(mr_packet_ctx **ppctx, uint8_t *u8v0, size_t ulen);
 
-int mr_pack_connect_packet(mr_packet_ctx *pctx);
+int mr_pack_connect_packet(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *pu8vlen);
 int mr_free_connect_pctx(mr_packet_ctx *pctx);
-int mr_connect_printable_mdata(mr_packet_ctx *pctx, bool all_flag);
+int mr_get_connect_printable(mr_packet_ctx *pctx, bool all_flag, char **pcv);
 int mr_validate_connect_values(mr_packet_ctx *pctx);
 
 int mr_get_connect_packet_type(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag);
@@ -290,9 +279,9 @@ int mr_reset_connect_password(mr_packet_ctx *pctx);
 int mr_init_connack_packet(mr_packet_ctx **ppctx);
 int mr_init_unpack_connack_packet(mr_packet_ctx **ppctx, uint8_t *u8v0, size_t ulen);
 static int mr_connack_packet_check(mr_packet_ctx *pctx);
-int mr_pack_connack_packet(mr_packet_ctx *pctx);
+int mr_pack_connack_packet(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *pu8vlen);
 int mr_free_connack_packet(mr_packet_ctx *pctx);
-int mr_connack_printable_mdata(mr_packet_ctx *pctx, bool ball);
+int mr_get_connack_printable(mr_packet_ctx *pctx, bool all_flag, char **pcv);
 
 int mr_get_connack_packet_type(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag);
 int mr_get_connack_remaining_length(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag);

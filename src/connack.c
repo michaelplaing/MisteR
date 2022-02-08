@@ -109,10 +109,10 @@ static int mr_connack_packet_check(mr_packet_ctx *pctx) {
     }
 }
 
-int mr_pack_connack_packet(mr_packet_ctx *pctx) {
+int mr_pack_connack_packet(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *pu8vlen) {
     if (mr_connack_packet_check(pctx)) return -1;
     if (mr_validate_connack_values(pctx)) return -1;
-    return mr_pack_packet(pctx);
+    return mr_pack_packet(pctx, pu8v0, pu8vlen);
 }
 
 int mr_free_connack_packet(mr_packet_ctx *pctx) {
@@ -120,9 +120,9 @@ int mr_free_connack_packet(mr_packet_ctx *pctx) {
     return mr_free_packet_context(pctx);
 }
 
-int mr_connack_printable_mdata(mr_packet_ctx *pctx, bool all_flag) {
+int mr_get_connack_printable(mr_packet_ctx *pctx, bool all_flag, char **pcv) {
     if (mr_connack_packet_check(pctx)) return -1;
-    return mr_printable_mdata(pctx, all_flag);
+    return mr_get_printable(pctx, all_flag, pcv);
 }
 
 // const uint8_t packet_type;

@@ -132,7 +132,7 @@ int mr_init_unpack_packet(
     return 0;
 }
 
-int mr_pack_packet(mr_packet_ctx *pctx) {
+int mr_pack_packet(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *pu8vlen) {
     if (pctx->u8valloc && mr_free(pctx->u8v0)) return -1;
     const mr_mdata_fn vbi_count_fn = _DATA_TYPE[MR_VBI_DTYPE].count_fn;
     mr_mdata *mdata = pctx->mdata0 + pctx->mdata_count - 1; // last one
@@ -157,6 +157,8 @@ int mr_pack_packet(mr_packet_ctx *pctx) {
         }
     }
 
+    *pu8v0 = pctx->u8v0;
+    *pu8vlen = pctx->u8vlen;
     return 0;
 }
 
@@ -790,7 +792,7 @@ static const char _NOT_PRINTABLE[] = "***";
  * Catenate the mr_mdata::name's and the mr_mdata::printable's into the
  * mr_packet_ctx::printable_mdata c-string.
  */
-int mr_printable_mdata(mr_packet_ctx *pctx, const bool all_flag) {
+int mr_get_printable(mr_packet_ctx *pctx, const bool all_flag, char **pcv) {
     if (mr_free(pctx->printable_mdata)) return -1;
     const mr_mdata_fn vbi_count_fn = _DATA_TYPE[MR_VBI_DTYPE].count_fn;
 
@@ -835,6 +837,6 @@ int mr_printable_mdata(mr_packet_ctx *pctx, const bool all_flag) {
     }
 
     *(pc - 1) = '\0'; // overwrite trailing '\n' to make a c-string
-    pctx->printable_mdata = printable_mdata;
+    *pcv = pctx->printable_mdata = printable_mdata;
     return 0;
 }
