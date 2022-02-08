@@ -95,7 +95,7 @@ static const mr_mdata _CONNECT_MDATA_TEMPLATE[] = { // Same order as enum CONNEC
 
 static const size_t _CONNECT_MDATA_COUNT = sizeof(_CONNECT_MDATA_TEMPLATE) / sizeof(mr_mdata);
 
-int mr_init_connect_pctx(mr_packet_ctx **ppctx) {
+int mr_init_connect_packet(mr_packet_ctx **ppctx) {
     return mr_init_packet(ppctx, _CONNECT_MDATA_TEMPLATE, _CONNECT_MDATA_COUNT);
 }
 
@@ -119,7 +119,7 @@ int mr_pack_connect_packet(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *pu8vlen
     return mr_pack_packet(pctx, pu8v0, pu8vlen);
 }
 
-int mr_free_connect_pctx(mr_packet_ctx *pctx) {
+int mr_free_connect_packet(mr_packet_ctx *pctx) {
     if (mr_check_connect_packet(pctx)) return -1;
     return mr_free_packet_context(pctx);
 }

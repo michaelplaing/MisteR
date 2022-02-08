@@ -44,7 +44,7 @@ int main(void) {
     char packet_filename[50];
 
     // init
-    mr_init_connect_pctx(&pctx);
+    mr_init_connect_packet(&pctx);
 
     // *** test sections ***
 
@@ -114,7 +114,7 @@ int main(void) {
     free(u8v0);
 
     // free pack context
-    mr_free_connect_pctx(pctx);
+    mr_free_connect_packet(pctx);
 
     // init unpack context / unpack packet
     mr_init_unpack_connect_packet(&pctx, u8v0, u8vlen);
@@ -127,7 +127,7 @@ int main(void) {
     free(printable_mdata);
 
     // free unpack context
-    mr_free_connect_pctx(pctx);
+    mr_free_connect_packet(pctx);
 
     zlog_fini();
 

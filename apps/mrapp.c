@@ -5,9 +5,9 @@
 #include <hiredis/hiredis.h>
 #include <hiredis/async.h>
 #include <hiredis/adapters/libuv.h>
+#include <redis/redismodule.h>
 
 #include "mister/mister.h"
-#include "mister/mrredismodule.h"
 #include "mister/mrzlog.h"
 
 #include "../src/connect_internal.h"
@@ -96,7 +96,7 @@ void mrConnectCallback(redisAsyncContext *rctx, void *reply_void, void *private_
 
 void mr_send_connect(redisAsyncContext *rctx) {
     mr_packet_ctx *pctx;
-    int rc = mr_init_connect_pctx(&pctx);
+    int rc = mr_init_connect_packet(&pctx);
     /*
     // mr_set_connect_clean_start(pctx, true);
     // mr_set_connect_will_qos(pctx, 3);
@@ -196,15 +196,15 @@ void mr_send_connect(redisAsyncContext *rctx) {
     // dzlog_info("Connect Packet:\n%s", cv);
     size_t len = packet_u8vlen;
     uint8_t *u8v0;
-    rc = mr_malloc((void **)&u8v0, len);
+    u8v0 = malloc(len);
     memcpy(u8v0, packet_u8v0, len);
-    rc = mr_free_connect_pctx(pctx);
+    rc = mr_free_connect_packet(pctx);
     rc = mr_init_unpack_connect_packet(&pctx, u8v0, len);
-    rc = mr_free(u8v0);
+    free(u8v0);
     printf("unpack_connect rc: %d\n", rc);
     rc = mr_get_connect_printable(pctx, false, &packet_printable);
     puts(packet_printable);
-    rc = mr_free_connect_pctx(pctx);
+    rc = mr_free_connect_packet(pctx);
 
 /*
     uint8_t type = 0;
@@ -276,11 +276,11 @@ void mr_send_connect(redisAsyncContext *rctx) {
     mr_print_hexdump(connack_packet_u8v0, connack_packet_u8vlen);
 
     len = connack_packet_u8vlen;
-    rc = mr_malloc((void **)&u8v0, len);
+    u8v0 = malloc(len);
     memcpy(u8v0, connack_packet_u8v0, len);
     rc = mr_free_connack_packet(connack_pctx);
     rc = mr_init_unpack_connack_packet(&connack_pctx, u8v0, len);
-    rc = mr_free(u8v0);
+    free(u8v0);
     printf("unpack_connack rc: %d\n", rc);
     char *connack_packet_printable;
     rc = mr_get_connack_printable(connack_pctx, false, &connack_packet_printable);

@@ -21,6 +21,7 @@
 #include "mister/mister.h"
 #include "mister/mrzlog.h"
 #include "util_internal.h"
+#include "memory_internal.h"
 #include "packet_internal.h"
 #include "connect_internal.h"
 

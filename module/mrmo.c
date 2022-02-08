@@ -1,9 +1,10 @@
 /* mister module */
 
-#include "mister/mrredismodule.h"
+#include <redis/redismodule.h>
+
 #include "mister/mister.h"
 #include "mister/mrzlog.h"
-
+/*
 int misterPingReq_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) {
     const uint8_t PINGRESP_BUF[2] = {MQTT_PINGRESP, 0};
 
@@ -25,7 +26,7 @@ int misterConnect_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv, in
     RedisModule_ReplyWithStringBuffer(ctx, (const char *)CONNACK_BUF, 2);
     return REDISMODULE_OK;
 }
-
+ */
 int RedisModule_OnLoad(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) {
     if (
         RedisModule_Init(ctx, "mister", 1, REDISMODULE_APIVER_1) == REDISMODULE_ERR
@@ -42,7 +43,7 @@ int RedisModule_OnLoad(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) 
         const char *s = RedisModule_StringPtrLen(argv[j], NULL);
         printf("Module loaded with ARGV[%d] = %s\n", j, s);
     }
-
+/*
     if (
         RedisModule_CreateCommand(
             ctx, MR_PINGREQ, misterPingReq_RedisCommand, "", 1, 1, 1
@@ -54,8 +55,6 @@ int RedisModule_OnLoad(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) 
             ctx, MR_CONNECT, misterConnect_RedisCommand, "", 1, 1, 1
         ) == REDISMODULE_ERR
     ) return REDISMODULE_ERR;
-
-
-
+ */
     return REDISMODULE_OK;
 }

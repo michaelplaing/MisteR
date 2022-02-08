@@ -17,7 +17,7 @@ TEST_CASE("happy CONNECT packet", "[connect][happy]") {
     char packet_filename[50];
 
     // init
-    REQUIRE(mr_init_connect_pctx(&pctx) == 0);
+    REQUIRE(mr_init_connect_packet(&pctx) == 0);
 
     // *** test sections ***
 
@@ -188,7 +188,7 @@ TEST_CASE("happy CONNECT packet", "[connect][happy]") {
     free(u8v0);
 
     // free pack context
-    REQUIRE(mr_free_connect_pctx(pctx) == 0);
+    REQUIRE(mr_free_connect_packet(pctx) == 0);
 
     // init unpack context / unpack packet
     REQUIRE(mr_init_unpack_connect_packet(&pctx, u8v0, u8vlen) == 0);
@@ -205,7 +205,7 @@ TEST_CASE("happy CONNECT packet", "[connect][happy]") {
     printf("\npacket_printable::\n%s\n", packet_printable);
 
     // free unpack context
-    REQUIRE(mr_free_connect_pctx(pctx) == 0);
+    REQUIRE(mr_free_connect_packet(pctx) == 0);
 
     zlog_fini();
 }
@@ -290,7 +290,7 @@ TEST_CASE("unhappy CONNECT packet", "[connect][unhappy]") {
     // common test epilog
 
     // free packet context
-    REQUIRE(mr_free_connect_pctx(pctx) == 0);
+    REQUIRE(mr_free_connect_packet(pctx) == 0);
     free(u8v0);
 
     zlog_fini();
