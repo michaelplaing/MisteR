@@ -145,9 +145,7 @@ static int mr_printable_hexvalue(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_printable_hexdump(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_printable_string(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_printable_spv(mr_packet_ctx *pctx, mr_mdata *mdata);
-// int mr_create_printable(mr_packet_ctx *pctx, const bool all_flag);
 int mr_get_printable(mr_packet_ctx *pctx, const bool all_flag, char **pcv);
-
 
 #ifdef __cplusplus
 }
