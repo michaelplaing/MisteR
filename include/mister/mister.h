@@ -99,7 +99,6 @@ int mr_init_unpack_connect_packet(mr_packet_ctx **ppctx, uint8_t *u8v0, size_t u
 int mr_pack_connect_packet(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *pu8vlen);
 int mr_free_connect_packet(mr_packet_ctx *pctx);
 int mr_get_connect_printable(mr_packet_ctx *pctx, bool all_flag, char **pcv);
-int mr_validate_connect_values(mr_packet_ctx *pctx);
 
 int mr_get_connect_packet_type(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag);
 int mr_get_connect_remaining_length(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag);
@@ -211,6 +210,8 @@ int mr_reset_connect_user_name(mr_packet_ctx *pctx);
 int mr_get_connect_password(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *plen, bool *pexists_flag);
 int mr_set_connect_password(mr_packet_ctx *pctx, const uint8_t *u8v0, const size_t len);
 int mr_reset_connect_password(mr_packet_ctx *pctx);
+
+int mr_validate_connect_values(mr_packet_ctx *pctx);
 
 // connack packet
 
