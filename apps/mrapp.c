@@ -10,9 +10,9 @@
 
 #include "mister/mister.h"
 
-#include "../src/connect_internal.h"
-#include "../src/packet_internal.h"
-
+//#include "../src/connect_internal.h"
+//#include "../src/packet_internal.h"
+/*
 void mrPingreqCallback(redisAsyncContext *rctx, void *reply_void, void *private_data_void) {
     REDISMODULE_NOT_USED(rctx);
     redisReply *reply = reply_void;
@@ -52,7 +52,7 @@ void mrPingreqCallback(redisAsyncContext *rctx, void *reply_void, void *private_
     redisAsyncDisconnect(rctx);
     printf("Redis Disconnect sent\n");
 }
-
+ */
 void redisAsyncConnectCallback(const redisAsyncContext *rctx, int status) {
     if (status != REDIS_OK) {
         printf("Error: %s\n", rctx->errstr);
@@ -70,7 +70,7 @@ void redisAsyncDisconnectCallback(const redisAsyncContext *rctx, int status) {
 
     printf("Disconnected from Redis\n");
 }
-
+/*
 void mrSendPingreq(redisAsyncContext *rctx) {
     uint8_t PINGREQ_BUF[2] = {MQTT_PINGREQ, 0x00};
     size_t i;
@@ -90,7 +90,7 @@ void mrSendPingreq(redisAsyncContext *rctx) {
     printf("\n");
     printf("  Buffer is a valid PINGREQ\n");
 }
-
+ */
 void mrConnectCallback(redisAsyncContext *rctx, void *reply_void, void *private_data_void) {
 }
 

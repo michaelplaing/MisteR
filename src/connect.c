@@ -9,7 +9,6 @@
  * There are additional functions for cross-validation.
 */
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
@@ -17,8 +16,48 @@
 #include <zlog.h>
 
 #include "mister/mister.h"
-#include "connect_internal.h"
 #include "packet_internal.h"
+
+enum MR_CONNECT_MDATA_FIELDS { // Same order as _CONNECT_MDATA_TEMPLATE
+    CONNECT_PACKET_TYPE,
+    CONNECT_REMAINING_LENGTH,
+    CONNECT_PROTOCOL_NAME,
+    CONNECT_PROTOCOL_VERSION,
+    CONNECT_RESERVED,
+    CONNECT_CLEAN_START,
+    CONNECT_WILL_FLAG,
+    CONNECT_WILL_QOS,
+    CONNECT_WILL_RETAIN,
+    CONNECT_PASSWORD_FLAG,
+    CONNECT_USERNAME_FLAG,
+    CONNECT_MR_FLAGS,
+    CONNECT_KEEP_ALIVE,
+    CONNECT_PROPERTY_LENGTH,
+    CONNECT_MR_PROPERTIES,
+    CONNECT_SESSION_EXPIRY_INTERVAL,
+    CONNECT_RECEIVE_MAXIMUM,
+    CONNECT_MAXIMUM_PACKET_SIZE,
+    CONNECT_TOPIC_ALIAS_MAXIMUM,
+    CONNECT_REQUEST_RESPONSE_INFORMATION,
+    CONNECT_REQUEST_PROBLEM_INFORMATION,
+    CONNECT_USER_PROPERTIES,
+    CONNECT_AUTHENTICATION_METHOD,
+    CONNECT_AUTHENTICATION_DATA,
+    CONNECT_CLIENT_IDENTIFIER,
+    CONNECT_WILL_PROPERTY_LENGTH,
+    CONNECT_MR_WILL_PROPERTIES,
+    CONNECT_WILL_DELAY_INTERVAL,
+    CONNECT_PAYLOAD_FORMAT_INDICATOR,
+    CONNECT_MESSAGE_EXPIRY_INTERVAL,
+    CONNECT_CONTENT_TYPE,
+    CONNECT_RESPONSE_TOPIC,
+    CONNECT_CORRELATION_DATA,
+    CONNECT_WILL_USER_PROPERTIES,
+    CONNECT_WILL_TOPIC,
+    CONNECT_WILL_PAYLOAD,
+    CONNECT_USER_NAME,
+    CONNECT_PASSWORD
+};
 
 static const uint8_t _PS[] = {'M', 'Q', 'T', 'T'};  // protocol signature
 #define _PSSZ 4
@@ -96,10 +135,24 @@ static const mr_mdata _CONNECT_MDATA_TEMPLATE[] = { // Same order as enum CONNEC
 
 static const size_t _CONNECT_MDATA_COUNT = sizeof(_CONNECT_MDATA_TEMPLATE) / sizeof(mr_mdata);
 
+/**
+ * @brief Initialize a CONNECT packet for packing and set the address of the packet context.
+ *
+ * Set the initial packet values to NULL, false or 0 and copy in the default field values and metadata
+ * from the packet's mr_mdata template vector. Use function to initialize a mr_packet_ctx (pctx) for use
+ * in setting field values then then packing them into a valid network-order binary packet conforming to
+ * the MQTT5 specification.
+ */
 int mr_init_connect_packet(mr_packet_ctx **ppctx) {
     return mr_init_packet(ppctx, _CONNECT_MDATA_TEMPLATE, _CONNECT_MDATA_COUNT);
 }
 
+/**
+ * @brief Unpack and validate a binary CONNECT packet setting the address of the populated mr_packet_ctx.
+ *
+ * Initialize a mr_packet_ctx (pctx) then unpack the binary packet into it, overwriting and validating
+ * values and metadata. Set the address of the packet context.
+ */
 int mr_init_unpack_connect_packet(mr_packet_ctx **ppctx, uint8_t *u8v0, size_t u8vlen) {
     return mr_init_unpack_packet(ppctx, _CONNECT_MDATA_TEMPLATE, _CONNECT_MDATA_COUNT, u8v0, u8vlen);
 }
@@ -114,20 +167,30 @@ static int mr_check_connect_packet(mr_packet_ctx *pctx) {
     }
 }
 
+/**
+ * @brief Pack a binary CONNECT packet and set its address.
+ *
+ * Validate the packet values and then pack them into a valid network-order binary packet conforming to the
+ * MQTT5 specification.
+ *
+ * @note The returned binary packet is allocated as a member of the mr_packet_ctx (pctx) and will be freed when
+ * the mr_packet_ctx is freed.
+ */
 int mr_pack_connect_packet(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *pu8vlen) {
     if (mr_check_connect_packet(pctx)) return -1;
     if (mr_validate_connect_values(pctx)) return -1;
     return mr_pack_packet(pctx, pu8v0, pu8vlen);
 }
 
+/**
+ * @brief Free a CONNECT packet context and its members.
+ *
+ * Free the mr_packet_ctx (pctx) and its members recursively. Always use this function to free the memory
+ * associated with the context including the binary packet.
+ */
 int mr_free_connect_packet(mr_packet_ctx *pctx) {
     if (mr_check_connect_packet(pctx)) return -1;
     return mr_free_packet_context(pctx);
-}
-
-int mr_get_connect_printable(mr_packet_ctx *pctx, bool all_flag, char **pcv) {
-    if (mr_check_connect_packet(pctx)) return -1;
-    return mr_get_printable(pctx, all_flag, pcv);
 }
 
 // const uint8_t packet_type
@@ -761,4 +824,14 @@ int mr_validate_connect_values(mr_packet_ctx *pctx) {
     if (mr_validate_connect_extra(pctx)) return -1;
 
     return 0;
+}
+
+/**
+ * @brief Set the address of a printable version of the CONNECT packet's field values.
+ *
+ * See mr_get_printable().
+ */
+int mr_get_connect_printable(mr_packet_ctx *pctx, bool all_flag, char **pcv) {
+    if (mr_check_connect_packet(pctx)) return -1;
+    return mr_get_printable(pctx, all_flag, pcv);
 }

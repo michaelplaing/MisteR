@@ -21,10 +21,7 @@
 #include <zlog.h>
 
 #include "mister/mister.h"
-#include "util_internal.h"
-#include "memory_internal.h"
 #include "packet_internal.h"
-#include "connect_internal.h"
 
 static mr_ptype _PACKET_TYPE[] = { // same order as mqtt_packet_type
 // Note: mqtt_packet_type index is 1-based, hence the dummy row 0
@@ -175,26 +172,6 @@ int mr_free_packet_context(mr_packet_ctx *pctx) {
     if (pctx->u8valloc & mr_free(pctx->u8v0)) return -1;
     if (mr_free(pctx->printable_mdata)) return -1;
     if (mr_free(pctx)) return -1;;
-    return 0;
-}
-
-int mr_validate_utf8_values(mr_packet_ctx *pctx) {
-    mr_mdata *mdata = pctx->mdata0;
-
-    for (int i = 0; i < pctx->mdata_count; i++, mdata++) {
-        if (mdata->vexists) {
-            if (mdata->dtype == MR_STR_DTYPE) {
-                if (mr_validate_str(pctx, mdata)) return -1;
-            }
-            else if (mdata->dtype == MR_SPV_DTYPE) {
-                if (mr_validate_spv(pctx, mdata)) return -1;
-            }
-            else {
-                ; // noop
-            }
-        }
-    }
-
     return 0;
 }
 
@@ -706,6 +683,26 @@ static int mr_unpack_properties(mr_packet_ctx *pctx, mr_mdata *mdata) {
     return 0;
 }
 
+int mr_validate_utf8_values(mr_packet_ctx *pctx) {
+    mr_mdata *mdata = pctx->mdata0;
+
+    for (int i = 0; i < pctx->mdata_count; i++, mdata++) {
+        if (mdata->vexists) {
+            if (mdata->dtype == MR_STR_DTYPE) {
+                if (mr_validate_str(pctx, mdata)) return -1;
+            }
+            else if (mdata->dtype == MR_SPV_DTYPE) {
+                if (mr_validate_spv(pctx, mdata)) return -1;
+            }
+            else {
+                ; // noop
+            }
+        }
+    }
+
+    return 0;
+}
+
 static int mr_printable_scalar(mr_packet_ctx *pctx, mr_mdata *mdata) {
     char cv[32] = {'\0'};
     char *printable;
@@ -793,6 +790,9 @@ static const char _NOT_PRINTABLE[] = "***";
  *
  * Catenate the mr_mdata::name's and the mr_mdata::printable's into the
  * mr_packet_ctx::printable_mdata c-string.
+ *
+ * @param all_flag true: list name:value pairs for all fields using '***' for the values of non-existent ones;
+ * false: only list name:value pairs for fields that exist.
  */
 int mr_get_printable(mr_packet_ctx *pctx, const bool all_flag, char **pcv) {
     if (mr_free(pctx->printable_mdata)) return -1;

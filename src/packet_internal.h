@@ -137,8 +137,6 @@ int mr_init_unpack_packet(
 int mr_pack_packet(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *pu8vlen);
 int mr_free_packet_context(mr_packet_ctx *pctx);
 
-int mr_validate_utf8_values(mr_packet_ctx *pctx);
-
 static int mr_get_scalar(mr_packet_ctx *pctx, const int idx, mr_mvalue_t *pvalue, bool *pexists);
 int mr_set_scalar(mr_packet_ctx *pctx, const int idx, const mr_mvalue_t value);
 int mr_reset_scalar(mr_packet_ctx *pctx, const int idx);
@@ -190,12 +188,34 @@ static int mr_free_spv(mr_packet_ctx *pctx, mr_mdata *mdata);
 
 static int mr_unpack_properties(mr_packet_ctx *pctx, mr_mdata *mdata);
 
+int mr_validate_utf8_values(mr_packet_ctx *pctx);
+
 static int mr_printable_scalar(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_printable_hexvalue(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_printable_hexdump(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_printable_string(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_printable_spv(mr_packet_ctx *pctx, mr_mdata *mdata);
 int mr_get_printable(mr_packet_ctx *pctx, const bool all_flag, char **pcv);
+
+// CONNECT
+
+static int mr_check_connect_packet(mr_packet_ctx *pctx);
+static int mr_validate_connect_cross(mr_packet_ctx *pctx);
+int mr_validate_connect_extra(mr_packet_ctx *pctx);
+
+// memory
+
+int mr_calloc(void **ppv, size_t count, size_t sz);
+int mr_malloc(void **ppv, size_t sz);
+int mr_realloc(void **ppv, size_t sz);
+int mr_free(void *pv);
+
+// util
+
+int utf8val(const uint8_t *u8v, size_t len);
+int mr_bytecount_VBI(uint32_t u32);
+int mr_make_VBI(uint32_t u32, uint8_t *u8v0);
+int mr_get_VBI(uint32_t *pu32, uint8_t *u8v);
 
 #ifdef __cplusplus
 }

@@ -8,7 +8,6 @@ extern "C" {
 #endif
 
 #include <stdbool.h>
-#include <stdint.h>
 #include <stdlib.h>
 
 // MisteR Commands understood by the Redis mister module
