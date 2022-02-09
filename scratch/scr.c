@@ -5,9 +5,9 @@
 #include <stdbool.h>
  */
 #include <string.h>
+#include <zlog.h>
 
 #include "mister/mister.h"
-#include "mister/mrzlog.h"
 #include "util.h"
 
 int get_binary_file_content(const char *fixfilename, uint8_t **pu8v, uint32_t *pffsz) {

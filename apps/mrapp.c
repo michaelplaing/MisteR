@@ -6,9 +6,9 @@
 #include <hiredis/async.h>
 #include <hiredis/adapters/libuv.h>
 #include <redis/redismodule.h>
+#include <zlog.h>
 
 #include "mister/mister.h"
-#include "mister/mrzlog.h"
 
 #include "../src/connect_internal.h"
 #include "../src/packet_internal.h"

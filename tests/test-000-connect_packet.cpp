@@ -1,6 +1,7 @@
 #include <catch2/catch.hpp>
+#include <zlog.h>
+
 #include "mister/mister.h"
-#include "mister/mrzlog.h"
 #include "util.h"
 
 static char _S0L[] = "";

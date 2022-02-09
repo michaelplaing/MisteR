@@ -1,9 +1,9 @@
 /* mister module */
 
 #include <redis/redismodule.h>
+#include <zlog.h>
 
 #include "mister/mister.h"
-#include "mister/mrzlog.h"
 /*
 int misterPingReq_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) {
     const uint8_t PINGRESP_BUF[2] = {MQTT_PINGRESP, 0};

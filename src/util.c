@@ -4,8 +4,9 @@
 #include <string.h>
 #include <ctype.h>
 
+#include <zlog.h>
+
 #include "mister/mister.h"
-#include "mister/mrzlog.h"
 #include "util_internal.h"
 
 // MQTT unicode validation using a reasonably fast and portable naïve method

@@ -14,8 +14,9 @@
 #include <string.h>
 #include <stdbool.h>
 
+#include <zlog.h>
+
 #include "mister/mister.h"
-#include "mister/mrzlog.h"
 #include "connect_internal.h"
 #include "packet_internal.h"
 

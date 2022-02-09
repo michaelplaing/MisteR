@@ -4,8 +4,9 @@
 #include <string.h>
 #include <errno.h>
 
+#include <zlog.h>
+
 #include "mister/mister.h"
-#include "mister/mrzlog.h"
 
 int mr_calloc(void **ppv, size_t count, size_t size) {
     if (!count) count = 1; // always allocate something even if size is 0

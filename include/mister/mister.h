@@ -95,8 +95,7 @@ void mr_compress_spaces_lines(char *cv);
 // connect packet
 
 int mr_init_connect_packet(mr_packet_ctx **ppctx);
-int mr_init_unpack_connect_packet(mr_packet_ctx **ppctx, uint8_t *u8v0, size_t ulen);
-
+int mr_init_unpack_connect_packet(mr_packet_ctx **ppctx, uint8_t *u8v0, size_t u8vlen);
 int mr_pack_connect_packet(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *pu8vlen);
 int mr_free_connect_packet(mr_packet_ctx *pctx);
 int mr_get_connect_printable(mr_packet_ctx *pctx, bool all_flag, char **pcv);
@@ -121,7 +120,6 @@ int mr_get_connect_will_retain(mr_packet_ctx *pctx, bool *pflag_value, bool *pex
 int mr_set_connect_will_retain(mr_packet_ctx *pctx, const bool flag_value);
 
 int mr_get_connect_password_flag(mr_packet_ctx *pctx, bool *pflag_value, bool *pexists_flag);
-
 int mr_get_connect_username_flag(mr_packet_ctx *pctx, bool *pflag_value, bool *pexists_flag);
 
 int mr_get_connect_keep_alive(mr_packet_ctx *pctx, uint16_t *pu16, bool *pexists_flag);
@@ -217,8 +215,8 @@ int mr_reset_connect_password(mr_packet_ctx *pctx);
 // connack packet
 
 int mr_init_connack_packet(mr_packet_ctx **ppctx);
-int mr_init_unpack_connack_packet(mr_packet_ctx **ppctx, uint8_t *u8v0, size_t ulen);
-static int mr_connack_packet_check(mr_packet_ctx *pctx);
+int mr_init_unpack_connack_packet(mr_packet_ctx **ppctx, uint8_t *u8v0, size_t u8vlen);
+static int mr_check_connack_packet(mr_packet_ctx *pctx);
 int mr_pack_connack_packet(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *pu8vlen);
 int mr_free_connack_packet(mr_packet_ctx *pctx);
 int mr_get_connack_printable(mr_packet_ctx *pctx, bool all_flag, char **pcv);

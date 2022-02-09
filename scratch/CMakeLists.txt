@@ -6,4 +6,4 @@ add_executable(
     ${HEADER_LIST}
 )
 
-target_link_libraries(scr PRIVATE mister mrzlog)
+target_link_libraries(scr PRIVATE mister)

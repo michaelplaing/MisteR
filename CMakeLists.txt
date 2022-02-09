@@ -70,8 +70,6 @@ add_subdirectory(apps)
 
 add_subdirectory(module)
 
-add_subdirectory(zlog)
-
 add_subdirectory(scratch)
 
 message(STATUS "********************************************")
