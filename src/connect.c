@@ -16,7 +16,7 @@
 #include <zlog.h>
 
 #include "mister/mister.h"
-#include "packet_internal.h"
+#include "mister_internal.h"
 
 enum MR_CONNECT_MDATA_FIELDS { // Same order as _CONNECT_MDATA_TEMPLATE
     CONNECT_PACKET_TYPE,

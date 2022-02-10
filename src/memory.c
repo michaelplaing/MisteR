@@ -7,7 +7,7 @@
 #include <zlog.h>
 
 #include "mister/mister.h"
-#include "packet_internal.h"
+#include "mister_internal.h"
 
 int mr_calloc(void **ppv, size_t count, size_t size) {
     if (!count) count = 1; // always allocate something even if size is 0

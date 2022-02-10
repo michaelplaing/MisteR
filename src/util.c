@@ -7,7 +7,7 @@
 #include <zlog.h>
 
 #include "mister/mister.h"
-#include "packet_internal.h"
+#include "mister_internal.h"
 
 // MQTT unicode validation using a reasonably fast and portable naïve method
 /*

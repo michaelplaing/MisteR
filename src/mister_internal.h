@@ -1,11 +1,18 @@
-#ifndef PACKET_INTERNAL_H
-#define PACKET_INTERNAL_H
+#ifndef MISTER_INTERNAL_H
+#define MISTER_INTERNAL_H
+
+#include <stdbool.h>
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// spec
+/**
+ * @brief MQTT5 packet types.
+ *
+ * The left 4-bit nibble (>> 4) of the mqtt_packet_type is the 1-based index.
+ */
 enum mqtt_packet_type {
     MQTT_CONNECT        = 0x10U,
     MQTT_CONNACK        = 0x20U,
@@ -26,78 +33,34 @@ enum mqtt_packet_type {
 
 // from mosquitto & spec
 enum mqtt_property {
-    MQTT_PROP_PAYLOAD_FORMAT_INDICATOR = 1,             /* Byte :               PUBLISH, Will Properties */
-    MQTT_PROP_MESSAGE_EXPIRY_INTERVAL = 2,              /* 4 byte int :         PUBLISH, Will Properties */
-    MQTT_PROP_CONTENT_TYPE = 3,                         /* UTF-8 string :       PUBLISH, Will Properties */
-    MQTT_PROP_RESPONSE_TOPIC = 8,                       /* UTF-8 string :       PUBLISH, Will Properties */
-    MQTT_PROP_CORRELATION_DATA = 9,                     /* Binary Data :        PUBLISH, Will Properties */
-    MQTT_PROP_SUBSCRIPTION_IDENTIFIER = 11,             /* Variable byte int :  PUBLISH, SUBSCRIBE */
-    MQTT_PROP_SESSION_EXPIRY_INTERVAL = 17,             /* 4 byte int :         CONNECT, CONNACK, DISCONNECT */
-    MQTT_PROP_ASSIGNED_CLIENT_IDENTIFIER = 18,          /* UTF-8 string :       CONNACK */
-    MQTT_PROP_SERVER_KEEP_ALIVE = 19,                   /* 2 byte int :         CONNACK */
-    MQTT_PROP_AUTHENTICATION_METHOD = 21,               /* UTF-8 string :       CONNECT, CONNACK, AUTH */
-    MQTT_PROP_AUTHENTICATION_DATA = 22,                 /* Binary Data :        CONNECT, CONNACK, AUTH */
-    MQTT_PROP_REQUEST_PROBLEM_INFORMATION = 23,         /* Byte :               CONNECT */
-    MQTT_PROP_WILL_DELAY_INTERVAL = 24,                 /* 4 byte int :         Will properties */
-    MQTT_PROP_REQUEST_RESPONSE_INFORMATION = 25,        /* Byte :               CONNECT */
-    MQTT_PROP_RESPONSE_INFORMATION = 26,                /* UTF-8 string :       CONNACK */
-    MQTT_PROP_SERVER_REFERENCE = 28,                    /* UTF-8 string :       CONNACK, DISCONNECT */
-    MQTT_PROP_REASON_STRING = 31,                       /* UTF-8 string :       All except Will properties */
-    MQTT_PROP_RECEIVE_MAXIMUM = 33,                     /* 2 byte int :         CONNECT, CONNACK */
-    MQTT_PROP_TOPIC_ALIAS_MAXIMUM = 34,                 /* 2 byte int :         CONNECT, CONNACK */
-    MQTT_PROP_TOPIC_ALIAS = 35,                         /* 2 byte int :         PUBLISH */
-    MQTT_PROP_MAXIMUM_QOS = 36,                         /* Byte :               CONNACK */
-    MQTT_PROP_RETAIN_AVAILABLE = 37,                    /* Byte :               CONNACK */
-    MQTT_PROP_USER_PROPERTY = 38,                       /* UTF-8 string pair :  All */
-    MQTT_PROP_MAXIMUM_PACKET_SIZE = 39,                 /* 4 byte int :         CONNECT, CONNACK */
-    MQTT_PROP_WILDCARD_SUBSCRIPTION_AVAILABLE = 40,     /* Byte :               CONNACK */
-    MQTT_PROP_SUBSCRIPTION_IDENTIFIERS_AVAILABLE = 41,  /* Byte :               CONNACK */
-    MQTT_PROP_SHARED_SUBSCRIPTION_AVAILABLE = 42,       /* Byte :               CONNACK */
+    MQTT_PROP_PAYLOAD_FORMAT_INDICATOR = 1,             ///< Byte :               PUBLISH, Will Properties
+    MQTT_PROP_MESSAGE_EXPIRY_INTERVAL = 2,              ///< 4 byte int :         PUBLISH, Will Properties
+    MQTT_PROP_CONTENT_TYPE = 3,                         ///< UTF-8 string :       PUBLISH, Will Properties
+    MQTT_PROP_RESPONSE_TOPIC = 8,                       ///< UTF-8 string :       PUBLISH, Will Properties
+    MQTT_PROP_CORRELATION_DATA = 9,                     ///< Binary Data :        PUBLISH, Will Properties
+    MQTT_PROP_SUBSCRIPTION_IDENTIFIER = 11,             ///< Variable byte int :  PUBLISH, SUBSCRIBE
+    MQTT_PROP_SESSION_EXPIRY_INTERVAL = 17,             ///< 4 byte int :         CONNECT, CONNACK, DISCONNECT
+    MQTT_PROP_ASSIGNED_CLIENT_IDENTIFIER = 18,          ///< UTF-8 string :       CONNACK
+    MQTT_PROP_SERVER_KEEP_ALIVE = 19,                   ///< 2 byte int :         CONNACK
+    MQTT_PROP_AUTHENTICATION_METHOD = 21,               ///< UTF-8 string :       CONNECT, CONNACK, AUTH
+    MQTT_PROP_AUTHENTICATION_DATA = 22,                 ///< Binary Data :        CONNECT, CONNACK, AUTH
+    MQTT_PROP_REQUEST_PROBLEM_INFORMATION = 23,         ///< Byte :               CONNECT
+    MQTT_PROP_WILL_DELAY_INTERVAL = 24,                 ///< 4 byte int :         Will properties
+    MQTT_PROP_REQUEST_RESPONSE_INFORMATION = 25,        ///< Byte :               CONNECT
+    MQTT_PROP_RESPONSE_INFORMATION = 26,                ///< UTF-8 string :       CONNACK
+    MQTT_PROP_SERVER_REFERENCE = 28,                    ///< UTF-8 string :       CONNACK, DISCONNECT
+    MQTT_PROP_REASON_STRING = 31,                       ///< UTF-8 string :       All except Will properties
+    MQTT_PROP_RECEIVE_MAXIMUM = 33,                     ///< 2 byte int :         CONNECT, CONNACK
+    MQTT_PROP_TOPIC_ALIAS_MAXIMUM = 34,                 ///< 2 byte int :         CONNECT, CONNACK
+    MQTT_PROP_TOPIC_ALIAS = 35,                         ///< 2 byte int :         PUBLISH
+    MQTT_PROP_MAXIMUM_QOS = 36,                         ///< Byte :               CONNACK
+    MQTT_PROP_RETAIN_AVAILABLE = 37,                    ///< Byte :               CONNACK
+    MQTT_PROP_USER_PROPERTY = 38,                       ///< UTF-8 string pair :  All
+    MQTT_PROP_MAXIMUM_PACKET_SIZE = 39,                 ///< 4 byte int :         CONNECT, CONNACK
+    MQTT_PROP_WILDCARD_SUBSCRIPTION_AVAILABLE = 40,     ///< Byte :               CONNACK
+    MQTT_PROP_SUBSCRIPTION_IDENTIFIERS_AVAILABLE = 41,  ///< Byte :               CONNACK
+    MQTT_PROP_SHARED_SUBSCRIPTION_AVAILABLE = 42,       ///< Byte :               CONNACK
 };
-
-/// a type that can be cast to/from a pointer or an int up to uint32_t
-typedef unsigned long mr_mvalue_t;
-
-typedef struct mr_mdata {
-    const char *name;       ///< field name from spec
-    const int dtype;        ///< data type
-    const uint8_t bitpos;   ///< bit position
-    mr_mvalue_t value;      ///< for any mdata scalar value or pointer
-    bool valloc;            ///< value allocated?
-    size_t vlen;            ///< integer byte size OR sub-byte # of bits OR vector byte length
-    size_t u8vlen;          ///< byte count of packed value as a uint8_t vector
-    bool vexists;           ///< value set?
-    const int link;         ///< end of range for VBI; byte to stuff for sub-byte scalar
-    const int propid;       ///< property id if any
-    const int flagid;       ///< controlling flag id if any
-    const int idx;          ///< offset of the mdata in the packet's mdata0 vector
-    char *printable;        ///< c-string printable value
-} mr_mdata;
-
-typedef int (*mr_mdata_fn)(struct mr_packet_ctx *pctx, struct mr_mdata *mdata);
-
-typedef struct mr_packet_ctx {
-    uint8_t mqtt_packet_type;
-    const char *mqtt_packet_name;
-    char *printable_mdata;
-    uint8_t *u8v0;
-    bool u8valloc;
-    size_t u8vlen;
-    size_t u8vpos;
-    struct mr_mdata *mdata0;
-    size_t mdata_count;
-} mr_packet_ctx;
-
-typedef struct mr_dtype {
-    const int idx;
-    const char *name;
-    const mr_mdata_fn count_fn;
-    const mr_mdata_fn pack_fn;
-    const mr_mdata_fn unpack_fn;
-    const mr_mdata_fn output_fn;
-    const mr_mdata_fn validate_fn;
-    const mr_mdata_fn free_fn;
-} mr_dtype;
 
 enum mr_data_types {
     MR_U8_DTYPE,
@@ -112,13 +75,36 @@ enum mr_data_types {
     MR_PROPERTIES_DTYPE
 };
 
-typedef int (*mr_ptype_fn)(struct mr_packet_ctx *pctx);
+/// a type that can be cast to/from a pointer or an int up to uint32_t (sufficient for MQTT5)
+typedef unsigned long mr_mvalue_t;
 
-typedef struct mr_ptype {
-    const int mqtt_packet_type;
+typedef struct mr_mdata {
+    const char *name;       ///< field name from spec
+    const int dtype;        ///< data type
+    const uint8_t bitpos;   ///< bit position for a MR_BITS_DTYPE sub-byte scalar
+    mr_mvalue_t value;      ///< an unpacked scalar value or a pointer to an unpacked vector
+    bool valloc;            ///< value allocated flag
+    size_t vlen;            ///< integer byte size OR sub-byte # of bits OR vector length
+    size_t u8vlen;          ///< byte count of packed value as a uint8_t vector
+    bool vexists;           ///< value set flag
+    const int link;         ///< end of range for VBI; byte to stuff for a sub-byte scalar
+    const int propid;       ///< property id if any
+    const int flagid;       ///< controlling flag id if any
+    const int idx;          ///< offset of this mdata instance in the packet's mdata0 vector
+    char *printable;        ///< c-string printable version of the value
+} mr_mdata;
+
+typedef struct mr_packet_ctx {
+    uint8_t mqtt_packet_type;
     const char *mqtt_packet_name;
-    const mr_ptype_fn ptype_fn;
-} mr_ptype;
+    char *printable_mdata;
+    uint8_t *u8v0;
+    bool u8valloc;
+    size_t u8vlen;
+    size_t u8vpos;
+    struct mr_mdata *mdata0;
+    size_t mdata_count;
+} mr_packet_ctx;
 
 int mr_init_packet(
     mr_packet_ctx **ppctx, const mr_mdata *MDATA_TEMPLATE, const size_t mdata_count
@@ -221,4 +207,4 @@ int mr_get_VBI(uint32_t *pu32, uint8_t *u8v);
 }
 #endif
 
-#endif // PACKET_INTERNAL_H
+#endif // MISTER_INTERNAL_H

@@ -5,7 +5,7 @@
  * @brief Common code for handling packets and data types.
  *
  * These functions are called by packet-specific modules to manipulate the packet context
- * (mr_packet_ctx) and its mr_mdata vector containing the packet values and associated metadata.
+ * (mr_packet_ctx/pctx) and its mr_mdata vector containing the packet values and associated metadata.
  *
  * This module deals with validating, packing and unpacking packets and is focused on handling
  * data types. The ordered field metadata, expressed as the mr_mdata vector and
@@ -21,12 +21,43 @@
 #include <zlog.h>
 
 #include "mister/mister.h"
-#include "packet_internal.h"
+#include "mister_internal.h"
 
-static mr_ptype _PACKET_TYPE[] = { // same order as mqtt_packet_type
-// Note: mqtt_packet_type index is 1-based, hence the dummy row 0
-// The left 4-bit nibble (>> 4) of the mqtt_packet_type is the index
-//   mqtt_packet_type   mqtt_packet_name    ptype_fn - invoked at the end of unpacking the packet
+// typedefs only for this module
+
+typedef int (*mr_mdata_fn)(struct mr_packet_ctx *pctx, struct mr_mdata *mdata);
+
+typedef struct mr_dtype {
+    const int idx;
+    const char *name;
+    const mr_mdata_fn count_fn;
+    const mr_mdata_fn pack_fn;
+    const mr_mdata_fn unpack_fn;
+    const mr_mdata_fn output_fn;
+    const mr_mdata_fn validate_fn;
+    const mr_mdata_fn free_fn;
+} mr_dtype;
+
+typedef int (*mr_ptype_fn)(struct mr_packet_ctx *pctx);
+
+typedef struct mr_ptype {
+    const int mqtt_packet_type;
+    const char *mqtt_packet_name;
+    const mr_ptype_fn ptype_fn;
+} mr_ptype;
+
+/**
+ * @brief The mr_ptype vector of names and functions.
+ *
+ * This vector has the same order as mqtt_packet_type.
+ *
+ * The mqtt_packet_type index is 1-based, hence there is a dummy row 0.
+ * The left 4-bit nibble (>> 4) of the mqtt_packet_type is the index.
+ *
+ * The ptype_fn is invoked at the end of unpacking the packet
+ */
+static const mr_ptype _PACKET_TYPE[] = {
+//   mqtt_packet_type   mqtt_packet_name    ptype_fn
     {0,                 "",                 NULL},
     {MQTT_CONNECT,      "CONNECT",          mr_validate_connect_extra},
     {MQTT_CONNACK,      "CONNACK",          NULL},
@@ -122,11 +153,11 @@ int mr_init_unpack_packet(
 ) {
     if (mr_init_packet(ppctx, MDATA_TEMPLATE, mdata_count)) return -1;
     mr_packet_ctx *pctx = *ppctx;
-    pctx->u8v0 = (uint8_t *)u8v0;
+    pctx->u8v0 = (uint8_t *)u8v0; // override const
     pctx->u8vlen = u8vlen;
     pctx->u8valloc = false;
     if (mr_unpack_packet(pctx)) return -1;
-    pctx->u8v0 = NULL; // dereference
+    pctx->u8v0 = NULL; // dereference - caller is responsible for freeing
     pctx->u8vlen = 0;
     return 0;
 }

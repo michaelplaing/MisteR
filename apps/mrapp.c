@@ -11,7 +11,7 @@
 #include "mister/mister.h"
 
 //#include "../src/connect_internal.h"
-//#include "../src/packet_internal.h"
+//#include "../src/mister_internal.h"
 /*
 void mrPingreqCallback(redisAsyncContext *rctx, void *reply_void, void *private_data_void) {
     REDISMODULE_NOT_USED(rctx);
