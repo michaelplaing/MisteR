@@ -1,12 +1,14 @@
 #ifndef MISTER_INTERNAL_H
 #define MISTER_INTERNAL_H
 
-#include <stdbool.h>
-#include <stdlib.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <stdbool.h>
+#include <stdlib.h>
+
+#include "mister/mister.h"
 
 /**
  * @brief MQTT5 packet types.

@@ -20,7 +20,6 @@
 
 #include <zlog.h>
 
-#include "mister/mister.h"
 #include "mister_internal.h"
 
 // typedefs only for this module

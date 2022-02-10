@@ -1,6 +1,6 @@
 // init.c
 
-#include "mister/mister.h"
+#include "mister_internal.h"
 
 int mr_errno = 0;
 

@@ -7,7 +7,6 @@
 
 #include <zlog.h>
 
-#include "mister/mister.h"
 #include "mister_internal.h"
 
 enum CONNACK_MDATA_FIELDS { // Same order as _CONNACK_MDATA_TEMPLATE
