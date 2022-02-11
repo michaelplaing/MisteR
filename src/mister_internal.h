@@ -193,7 +193,8 @@ int mr_validate_connect_unpack(mr_packet_ctx *pctx);
 // CONNACK
 
 static int mr_check_connack_packet(mr_packet_ctx *pctx);
-int mr_validate_connack_extra(mr_packet_ctx *pctx);
+static int mr_validate_connack_pack(mr_packet_ctx *pctx);
+int mr_validate_connack_unpack(mr_packet_ctx *pctx);
 
 // memory
 

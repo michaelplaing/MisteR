@@ -59,7 +59,7 @@ static const mr_ptype _PACKET_TYPE[] = {
 //   mqtt_packet_type   mqtt_packet_name    ptype_fn
     {0,                 "",                 NULL},
     {MQTT_CONNECT,      "CONNECT",          mr_validate_connect_unpack},
-    {MQTT_CONNACK,      "CONNACK",          mr_validate_connack_extra},
+    {MQTT_CONNACK,      "CONNACK",          mr_validate_connack_unpack},
     {MQTT_PUBLISH,      "PUBLISH",          NULL},
     {MQTT_PUBACK,       "PUBACK",           NULL},
     {MQTT_PUBREC,       "PUBREC",           NULL},

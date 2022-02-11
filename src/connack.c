@@ -137,7 +137,7 @@ static int mr_check_connack_packet(mr_packet_ctx *pctx) {
 
 int mr_pack_connack_packet(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *pu8vlen) {
     if (mr_check_connack_packet(pctx)) return -1;
-    if (mr_validate_connack_values(pctx)) return -1;
+    if (mr_validate_connack_pack(pctx)) return -1;
     return mr_pack_packet(pctx, pu8v0, pu8vlen);
 }
 
@@ -513,25 +513,80 @@ int mr_reset_connack_authentication_data(mr_packet_ctx *pctx) {
 
 // validation
 
-int mr_validate_connack_extra(mr_packet_ctx *pctx) {
+static int mr_validate_connack_pack(mr_packet_ctx *pctx) {
+    return 0;
+}
+
+// CONNACK ptype_fn invoked from packet.c during unpack
+int mr_validate_connack_unpack(mr_packet_ctx *pctx) {
     uint8_t u8;
-    bool bexists;
+    uint16_t u16;
+    uint32_t u32;
+    bool exists_flag;
+
     // connect_reason_code
-    if (mr_get_connack_connect_reason_code(pctx, &u8, &bexists)) return -1;
+    if (mr_get_connack_connect_reason_code(pctx, &u8, &exists_flag)) return -1;
 
     if (!memchr(_CONNACK_CONNECT_REASON_CODES, u8, _CCRCSZ)) {
         dzlog_error("connect_reason_code not found");
         return -1;
     }
 
-    return 0;
-}
+    // receive_maximum
+    if(mr_get_connack_receive_maximum(pctx, &u16, &exists_flag)) return -1;
 
-int mr_validate_connack_values(mr_packet_ctx *pctx) {
-    if (mr_check_connack_packet(pctx)) return -1;
-    // if (mr_validate_connack_cross(pctx)) return -1;
-    // if (mr_validate_utf8_values(pctx)) return -1;
-    if (mr_validate_connack_extra(pctx)) return -1;
+    if (u16 == 0) {
+        dzlog_error("receive_maximum must be > 0");
+        return -1;
+    }
+
+    // connack_maximum_qos
+    if (mr_get_connack_maximum_qos(pctx, &u8, &exists_flag)) return -1;
+
+    if (u8 > 1) {
+        dzlog_error("maximum_qos must be in range (0..1): %u", u8);
+        return -1;
+    }
+
+    // retain_available
+    if (mr_get_connack_retain_available(pctx, &u8, &exists_flag)) return -1;
+
+    if (u8 > 1) {
+        dzlog_error("retain_available must be in range (0..1): %u", u8);
+        return -1;
+    }
+
+    // maximum_packet_size
+    if (mr_get_connack_maximum_packet_size(pctx, &u32, &exists_flag)) return -1;
+
+    if (u32 == 0) {
+        dzlog_error("maximum_packet_size must be > 0");
+        return -1;
+    }
+
+    // wildcard_subscription_available
+    if (mr_get_connack_wildcard_subscription_available(pctx, &u8, &exists_flag)) return -1;
+
+    if (u8 > 1) {
+        dzlog_error("wildcard_subscription_available must be in range (0..1): %u", u8);
+        return -1;
+    }
+
+    // subscription_identifiers_available
+    if (mr_get_connack_subscription_identifiers_available(pctx, &u8, &exists_flag)) return -1;
+
+    if (u8 > 1) {
+        dzlog_error("subscription_identifiers_available must be in range (0..1): %u", u8);
+        return -1;
+    }
+
+    // shared_subscription_available
+    if (mr_get_connack_shared_subscription_available(pctx, &u8, &exists_flag)) return -1;
+
+    if (u8 > 1) {
+        dzlog_error("shared_subscription_available must be in range (0..1): %u", u8);
+        return -1;
+    }
 
     return 0;
 }
