@@ -99,7 +99,7 @@ typedef struct mr_mdata {
 typedef struct mr_packet_ctx {
     uint8_t mqtt_packet_type;
     const char *mqtt_packet_name;
-    char *printable_mdata;
+    char *printable;
     uint8_t *u8v0;
     bool u8valloc;
     size_t u8vlen;
@@ -161,7 +161,7 @@ int mr_get_u8v(mr_packet_ctx *pctx, const int idx, uint8_t **pu8v0, size_t *plen
 static int mr_count_u8v(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_pack_u8v(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_unpack_u8v(mr_packet_ctx *pctx, mr_mdata *mdata);
-int mr_validate_u8vutf8(mr_packet_ctx *pctx, const int idx);
+int mr_validate_u8v_utf8(mr_packet_ctx *pctx, const int idx);
 
 int mr_get_str(mr_packet_ctx *pctx, const int idx, char **pcv0, bool *pexists);
 static int mr_count_str(mr_packet_ctx *pctx, mr_mdata *mdata);
@@ -176,8 +176,6 @@ static int mr_free_spv(mr_packet_ctx *pctx, mr_mdata *mdata);
 
 static int mr_unpack_properties(mr_packet_ctx *pctx, mr_mdata *mdata);
 
-int mr_validate_utf8_values(mr_packet_ctx *pctx);
-
 static int mr_printable_scalar(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_printable_hexvalue(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_printable_hexdump(mr_packet_ctx *pctx, mr_mdata *mdata);
@@ -189,7 +187,13 @@ int mr_get_printable(mr_packet_ctx *pctx, const bool all_flag, char **pcv);
 
 static int mr_check_connect_packet(mr_packet_ctx *pctx);
 static int mr_validate_connect_cross(mr_packet_ctx *pctx);
-int mr_validate_connect_extra(mr_packet_ctx *pctx);
+static int mr_validate_connect_pack(mr_packet_ctx *pctx);
+int mr_validate_connect_unpack(mr_packet_ctx *pctx);
+
+// CONNACK
+
+static int mr_check_connack_packet(mr_packet_ctx *pctx);
+int mr_validate_connack_extra(mr_packet_ctx *pctx);
 
 // memory
 

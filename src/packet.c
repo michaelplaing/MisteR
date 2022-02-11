@@ -32,7 +32,7 @@ typedef struct mr_dtype {
     const mr_mdata_fn count_fn;
     const mr_mdata_fn pack_fn;
     const mr_mdata_fn unpack_fn;
-    const mr_mdata_fn output_fn;
+    const mr_mdata_fn print_fn;
     const mr_mdata_fn validate_fn;
     const mr_mdata_fn free_fn;
 } mr_dtype;
@@ -58,8 +58,8 @@ typedef struct mr_ptype {
 static const mr_ptype _PACKET_TYPE[] = {
 //   mqtt_packet_type   mqtt_packet_name    ptype_fn
     {0,                 "",                 NULL},
-    {MQTT_CONNECT,      "CONNECT",          mr_validate_connect_extra},
-    {MQTT_CONNACK,      "CONNACK",          NULL},
+    {MQTT_CONNECT,      "CONNECT",          mr_validate_connect_unpack},
+    {MQTT_CONNACK,      "CONNACK",          mr_validate_connack_extra},
     {MQTT_PUBLISH,      "PUBLISH",          NULL},
     {MQTT_PUBACK,       "PUBACK",           NULL},
     {MQTT_PUBREC,       "PUBREC",           NULL},
@@ -76,7 +76,7 @@ static const mr_ptype _PACKET_TYPE[] = {
 };
 
 static const mr_dtype _DATA_TYPE[] = { // same order as mr_data_types enum
-//   dtype idx              name                        count_fn        pack_fn             unpack_fn               output_fn           validate_fn         free_fn
+//   dtype idx              name                        count_fn        pack_fn             unpack_fn               print_fn               validate_fn         free_fn
     {MR_U8_DTYPE,           "uint8",                    NULL,           mr_pack_u8,         mr_unpack_u8,           mr_printable_scalar,   NULL,               NULL},
     {MR_U16_DTYPE,          "uint16",                   NULL,           mr_pack_u16,        mr_unpack_u16,          mr_printable_scalar,   NULL,               NULL},
     {MR_U32_DTYPE,          "uint32",                   NULL,           mr_pack_u32,        mr_unpack_u32,          mr_printable_scalar,   NULL,               NULL},
@@ -86,7 +86,7 @@ static const mr_dtype _DATA_TYPE[] = { // same order as mr_data_types enum
     {MR_STR_DTYPE,          "utf8 prefix string",       mr_count_str,   mr_pack_u8v,        mr_unpack_u8v,          mr_printable_string,   mr_validate_str,    mr_free_vector},
     {MR_SPV_DTYPE,          "string pair vector",       mr_count_spv,   mr_pack_spv,        mr_unpack_spv,          mr_printable_spv,      mr_validate_spv,    mr_free_spv},
     {MR_FLAGS_DTYPE,        "uint8 flag",               NULL,           mr_pack_incr1,      mr_unpack_u8,           mr_printable_hexvalue, NULL,               NULL},
-    {MR_PROPERTIES_DTYPE,   "properties",               NULL,           NULL,               mr_unpack_properties,   NULL,               NULL,               NULL}
+    {MR_PROPERTIES_DTYPE,   "properties",               NULL,           NULL,               mr_unpack_properties,   NULL,                  NULL,               NULL}
 };
 
 int mr_init_packet(mr_packet_ctx **ppctx, const mr_mdata *MDATA_TEMPLATE, size_t mdata_count) {
@@ -174,7 +174,6 @@ int mr_pack_packet(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *pu8vlen) {
     }
 
     if (mr_malloc((void **)&pctx->u8v0, pctx->u8vlen)) return -1;
-
     pctx->u8valloc = true;
     pctx->u8vpos = 0;
 
@@ -200,7 +199,7 @@ int mr_free_packet_context(mr_packet_ctx *pctx) {
     }
 
     if (pctx->u8valloc & mr_free(pctx->u8v0)) return -1;
-    if (mr_free(pctx->printable_mdata)) return -1;
+    if (mr_free(pctx->printable)) return -1;
     if (mr_free(pctx)) return -1;;
     return 0;
 }
@@ -480,7 +479,7 @@ static int mr_unpack_u8v(mr_packet_ctx *pctx, mr_mdata *mdata) {
     return 0;
 }
 
-int mr_validate_u8vutf8(mr_packet_ctx *pctx, const int idx) {
+int mr_validate_u8v_utf8(mr_packet_ctx *pctx, const int idx) {
     mr_mdata *mdata = pctx->mdata0 + idx;
     int err_pos = utf8val((uint8_t *)mdata->value, mdata->vlen);
 
@@ -713,26 +712,6 @@ static int mr_unpack_properties(mr_packet_ctx *pctx, mr_mdata *mdata) {
     return 0;
 }
 
-int mr_validate_utf8_values(mr_packet_ctx *pctx) {
-    mr_mdata *mdata = pctx->mdata0;
-
-    for (int i = 0; i < pctx->mdata_count; i++, mdata++) {
-        if (mdata->vexists) {
-            if (mdata->dtype == MR_STR_DTYPE) {
-                if (mr_validate_str(pctx, mdata)) return -1;
-            }
-            else if (mdata->dtype == MR_SPV_DTYPE) {
-                if (mr_validate_spv(pctx, mdata)) return -1;
-            }
-            else {
-                ; // noop
-            }
-        }
-    }
-
-    return 0;
-}
-
 static int mr_printable_scalar(mr_packet_ctx *pctx, mr_mdata *mdata) {
     char cv[32] = {'\0'};
     char *printable;
@@ -808,12 +787,12 @@ static int mr_printable_spv(mr_packet_ctx *pctx, mr_mdata *mdata) {
 static const char _NOT_PRINTABLE[] = "***";
 
 /**
- * @brief Create the packet's printable_mdata by creating and catenating the packet's mdata printable's.
+ * @brief Create the packet's printable metadata by creating and catenating the packet's mdata printable's.
  *
  * @details
- * Free currently allocated printable_mdata and mdata printable's as we go.
+ * Free the currently allocated packet printable and mdata printable's as we go.
  *
- * Invoke the mr_dtype::output_fn for each mr_mdata in the mr_packet_ctx::mdata0 vector. The output_fn's
+ * Invoke the mr_dtype::print_fn for each mr_mdata in the mr_packet_ctx::mdata0 vector. The print_fn's
  * are one of these static functions: mr_printable_scalar for an integer; mr_printable_hexdump for a u8 vector;
  * mr_printable_hexvalue for an integer bit field, typically a flag byte; mr_printable_string for a c-string,
  * and mr_printable_spv for a mr_string_pair vector.
@@ -823,9 +802,10 @@ static const char _NOT_PRINTABLE[] = "***";
  *
  * @param all_flag true: list name:value pairs for all fields using '***' for the values of non-existent ones;
  * false: only list name:value pairs for fields that exist.
+ * @param pcv the address of a c-string that will be the printable metada
  */
 int mr_get_printable(mr_packet_ctx *pctx, const bool all_flag, char **pcv) {
-    if (mr_free(pctx->printable_mdata)) return -1;
+    if (mr_free(pctx->printable)) return -1;
     const mr_mdata_fn vbi_count_fn = _DATA_TYPE[MR_VBI_DTYPE].count_fn;
 
     // traverse in reverse to calculate VBIs since their u8vlens are variable
@@ -837,22 +817,22 @@ int mr_get_printable(mr_packet_ctx *pctx, const bool all_flag, char **pcv) {
     size_t len = 0;
     mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
-        if (_DATA_TYPE[mdata->dtype].output_fn && mr_free(mdata->printable)) return -1;
+        if (_DATA_TYPE[mdata->dtype].print_fn && mr_free(mdata->printable)) return -1;
 
         if (mdata->vexists) {
-            mr_mdata_fn output_fn = _DATA_TYPE[mdata->dtype].output_fn;
+            mr_mdata_fn print_fn = _DATA_TYPE[mdata->dtype].print_fn;
 
-            if (output_fn) {
-                if (output_fn(pctx, mdata)) return -1;
+            if (print_fn) {
+                if (print_fn(pctx, mdata)) return -1;
                 len += strlen(mdata->name) + 1 + strlen(mdata->printable) + 1; // ':' and '\n'
             }
         }
     }
 
-    char *printable_mdata;
-    if (mr_calloc((void **)&printable_mdata, len, 1)) return -1;
+    char *printable;
+    if (mr_calloc((void **)&printable, len, 1)) return -1;
 
-    char *pc = printable_mdata;
+    char *pc = printable;
     mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
         if (mdata->printable) {
@@ -869,6 +849,6 @@ int mr_get_printable(mr_packet_ctx *pctx, const bool all_flag, char **pcv) {
     }
 
     *(pc - 1) = '\0'; // overwrite trailing '\n' to make a c-string
-    *pcv = pctx->printable_mdata = printable_mdata;
+    *pcv = pctx->printable = printable;
     return 0;
 }

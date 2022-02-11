@@ -7,8 +7,10 @@
 extern "C" {
 #endif
 
-int get_binary_file_content(const char *fixfilename, uint8_t **pu8v, uint32_t *pffsz);
-int put_binary_file_content(const char *fixfilename, uint8_t *u8v, uint32_t ffsz);
+#include <stdlib.h>
+
+int get_binary_file_content(const char *fixfilename, uint8_t **pu8v, size_t *pffsz);
+int put_binary_file_content(const char *fixfilename, uint8_t *u8v, size_t ffsz);
 
 #ifdef __cplusplus
 }

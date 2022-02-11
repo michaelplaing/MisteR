@@ -4,7 +4,7 @@
 
 #include "util.h"
 
-int get_binary_file_content(const char *fixfilename, uint8_t **pu8v, uint32_t *pffsz) {
+int get_binary_file_content(const char *fixfilename, uint8_t **pu8v, size_t *pffsz) {
     FILE *fixfile;
     fixfile = fopen(fixfilename, "r");
     if (fixfile == NULL) return -1;
@@ -18,7 +18,7 @@ int get_binary_file_content(const char *fixfilename, uint8_t **pu8v, uint32_t *p
     return 0;
 }
 
-int put_binary_file_content(const char *fixfilename, uint8_t *u8v, uint32_t ffsz) {
+int put_binary_file_content(const char *fixfilename, uint8_t *u8v, size_t ffsz) {
     FILE *fixfile;
     fixfile = fopen(fixfilename, "w");
     if (fixfile == NULL) return -1;

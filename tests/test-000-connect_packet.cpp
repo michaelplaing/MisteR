@@ -154,22 +154,19 @@ TEST_CASE("happy CONNECT packet", "[connect][happy]") {
     // dzlog_info("common test epilog");
     // *** common test epilog ***
 
-    // validate
-    REQUIRE(mr_validate_connect_values(pctx) == 0);
-
     // dump
     char *packet_printable;
     REQUIRE(mr_get_connect_printable(pctx, false, &packet_printable) == 0);
     // REQUIRE(put_binary_file_content(printable_filename, (uint8_t *)packet_printable, strlen(packet_printable) + 1) == 0);
 
     // check dump
-    char *printable_mdata;
-    uint32_t mdsz;
-    REQUIRE(get_binary_file_content(printable_filename, (uint8_t **)&printable_mdata, &mdsz) == 0);
-    // printf("\nprintable_mdata (%s)::\n%s\n\npacket_printable::\n%s\n", printable_filename, printable_mdata, packet_printable);
+    char *file_printable;
+    size_t mdsz;
+    REQUIRE(get_binary_file_content(printable_filename, (uint8_t **)&file_printable, &mdsz) == 0);
+    // printf("\nprintable_mdata (%s)::\n%s\n\npacket_printable::\n%s\n", printable_filename, file_printable, packet_printable);
     REQUIRE(mdsz == strlen(packet_printable) + 1);
-    REQUIRE(strcmp(printable_mdata, packet_printable) == 0);
-    free(printable_mdata);
+    REQUIRE(strcmp(file_printable, packet_printable) == 0);
+    free(file_printable);
 
     // pack
     uint8_t *packet_u8v0;
@@ -182,7 +179,7 @@ TEST_CASE("happy CONNECT packet", "[connect][happy]") {
 
     // check packet
     uint8_t *u8v0;
-    uint32_t u8vlen;
+    size_t u8vlen;
     REQUIRE(get_binary_file_content(packet_filename, &u8v0, &u8vlen) == 0);
     REQUIRE(u8vlen == packet_u8vlen);
     REQUIRE(memcmp(u8v0, packet_u8v0, u8vlen) == 0);
@@ -199,8 +196,8 @@ TEST_CASE("happy CONNECT packet", "[connect][happy]") {
 
     // check unpack dump
     REQUIRE(mdsz == strlen(packet_printable) + 1);
-    REQUIRE(strcmp(printable_mdata, packet_printable) == 0);
-    free(printable_mdata);
+    REQUIRE(strcmp(file_printable, packet_printable) == 0);
+    free(file_printable);
 
     REQUIRE(mr_get_connect_printable(pctx, true, &packet_printable) == 0); // test true flag
     printf("\npacket_printable::\n%s\n", packet_printable);
@@ -220,7 +217,7 @@ TEST_CASE("unhappy CONNECT packet", "[connect][unhappy]") {
     // get the complex packet and unpack it so we have a full deck to play with
     mr_packet_ctx *pctx;
     uint8_t *u8v0;
-    uint32_t u8vlen;
+    size_t u8vlen;
     REQUIRE(get_binary_file_content("fixtures/complex_connect_packet.bin", &u8v0, &u8vlen) == 0);
     REQUIRE(mr_init_unpack_connect_packet(&pctx, u8v0, u8vlen) == 0);
     // puts("");
@@ -261,27 +258,27 @@ TEST_CASE("unhappy CONNECT packet", "[connect][unhappy]") {
         // . will_flag == false && not payload_format_indicator exists
         // . will_flag == true  && payload_format_indicator exists && == 1 && will_payload is valid utf8
         REQUIRE(mr_set_connect_payload_format_indicator(pctx, -1) == 0);
-        CHECK(mr_validate_connect_values(pctx) == -1);
+        CHECK(mr_pack_connect_packet(pctx, &u8v0, &u8vlen) == -1);
         REQUIRE(mr_set_connect_payload_format_indicator(pctx, 0) == 0);
-        CHECK(mr_validate_connect_values(pctx) == 0);
+        CHECK(mr_pack_connect_packet(pctx, &u8v0, &u8vlen) == 0);
         REQUIRE(mr_set_connect_payload_format_indicator(pctx, 2) == 0);
-        CHECK(mr_validate_connect_values(pctx) == -1);
+        CHECK(mr_pack_connect_packet(pctx, &u8v0, &u8vlen) == -1);
 
         uint8_t u8v[] = {'\0'}; // invalid utf8 for mqtt
         REQUIRE(mr_set_connect_will_payload(pctx, u8v, 1) == 0);
         REQUIRE(mr_set_connect_payload_format_indicator(pctx, 0) == 0);
-        CHECK(mr_validate_connect_values(pctx) == 0);
+        CHECK(mr_pack_connect_packet(pctx, &u8v0, &u8vlen) == 0);
         REQUIRE(mr_set_connect_payload_format_indicator(pctx, 1) == 0); // will_payload is utf8
-        CHECK(mr_validate_connect_values(pctx) == -1);
+        CHECK(mr_pack_connect_packet(pctx, &u8v0, &u8vlen) == -1);
     }
 
     SECTION("authentication_method & authentication_data") {
         REQUIRE(mr_reset_connect_authentication_method(pctx) == 0);
-        CHECK(mr_validate_connect_values(pctx) == -1);
+        CHECK(mr_pack_connect_packet(pctx, &u8v0, &u8vlen) == -1);
         REQUIRE(mr_reset_connect_authentication_data(pctx) == 0);
-        CHECK(mr_validate_connect_values(pctx) == 0);
+        CHECK(mr_pack_connect_packet(pctx, &u8v0, &u8vlen) == 0);
         REQUIRE(mr_set_connect_authentication_method(pctx, _S0L) == 0);
-        CHECK(mr_validate_connect_values(pctx) == 0); // ok to have a method and no data
+        CHECK(mr_pack_connect_packet(pctx, &u8v0, &u8vlen) == 0); // ok to have a method and no data
     }
 
     SECTION("u") {

@@ -177,7 +177,7 @@ static int mr_check_connect_packet(mr_packet_ctx *pctx) {
  */
 int mr_pack_connect_packet(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *pu8vlen) {
     if (mr_check_connect_packet(pctx)) return -1;
-    if (mr_validate_connect_values(pctx)) return -1;
+    if (mr_validate_connect_pack(pctx)) return -1;
     return mr_pack_packet(pctx, pu8v0, pu8vlen);
 }
 
@@ -706,7 +706,41 @@ int mr_reset_connect_password(mr_packet_ctx *pctx) {
 // validation
 
 static int mr_validate_connect_cross(mr_packet_ctx *pctx) {
-    // dzlog_debug("");
+    uint8_t u8;
+    uint8_t *u8v0;
+    size_t len;
+    char *cv0;
+    bool bexists;
+
+    // payload_format_indicator & will_payload
+    if (mr_get_connect_payload_format_indicator(pctx, &u8, &bexists)) return -1;
+
+    if (bexists) {
+        if (u8 > 1) {
+            dzlog_error("payload_format_indicator out of range (0..1): %u", u8);
+            return -1;
+        }
+        else { // previous cross check of will_flag insures existence of will_payload
+            if (u8 > 0 && mr_validate_u8v_utf8(pctx, CONNECT_WILL_PAYLOAD)) return -1;
+        }
+    }
+
+    // authentication_data
+    if (mr_get_connect_authentication_data(pctx, &u8v0, &len, &bexists)) return -1;
+
+    if (bexists) {
+        if (mr_get_connect_authentication_method(pctx, &cv0, &bexists)) return -1;
+
+        if (!bexists) {
+            dzlog_error("authentication_method must exist since authentication_data exists");
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+static int mr_validate_connect_pack(mr_packet_ctx *pctx) {
     bool bexists;
     bool will_flag;
     if (mr_get_boolean(pctx, CONNECT_WILL_FLAG, &will_flag, &bexists)) return -1;
@@ -733,32 +767,16 @@ static int mr_validate_connect_cross(mr_packet_ctx *pctx) {
         }
     }
 
+    if (mr_validate_connect_cross(pctx)) return -1;
     return 0;
 }
 
-// CONNECT ptype_fn invoked from packet.c during unpack in addition to above
-int mr_validate_connect_extra(mr_packet_ctx *pctx) {
-    // dzlog_debug("");
+// CONNECT ptype_fn invoked from packet.c during unpack
+int mr_validate_connect_unpack(mr_packet_ctx *pctx) {
     uint8_t u8;
     uint16_t u16;
     uint32_t u32;
-    uint8_t *u8v0;
-    size_t len;
-    char *cv0;
     bool bexists;
-
-    // payload_format_indicator & will_payload
-    if (mr_get_connect_payload_format_indicator(pctx, &u8, &bexists)) return -1;
-
-    if (bexists) {
-        if (u8 > 1) {
-            dzlog_error("payload_format_indicator out of range (0..1): %u", u8);
-            return -1;
-        }
-        else { // previous cross check of will_flag insures existence of will_payload
-            if (u8 > 0 && mr_validate_u8vutf8(pctx, CONNECT_WILL_PAYLOAD)) return -1;
-        }
-    }
 
     // will_qos
     if (mr_get_connect_will_qos(pctx, &u8, &bexists)) return -1;
@@ -800,33 +818,12 @@ int mr_validate_connect_extra(mr_packet_ctx *pctx) {
         return -1;
     }
 
-    // authentication_data
-    if (mr_get_connect_authentication_data(pctx, &u8v0, &len, &bexists)) return -1;
-
-    if (bexists) {
-        if (mr_get_connect_authentication_method(pctx, &cv0, &bexists)) return -1;
-
-        if (!bexists) {
-            dzlog_error("authentication_method must exist since authentication_data exists");
-            return -1;
-        }
-    }
-
-    return 0;
-}
-
-int mr_validate_connect_values(mr_packet_ctx *pctx) {
-    // dzlog_debug("");
-    if (mr_check_connect_packet(pctx)) return -1;
     if (mr_validate_connect_cross(pctx)) return -1;
-    if (mr_validate_utf8_values(pctx)) return -1;
-    if (mr_validate_connect_extra(pctx)) return -1;
-
     return 0;
 }
 
 /**
- * @brief Set the address of a printable version of the CONNECT packet's field values.
+ * @brief Set a c-string to a printable version of the CONNECT packet's field values.
  *
  * See mr_get_printable().
  */
