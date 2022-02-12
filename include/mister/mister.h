@@ -218,20 +218,18 @@ int mr_init_unpack_connack_packet(mr_packet_ctx **ppctx, uint8_t *u8v0, size_t u
 int mr_pack_connack_packet(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *pu8vlen);
 int mr_free_connack_packet(mr_packet_ctx *pctx);
 
-int mr_get_connack_packet_type(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag);
-int mr_get_connack_remaining_length(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag);
+int mr_get_connack_packet_type(mr_packet_ctx *pctx, uint8_t *pu8);
+int mr_get_connack_remaining_length(mr_packet_ctx *pctx, uint32_t *pu32);
 
-int mr_get_connack_session_present(mr_packet_ctx *pctx, bool *pflag_value, bool *pexists_flag);
+int mr_get_connack_session_present(mr_packet_ctx *pctx, bool *pflag_value);
 int mr_set_connack_session_present(mr_packet_ctx *pctx, const bool flag_value);
-int mr_reset_connack_session_present(mr_packet_ctx *pctx);
 
-int mr_get_connack_reserved(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag);
+int mr_get_connack_reserved(mr_packet_ctx *pctx, uint8_t *pu8);
 
-int mr_get_connack_connect_reason_code(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag);
+int mr_get_connack_connect_reason_code(mr_packet_ctx *pctx, uint8_t *pu8);
 int mr_set_connack_connect_reason_code(mr_packet_ctx *pctx, const uint8_t u8);
-int mr_reset_connack_connect_reason_code(mr_packet_ctx *pctx);
 
-int mr_get_connack_property_length(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag);
+int mr_get_connack_property_length(mr_packet_ctx *pctx, uint32_t *pu32);
 
 int mr_get_connack_session_expiry_interval(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag);
 int mr_set_connack_session_expiry_interval(mr_packet_ctx *pctx, const uint32_t u32);
