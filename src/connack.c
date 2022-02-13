@@ -167,7 +167,7 @@ int mr_get_connack_session_present(mr_packet_ctx *pctx, bool *pflag_value) {
     return mr_get_boolean(pctx, CONNACK_SESSION_PRESENT, pflag_value, &exists_flag);
 }
 
-int mr_set_connack_session_present(mr_packet_ctx *pctx, bool flag_value) {
+int mr_set_connack_session_present(mr_packet_ctx *pctx, const bool flag_value) {
     if (mr_check_connack_packet(pctx)) return -1;
     return mr_set_scalar(pctx, CONNACK_SESSION_PRESENT, flag_value);
 }
@@ -186,7 +186,7 @@ int mr_get_connack_connect_reason_code(mr_packet_ctx *pctx, uint8_t *pu8) {
     return mr_get_u8(pctx, CONNACK_CONNECT_REASON_CODE, pu8, &exists_flag);
 }
 
-static int mr_validate_connack_connect_reason_code(uint8_t u8) {
+static int mr_validate_connack_connect_reason_code(const uint8_t u8) {
     if (!memchr(_CONNACK_CONNECT_REASON_CODES, u8, _CCRCSZ)) {
         dzlog_error("invalid connect_reason_code: %u", u8);
         return -1;
@@ -195,7 +195,7 @@ static int mr_validate_connack_connect_reason_code(uint8_t u8) {
     return 0;
 }
 
-int mr_set_connack_connect_reason_code(mr_packet_ctx *pctx, uint8_t u8) {
+int mr_set_connack_connect_reason_code(mr_packet_ctx *pctx, const uint8_t u8) {
     if (mr_check_connack_packet(pctx)) return -1;
     if (mr_validate_connack_connect_reason_code(u8)) return -1;
     return mr_set_scalar(pctx, CONNACK_CONNECT_REASON_CODE, u8);
@@ -214,7 +214,7 @@ int mr_get_connack_session_expiry_interval(mr_packet_ctx *pctx, uint32_t *pu32, 
     return mr_get_u32(pctx, CONNACK_SESSION_EXPIRY_INTERVAL, pu32, pexists_flag);
 }
 
-int mr_set_connack_session_expiry_interval(mr_packet_ctx *pctx, uint32_t u32) {
+int mr_set_connack_session_expiry_interval(mr_packet_ctx *pctx, const uint32_t u32) {
     if (mr_check_connack_packet(pctx)) return -1;
     return mr_set_scalar(pctx, CONNACK_SESSION_EXPIRY_INTERVAL, u32);
 }
@@ -230,7 +230,7 @@ int mr_get_connack_receive_maximum(mr_packet_ctx *pctx, uint16_t *pu16, bool *pe
     return mr_get_u16(pctx, CONNACK_RECEIVE_MAXIMUM, pu16, pexists_flag);
 }
 
-static int mr_validate_connack_receive_maximum(uint16_t u16) {
+static int mr_validate_connack_receive_maximum(const uint16_t u16) {
     if (u16 == 0) {
         dzlog_error("receive_maximum must be > 0");
         return -1;
@@ -239,7 +239,7 @@ static int mr_validate_connack_receive_maximum(uint16_t u16) {
     return 0;
 }
 
-int mr_set_connack_receive_maximum(mr_packet_ctx *pctx, uint16_t u16) {
+int mr_set_connack_receive_maximum(mr_packet_ctx *pctx, const uint16_t u16) {
     if (mr_check_connack_packet(pctx)) return -1;
     if (mr_validate_connack_receive_maximum(u16)) return -1;
     return mr_set_scalar(pctx, CONNACK_RECEIVE_MAXIMUM, u16);
@@ -256,7 +256,7 @@ int mr_get_connack_maximum_qos(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_
     return mr_get_u8(pctx, CONNACK_MAXIMUM_QOS, pu8, pexists_flag);
 }
 
-static int mr_validate_connack_maximum_qos(uint8_t u8) {
+static int mr_validate_connack_maximum_qos(const uint8_t u8) {
     if (u8 > 1) {
         dzlog_error("maximum_qos must be in range (0..1): %u", u8);
         return -1;
@@ -265,7 +265,7 @@ static int mr_validate_connack_maximum_qos(uint8_t u8) {
     return 0;
 }
 
-int mr_set_connack_maximum_qos(mr_packet_ctx *pctx, uint8_t u8) {
+int mr_set_connack_maximum_qos(mr_packet_ctx *pctx, const uint8_t u8) {
     if (mr_check_connack_packet(pctx)) return -1;
     if (mr_validate_connack_maximum_qos(u8)) return -1;
     return mr_set_scalar(pctx, CONNACK_MAXIMUM_QOS, u8);
@@ -282,7 +282,7 @@ int mr_get_connack_retain_available(mr_packet_ctx *pctx, uint8_t *pu8, bool *pex
     return mr_get_u8(pctx, CONNACK_RETAIN_AVAILABLE, pu8, pexists_flag);
 }
 
-static int mr_validate_connack_retain_available(uint8_t u8) {
+static int mr_validate_connack_retain_available(const uint8_t u8) {
     if (u8 > 1) {
         dzlog_error("retain_available must be in range (0..1): %u", u8);
         return -1;
@@ -291,7 +291,7 @@ static int mr_validate_connack_retain_available(uint8_t u8) {
     return 0;
 }
 
-int mr_set_connack_retain_available(mr_packet_ctx *pctx, uint8_t u8) {
+int mr_set_connack_retain_available(mr_packet_ctx *pctx, const uint8_t u8) {
     if (mr_check_connack_packet(pctx)) return -1;
     if (mr_validate_connack_retain_available(u8)) return -1;
     return mr_set_scalar(pctx, CONNACK_RETAIN_AVAILABLE, u8);
@@ -308,7 +308,7 @@ int mr_get_connack_maximum_packet_size(mr_packet_ctx *pctx, uint32_t *pu32, bool
     return mr_get_u32(pctx, CONNACK_MAXIMUM_PACKET_SIZE, pu32, pexists_flag);
 }
 
-static int mr_validate_connack_maximum_packet_size(uint32_t u32) {
+static int mr_validate_connack_maximum_packet_size(const uint32_t u32) {
     if (u32 == 0) {
         dzlog_error("maximum_packet_size must be > 0");
         return -1;
@@ -317,7 +317,7 @@ static int mr_validate_connack_maximum_packet_size(uint32_t u32) {
     return 0;
 }
 
-int mr_set_connack_maximum_packet_size(mr_packet_ctx *pctx, uint32_t u32) {
+int mr_set_connack_maximum_packet_size(mr_packet_ctx *pctx, const uint32_t u32) {
     if (mr_check_connack_packet(pctx)) return -1;
     if (mr_validate_connack_maximum_packet_size(u32)) return -1;
     return mr_set_scalar(pctx, CONNACK_MAXIMUM_PACKET_SIZE, u32);
@@ -350,7 +350,7 @@ int mr_get_connack_topic_alias_maximum(mr_packet_ctx *pctx, uint16_t *pu16, bool
     return mr_get_u16(pctx, CONNACK_TOPIC_ALIAS_MAXIMUM, pu16, pexists_flag);
 }
 
-int mr_set_connack_topic_alias_maximum(mr_packet_ctx *pctx, uint16_t u16) {
+int mr_set_connack_topic_alias_maximum(mr_packet_ctx *pctx, const uint16_t u16) {
     if (mr_check_connack_packet(pctx)) return -1;
     return mr_set_scalar(pctx, CONNACK_TOPIC_ALIAS_MAXIMUM, u16);
 }
@@ -398,7 +398,7 @@ int mr_get_connack_wildcard_subscription_available(mr_packet_ctx *pctx, uint8_t 
     return mr_get_u8(pctx, CONNACK_WILDCARD_SUBSCRIPTION_AVAILABLE, pu8, pexists_flag);
 }
 
-static int mr_validate_connack_wildcard_subscription_available(uint8_t u8) {
+static int mr_validate_connack_wildcard_subscription_available(const uint8_t u8) {
     if (u8 > 1) {
         dzlog_error("wildcard_subscription_available out of range (0..1): %u", u8);
         return -1;
@@ -407,7 +407,7 @@ static int mr_validate_connack_wildcard_subscription_available(uint8_t u8) {
     return 0;
 }
 
-int mr_set_connack_wildcard_subscription_available(mr_packet_ctx *pctx, uint8_t u8) {
+int mr_set_connack_wildcard_subscription_available(mr_packet_ctx *pctx, const uint8_t u8) {
     if (mr_check_connack_packet(pctx)) return -1;
     if (mr_validate_connack_wildcard_subscription_available(u8)) return -1;
     return mr_set_scalar(pctx, CONNACK_WILDCARD_SUBSCRIPTION_AVAILABLE, u8);
@@ -424,7 +424,7 @@ int mr_get_connack_subscription_identifiers_available(mr_packet_ctx *pctx, uint8
     return mr_get_u8(pctx, CONNACK_SUBSCRIPTION_IDENTIFIERS_AVAILABLE, pu8, pexists_flag);
 }
 
-static int mr_validate_connack_subscription_identifiers_available(uint8_t u8) {
+static int mr_validate_connack_subscription_identifiers_available(const uint8_t u8) {
     if (u8 > 1) {
         dzlog_error("subscription_identifiers_available out of range (0..1): %u", u8);
         return -1;
@@ -433,7 +433,7 @@ static int mr_validate_connack_subscription_identifiers_available(uint8_t u8) {
     return 0;
 }
 
-int mr_set_connack_subscription_identifiers_available(mr_packet_ctx *pctx, uint8_t u8) {
+int mr_set_connack_subscription_identifiers_available(mr_packet_ctx *pctx, const uint8_t u8) {
     if (mr_check_connack_packet(pctx)) return -1;
     if (mr_validate_connack_subscription_identifiers_available(u8)) return -1;
     return mr_set_scalar(pctx, CONNACK_SUBSCRIPTION_IDENTIFIERS_AVAILABLE, u8);
@@ -450,7 +450,7 @@ int mr_get_connack_shared_subscription_available(mr_packet_ctx *pctx, uint8_t *p
     return mr_get_u8(pctx, CONNACK_SHARED_SUBSCRIPTION_AVAILABLE, pu8, pexists_flag);
 }
 
-static int mr_validate_connack_shared_subscription_available(uint8_t u8) {
+static int mr_validate_connack_shared_subscription_available(const uint8_t u8) {
     if (u8 > 1) {
         dzlog_error("shared_subscription_available out of range (0..1): %u", u8);
         return -1;
@@ -459,7 +459,7 @@ static int mr_validate_connack_shared_subscription_available(uint8_t u8) {
     return 0;
 }
 
-int mr_set_connack_shared_subscription_available(mr_packet_ctx *pctx, uint8_t u8) {
+int mr_set_connack_shared_subscription_available(mr_packet_ctx *pctx, const uint8_t u8) {
     if (mr_check_connack_packet(pctx)) return -1;
     if (mr_validate_connack_shared_subscription_available(u8)) return -1;
     return mr_set_scalar(pctx, CONNACK_SHARED_SUBSCRIPTION_AVAILABLE, u8);
@@ -476,7 +476,7 @@ int mr_get_connack_server_keep_alive(mr_packet_ctx *pctx, uint16_t *pu16, bool *
     return mr_get_u16(pctx, CONNACK_SERVER_KEEP_ALIVE, pu16, pexists_flag);
 }
 
-int mr_set_connack_server_keep_alive(mr_packet_ctx *pctx, uint16_t u16) {
+int mr_set_connack_server_keep_alive(mr_packet_ctx *pctx, const uint16_t u16) {
     if (mr_check_connack_packet(pctx)) return -1;
     return mr_set_scalar(pctx, CONNACK_SERVER_KEEP_ALIVE, u16);
 }

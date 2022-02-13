@@ -193,39 +193,45 @@ int mr_free_connect_packet(mr_packet_ctx *pctx) {
 }
 
 // const uint8_t packet_type
-int mr_get_connect_packet_type(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag) {
+int mr_get_connect_packet_type(mr_packet_ctx *pctx, uint8_t *pu8) {
+    bool exists_flag;
     if (mr_check_connect_packet(pctx)) return -1;
-    return mr_get_u8(pctx, CONNECT_PACKET_TYPE, pu8, pexists_flag);
+    return mr_get_u8(pctx, CONNECT_PACKET_TYPE, pu8, &exists_flag);
 }
 
 // uint32_t remaining_length
-int mr_get_connect_remaining_length(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag) {
+int mr_get_connect_remaining_length(mr_packet_ctx *pctx, uint32_t *pu32) {
+    bool exists_flag;
     if (mr_check_connect_packet(pctx)) return -1;
-    return mr_get_u32(pctx, CONNECT_REMAINING_LENGTH, pu32, pexists_flag);
+    return mr_get_u32(pctx, CONNECT_REMAINING_LENGTH, pu32, &exists_flag);
 }
 
 // const uint8_t *protocol_name
-int mr_get_connect_protocol_name(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *plen, bool *pexists_flag) {
+int mr_get_connect_protocol_name(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *plen) {
+    bool exists_flag;
     if (mr_check_connect_packet(pctx)) return -1;
-    return mr_get_u8v(pctx, CONNECT_PROTOCOL_NAME, pu8v0, plen, pexists_flag);
+    return mr_get_u8v(pctx, CONNECT_PROTOCOL_NAME, pu8v0, plen, &exists_flag);
 }
 
 // const uint8_t protocol_version
-int mr_get_connect_protocol_version(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag) {
+int mr_get_connect_protocol_version(mr_packet_ctx *pctx, uint8_t *pu8) {
+    bool exists_flag;
     if (mr_check_connect_packet(pctx)) return -1;
-    return mr_get_u8(pctx, CONNECT_PROTOCOL_VERSION, pu8, pexists_flag);
+    return mr_get_u8(pctx, CONNECT_PROTOCOL_VERSION, pu8, &exists_flag);
 }
 
 // const bool reserved
-int mr_get_connect_reserved(mr_packet_ctx *pctx, bool *pflag_value, bool *pexists_flag) {
+int mr_get_connect_reserved(mr_packet_ctx *pctx, bool *pflag_value) {
+    bool exists_flag;
     if (mr_check_connect_packet(pctx)) return -1;
-    return mr_get_boolean(pctx, CONNECT_RESERVED, pflag_value, pexists_flag);
+    return mr_get_boolean(pctx, CONNECT_RESERVED, pflag_value, &exists_flag);
 }
 
 // bool clean_start
-int mr_get_connect_clean_start(mr_packet_ctx *pctx, bool *pflag_value, bool *pexists_flag) {
+int mr_get_connect_clean_start(mr_packet_ctx *pctx, bool *pflag_value) {
+    bool exists_flag;
     if (mr_check_connect_packet(pctx)) return -1;
-    return mr_get_boolean(pctx, CONNECT_CLEAN_START, pflag_value, pexists_flag);
+    return mr_get_boolean(pctx, CONNECT_CLEAN_START, pflag_value, &exists_flag);
 }
 
 int mr_set_connect_clean_start(mr_packet_ctx *pctx, const bool flag_value) {
@@ -234,9 +240,10 @@ int mr_set_connect_clean_start(mr_packet_ctx *pctx, const bool flag_value) {
 }
 
 // bool will_flag
-int mr_get_connect_will_flag(mr_packet_ctx *pctx, bool *pflag_value, bool *pexists_flag) {
+int mr_get_connect_will_flag(mr_packet_ctx *pctx, bool *pflag_value) {
+    bool exists_flag;
     if (mr_check_connect_packet(pctx)) return -1;
-    return mr_get_boolean(pctx, CONNECT_WILL_FLAG, pflag_value, pexists_flag);
+    return mr_get_boolean(pctx, CONNECT_WILL_FLAG, pflag_value, &exists_flag);
 }
 
 int mr_set_connect_will_flag(mr_packet_ctx *pctx, const bool flag_value) {
@@ -267,31 +274,33 @@ int mr_set_connect_will_flag(mr_packet_ctx *pctx, const bool flag_value) {
 }
 
 // uint8_t will_qos
-int mr_get_connect_will_qos(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag) {
+int mr_get_connect_will_qos(mr_packet_ctx *pctx, uint8_t *pu8) {
+    bool exists_flag;
     if (mr_check_connect_packet(pctx)) return -1;
-    return mr_get_u8(pctx, CONNECT_WILL_QOS, pu8, pexists_flag);
+    return mr_get_u8(pctx, CONNECT_WILL_QOS, pu8, &exists_flag);
+}
+
+static int mr_validate_connect_will_qos(const uint8_t u8) {
+    if (u8 > 2) {
+        dzlog_error("will_qos out of range (0..2): %u", u8);
+        return -1;
+    }
+
+    return 0;
 }
 
 int mr_set_connect_will_qos(mr_packet_ctx *pctx, const uint8_t u8) {
     if (mr_check_connect_packet(pctx)) return -1;
-
-    if (u8 > 0) {
-        if (u8 > 2) {
-            dzlog_error("will_qos out of range (0..2): %u", u8);
-            return -1;
-        }
-        else {
-            if (mr_set_connect_will_flag(pctx, true)) return -1;
-        }
-    }
-
+    if (mr_validate_connect_will_qos(u8)) return -1;
+    if (mr_set_connect_will_flag(pctx, true)) return -1;
     return mr_set_scalar(pctx, CONNECT_WILL_QOS, u8);
 }
 
 // bool will_retain
-int mr_get_connect_will_retain(mr_packet_ctx *pctx, bool *pflag_value, bool *pexists_flag) {
+int mr_get_connect_will_retain(mr_packet_ctx *pctx, bool *pflag_value) {
+    bool exists_flag;
     if (mr_check_connect_packet(pctx)) return -1;
-    return mr_get_boolean(pctx, CONNECT_WILL_RETAIN, pflag_value, pexists_flag);
+    return mr_get_boolean(pctx, CONNECT_WILL_RETAIN, pflag_value, &exists_flag);
 }
 
 int mr_set_connect_will_retain(mr_packet_ctx *pctx, const bool flag_value) {
@@ -301,21 +310,24 @@ int mr_set_connect_will_retain(mr_packet_ctx *pctx, const bool flag_value) {
 }
 
 // bool password_flag - set by setting password
-int mr_get_connect_password_flag(mr_packet_ctx *pctx, bool *pflag_value, bool *pexists_flag) {
+int mr_get_connect_password_flag(mr_packet_ctx *pctx, bool *pflag_value) {
+    bool exists_flag;
     if (mr_check_connect_packet(pctx)) return -1;
-    return mr_get_boolean(pctx, CONNECT_PASSWORD_FLAG, pflag_value, pexists_flag);
+    return mr_get_boolean(pctx, CONNECT_PASSWORD_FLAG, pflag_value, &exists_flag);
 }
 
 // bool username_flag - set by setting username
-int mr_get_connect_username_flag(mr_packet_ctx *pctx, bool *pflag_value, bool *pexists_flag) {
+int mr_get_connect_username_flag(mr_packet_ctx *pctx, bool *pflag_value) {
+    bool exists_flag;
     if (mr_check_connect_packet(pctx)) return -1;
-    return mr_get_boolean(pctx, CONNECT_USERNAME_FLAG, pflag_value, pexists_flag);
+    return mr_get_boolean(pctx, CONNECT_USERNAME_FLAG, pflag_value, &exists_flag);
 }
 
 // uint16_t keep_alive - always exists hence never reset
-int mr_get_connect_keep_alive(mr_packet_ctx *pctx, uint16_t *pu16, bool *pexists_flag) {
+int mr_get_connect_keep_alive(mr_packet_ctx *pctx, uint16_t *pu16) {
+    bool exists_flag;
     if (mr_check_connect_packet(pctx)) return -1;
-    return mr_get_u16(pctx, CONNECT_KEEP_ALIVE, pu16, pexists_flag);
+    return mr_get_u16(pctx, CONNECT_KEEP_ALIVE, pu16, &exists_flag);
 }
 
 int mr_set_connect_keep_alive(mr_packet_ctx *pctx, const uint16_t u16) {
@@ -324,9 +336,10 @@ int mr_set_connect_keep_alive(mr_packet_ctx *pctx, const uint16_t u16) {
 }
 
 // uint32_t property_length - calculated
-int mr_get_connect_property_length(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag) {
+int mr_get_connect_property_length(mr_packet_ctx *pctx, uint32_t *pu32) {
+    bool exists_flag;
     if (mr_check_connect_packet(pctx)) return -1;
-    return mr_get_u32(pctx, CONNECT_PROPERTY_LENGTH, pu32, pexists_flag);
+    return mr_get_u32(pctx, CONNECT_PROPERTY_LENGTH, pu32, &exists_flag);
 }
 
 // uint32_t session_expiry_interval
@@ -351,14 +364,18 @@ int mr_get_connect_receive_maximum(mr_packet_ctx *pctx, uint16_t *pu16, bool *pe
     return mr_get_u16(pctx, CONNECT_RECEIVE_MAXIMUM, pu16, pexists_flag);
 }
 
-int mr_set_connect_receive_maximum(mr_packet_ctx *pctx, const uint16_t u16) {
-    if (mr_check_connect_packet(pctx)) return -1;
-
+static int mr_validate_connect_receive_maximum(const uint16_t u16) {
     if (u16 == 0) {
-        dzlog_error("if present, receive_maximum must be > 0");
+        dzlog_error("receive_maximum must be > 0");
         return -1;
     }
 
+    return 0;
+}
+
+int mr_set_connect_receive_maximum(mr_packet_ctx *pctx, const uint16_t u16) {
+    if (mr_check_connect_packet(pctx)) return -1;
+    if (mr_validate_connect_receive_maximum(u16)) return -1;
     return mr_set_scalar(pctx, CONNECT_RECEIVE_MAXIMUM, u16);
 }
 
@@ -373,14 +390,18 @@ int mr_get_connect_maximum_packet_size(mr_packet_ctx *pctx, uint32_t *pu32, bool
     return mr_get_u32(pctx, CONNECT_MAXIMUM_PACKET_SIZE, pu32, pexists_flag);
 }
 
-int mr_set_connect_maximum_packet_size(mr_packet_ctx *pctx, const uint32_t u32) {
-    if (mr_check_connect_packet(pctx)) return -1;
-
+static int mr_validate_connect_maximum_packet_size(const uint32_t u32) {
     if (u32 == 0) {
         dzlog_error("if present, maximum_packet_size must be > 0");
         return -1;
     }
 
+    return 0;
+}
+
+int mr_set_connect_maximum_packet_size(mr_packet_ctx *pctx, const uint32_t u32) {
+    if (mr_check_connect_packet(pctx)) return -1;
+    if (mr_validate_connect_maximum_packet_size(u32)) return -1;
     return mr_set_scalar(pctx, CONNECT_MAXIMUM_PACKET_SIZE, u32);
 }
 
@@ -411,14 +432,18 @@ int mr_get_connect_request_response_information(mr_packet_ctx *pctx, uint8_t *pu
     return mr_get_u8(pctx, CONNECT_REQUEST_RESPONSE_INFORMATION, pu8, pexists_flag);
 }
 
-int mr_set_connect_request_response_information(mr_packet_ctx *pctx, const uint8_t u8) {
-    if (mr_check_connect_packet(pctx)) return -1;
-
+static int mr_validate_connect_request_response_information(const uint8_t u8) {
     if (u8 > 1) {
         dzlog_error("request_response_information out of range (0..1): %u", u8);
         return -1;
     }
 
+    return 0;
+}
+
+int mr_set_connect_request_response_information(mr_packet_ctx *pctx, const uint8_t u8) {
+    if (mr_check_connect_packet(pctx)) return -1;
+    if (mr_validate_connect_request_response_information(u8)) return -1;
     return mr_set_scalar(pctx, CONNECT_REQUEST_RESPONSE_INFORMATION, u8);
 }
 
@@ -433,14 +458,18 @@ int mr_get_connect_request_problem_information(mr_packet_ctx *pctx, uint8_t *pu8
     return mr_get_u8(pctx, CONNECT_REQUEST_PROBLEM_INFORMATION, pu8, pexists_flag);
 }
 
-int mr_set_connect_request_problem_information(mr_packet_ctx *pctx, const uint8_t u8) {
-    if (mr_check_connect_packet(pctx)) return -1;
-
+static int mr_validate_connect_request_problem_information(const uint8_t u8) {
     if (u8 > 1) {
         dzlog_error("request_problem_information out of range (0..1): %u", u8);
         return -1;
     }
 
+    return 0;
+}
+
+int mr_set_connect_request_problem_information(mr_packet_ctx *pctx, const uint8_t u8) {
+    if (mr_check_connect_packet(pctx)) return -1;
+    if (mr_validate_connect_request_problem_information(u8)) return -1;
     return mr_set_scalar(pctx, CONNECT_REQUEST_PROBLEM_INFORMATION, u8);
 }
 
@@ -498,9 +527,10 @@ int mr_reset_connect_authentication_data(mr_packet_ctx *pctx) {
 }
 
 // char *client_identifier - always exists
-int mr_get_connect_client_identifier(mr_packet_ctx *pctx, char **pcv0, bool *pexists_flag) {
+int mr_get_connect_client_identifier(mr_packet_ctx *pctx, char **pcv0) {
+    bool exists_flag;
     if (mr_check_connect_packet(pctx)) return -1;
-    return mr_get_str(pctx, CONNECT_CLIENT_IDENTIFIER, pcv0, pexists_flag);
+    return mr_get_str(pctx, CONNECT_CLIENT_IDENTIFIER, pcv0, &exists_flag);
 }
 
 int mr_set_connect_client_identifier(mr_packet_ctx *pctx, const char *cv0) {
@@ -710,12 +740,12 @@ static int mr_validate_connect_cross(mr_packet_ctx *pctx) {
     uint8_t *u8v0;
     size_t len;
     char *cv0;
-    bool bexists;
+    bool pexists_flag;
 
     // payload_format_indicator & will_payload
-    if (mr_get_connect_payload_format_indicator(pctx, &u8, &bexists)) return -1;
+    if (mr_get_connect_payload_format_indicator(pctx, &u8, &pexists_flag)) return -1;
 
-    if (bexists) {
+    if (pexists_flag) {
         if (u8 > 1) {
             dzlog_error("payload_format_indicator out of range (0..1): %u", u8);
             return -1;
@@ -726,12 +756,12 @@ static int mr_validate_connect_cross(mr_packet_ctx *pctx) {
     }
 
     // authentication_data
-    if (mr_get_connect_authentication_data(pctx, &u8v0, &len, &bexists)) return -1;
+    if (mr_get_connect_authentication_data(pctx, &u8v0, &len, &pexists_flag)) return -1;
 
-    if (bexists) {
-        if (mr_get_connect_authentication_method(pctx, &cv0, &bexists)) return -1;
+    if (pexists_flag) {
+        if (mr_get_connect_authentication_method(pctx, &cv0, &pexists_flag)) return -1;
 
-        if (!bexists) {
+        if (!pexists_flag) {
             dzlog_error("authentication_method must exist since authentication_data exists");
             return -1;
         }
@@ -741,9 +771,9 @@ static int mr_validate_connect_cross(mr_packet_ctx *pctx) {
 }
 
 static int mr_validate_connect_pack(mr_packet_ctx *pctx) {
-    bool bexists;
+    bool pexists_flag;
     bool will_flag;
-    if (mr_get_boolean(pctx, CONNECT_WILL_FLAG, &will_flag, &bexists)) return -1;
+    if (mr_get_boolean(pctx, CONNECT_WILL_FLAG, &will_flag, &pexists_flag)) return -1;
 
     mr_mdata *mdata = pctx->mdata0;
     for (int i = 0; i < _CONNECT_MDATA_COUNT; i++, mdata++) {
@@ -776,47 +806,22 @@ int mr_validate_connect_unpack(mr_packet_ctx *pctx) {
     uint8_t u8;
     uint16_t u16;
     uint32_t u32;
-    bool bexists;
+    bool exists_flag;
 
-    // will_qos
-    if (mr_get_connect_will_qos(pctx, &u8, &bexists)) return -1;
+    if (mr_get_connect_will_qos(pctx, &u8)) return -1;
+    if (mr_validate_connect_will_qos(u8)) return -1;
 
-    if (bexists && u8 && u8 > 2) {
-        dzlog_error("will_qos out of range (0..2): %u", u8);
-        return -1;
-    }
+    if (mr_get_connect_receive_maximum(pctx, &u16, &exists_flag)) return -1;
+    if (exists_flag && mr_validate_connect_receive_maximum(u16)) return -1;
 
-    // receive_maximum
-    if (mr_get_connect_receive_maximum(pctx, &u16, &bexists)) return -1;
+    if (mr_get_connect_maximum_packet_size(pctx, &u32, &exists_flag)) return -1;
+    if (exists_flag && mr_validate_connect_maximum_packet_size(u32)) return -1;
 
-    if (bexists && !u16) {
-        dzlog_error("if present, receive_maximum must be > 0");
-        return -1;
-    }
+    if (mr_get_connect_request_response_information(pctx, &u8, &exists_flag)) return -1;
+    if (exists_flag && mr_validate_connect_request_response_information(u8)) return -1;
 
-    // maximum_packet_size
-    if (mr_get_connect_maximum_packet_size(pctx, &u32, &bexists)) return -1;
-
-    if (bexists && !u32) {
-        dzlog_error("if present, maximum_packet_size must be > 0");
-        return -1;
-    }
-
-    // request_response_information
-    if (mr_get_connect_request_response_information(pctx, &u8, &bexists)) return -1;
-
-    if (bexists && u8 && u8 > 1) {
-        dzlog_error("request_response_information out of range (0..1): %u", u8);
-        return -1;
-    }
-
-    // request_problem_information
-    if (mr_get_connect_request_problem_information(pctx, &u8, &bexists)) return -1;
-
-    if (bexists && u8 && u8 > 1) {
-        dzlog_error("request_problem_information out of range (0..1): %u", u8);
-        return -1;
-    }
+    if (mr_get_connect_request_problem_information(pctx, &u8, &exists_flag)) return -1;
+    if (exists_flag && mr_validate_connect_request_problem_information(u8)) return -1;
 
     if (mr_validate_connect_cross(pctx)) return -1;
     return 0;
@@ -825,7 +830,7 @@ int mr_validate_connect_unpack(mr_packet_ctx *pctx) {
 /**
  * @brief Set a c-string to a printable version of the CONNECT packet's field values.
  *
- * See mr_get_printable().
+ * See mr_get_printable() in packet.c.
  */
 int mr_get_connect_printable(mr_packet_ctx *pctx, bool all_flag, char **pcv) {
     if (mr_check_connect_packet(pctx)) return -1;

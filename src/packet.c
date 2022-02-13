@@ -802,7 +802,7 @@ static const char _NOT_PRINTABLE[] = "***";
  *
  * @param all_flag true: list name:value pairs for all fields using '***' for the values of non-existent ones;
  * false: only list name:value pairs for fields that exist.
- * @param pcv the address of a c-string that will be the printable metada
+ * @param pcv the address of a c-string that will be the printable metadata.
  */
 int mr_get_printable(mr_packet_ctx *pctx, const bool all_flag, char **pcv) {
     if (mr_free(pctx->printable)) return -1;

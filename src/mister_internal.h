@@ -187,6 +187,12 @@ int mr_get_printable(mr_packet_ctx *pctx, const bool all_flag, char **pcv);
 
 static int mr_check_connect_packet(mr_packet_ctx *pctx);
 
+static int mr_validate_connect_will_qos(const uint8_t u8);
+static int mr_validate_connect_receive_maximum(const uint16_t u16);
+static int mr_validate_connect_maximum_packet_size(const uint32_t u32);
+static int mr_validate_connect_request_response_information(const uint8_t u8);
+static int mr_validate_connect_request_problem_information(const uint8_t u8);
+
 static int mr_validate_connect_cross(mr_packet_ctx *pctx);
 static int mr_validate_connect_pack(mr_packet_ctx *pctx);
 int mr_validate_connect_unpack(mr_packet_ctx *pctx);
@@ -195,14 +201,14 @@ int mr_validate_connect_unpack(mr_packet_ctx *pctx);
 
 static int mr_check_connack_packet(mr_packet_ctx *pctx);
 
-static int mr_validate_connack_connect_reason_code(uint8_t u8);
-static int mr_validate_connack_receive_maximum(uint16_t u16);
-static int mr_validate_connack_maximum_qos(uint8_t u8);
-static int mr_validate_connack_retain_available(uint8_t u8);
-static int mr_validate_connack_maximum_packet_size(uint32_t u32);
-static int mr_validate_connack_wildcard_subscription_available(uint8_t u8);
-static int mr_validate_connack_subscription_identifiers_available(uint8_t u8);
-static int mr_validate_connack_shared_subscription_available(uint8_t u8);
+static int mr_validate_connack_connect_reason_code(const uint8_t u8);
+static int mr_validate_connack_receive_maximum(const uint16_t u16);
+static int mr_validate_connack_maximum_qos(const uint8_t u8);
+static int mr_validate_connack_retain_available(const uint8_t u8);
+static int mr_validate_connack_maximum_packet_size(const uint32_t u32);
+static int mr_validate_connack_wildcard_subscription_available(const uint8_t u8);
+static int mr_validate_connack_subscription_identifiers_available(const uint8_t u8);
+static int mr_validate_connack_shared_subscription_available(const uint8_t u8);
 
 static int mr_validate_connack_pack(mr_packet_ctx *pctx);
 int mr_validate_connack_unpack(mr_packet_ctx *pctx);
