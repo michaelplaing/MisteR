@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "util.h"
+#include "test_util.h"
 
 int get_binary_file_content(const char *fixfilename, uint8_t **pu8v, size_t *pffsz) {
     FILE *fixfile;

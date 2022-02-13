@@ -2,7 +2,7 @@
 #include <zlog.h>
 
 #include "mister/mister.h"
-#include "util.h"
+#include "test_util.h"
 
 static char _S0L[] = "";
 
@@ -279,10 +279,6 @@ TEST_CASE("unhappy CONNECT packet", "[connect][unhappy]") {
         CHECK(mr_pack_connect_packet(pctx, &u8v0, &u8vlen) == 0);
         REQUIRE(mr_set_connect_authentication_method(pctx, _S0L) == 0);
         CHECK(mr_pack_connect_packet(pctx, &u8v0, &u8vlen) == 0); // ok to have a method and no data
-    }
-
-    SECTION("u") {
-        ;
     }
 
     // common test epilog

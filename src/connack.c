@@ -121,7 +121,7 @@ int mr_init_connack_packet(mr_packet_ctx **ppctx) {
     return mr_init_packet(ppctx, _CONNACK_MDATA_TEMPLATE, _CONNACK_MDATA_COUNT);
 }
 
-int mr_init_unpack_connack_packet(mr_packet_ctx **ppctx, uint8_t *u8v0, size_t u8vlen) {
+int mr_init_unpack_connack_packet(mr_packet_ctx **ppctx, const uint8_t *u8v0, const size_t u8vlen) {
     return mr_init_unpack_packet(ppctx, _CONNACK_MDATA_TEMPLATE, _CONNACK_MDATA_COUNT, u8v0, u8vlen);
 }
 
@@ -589,7 +589,7 @@ int mr_validate_connack_unpack(mr_packet_ctx *pctx) {
     return 0;
 }
 
-int mr_get_connack_printable(mr_packet_ctx *pctx, bool all_flag, char **pcv) {
+int mr_get_connack_printable(mr_packet_ctx *pctx, const bool all_flag, char **pcv) {
     if (mr_check_connack_packet(pctx)) return -1;
     return mr_get_printable(pctx, all_flag, pcv);
 }

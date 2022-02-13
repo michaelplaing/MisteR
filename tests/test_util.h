@@ -1,7 +1,7 @@
-// util.h
+// test_util.h
 
-#ifndef UTIL_H
-#define UTIL_H
+#ifndef TEST_UTIL_H
+#define TEST_UTIL_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,4 +16,4 @@ int put_binary_file_content(const char *fixfilename, uint8_t *u8v, size_t ffsz);
 }
 #endif
 
-#endif // UTIL_H
+#endif // TEST_UTIL_H

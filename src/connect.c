@@ -152,7 +152,7 @@ int mr_init_connect_packet(mr_packet_ctx **ppctx) {
  * Initialize a mr_packet_ctx (pctx) then unpack the binary packet into it, overwriting and validating
  * values and metadata. Set the address of the packet context.
  */
-int mr_init_unpack_connect_packet(mr_packet_ctx **ppctx, uint8_t *u8v0, size_t u8vlen) {
+int mr_init_unpack_connect_packet(mr_packet_ctx **ppctx, const uint8_t *u8v0, const size_t u8vlen) {
     return mr_init_unpack_packet(ppctx, _CONNECT_MDATA_TEMPLATE, _CONNECT_MDATA_COUNT, u8v0, u8vlen);
 }
 
@@ -755,7 +755,7 @@ static int mr_validate_connect_cross(mr_packet_ctx *pctx) {
         }
     }
 
-    // authentication_data
+    // authentication_method & authentication_data
     if (mr_get_connect_authentication_data(pctx, &u8v0, &len, &pexists_flag)) return -1;
 
     if (pexists_flag) {
@@ -832,7 +832,7 @@ int mr_validate_connect_unpack(mr_packet_ctx *pctx) {
  *
  * See mr_get_printable() in packet.c.
  */
-int mr_get_connect_printable(mr_packet_ctx *pctx, bool all_flag, char **pcv) {
+int mr_get_connect_printable(mr_packet_ctx *pctx, const bool all_flag, char **pcv) {
     if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_printable(pctx, all_flag, pcv);
 }
