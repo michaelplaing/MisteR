@@ -10,11 +10,16 @@ target_compile_features(testlib PRIVATE cxx_std_17)
 add_executable(test-000-connect test-000-connect.cpp)
 target_compile_features(test-000-connect PRIVATE cxx_std_17)
 
+add_executable(test-001-connack test-001-connack.cpp)
+target_compile_features(test-001-connack PRIVATE cxx_std_17)
+
 # link to 'mister' and as well as our test library
 target_link_libraries(test-000-connect PRIVATE mister testlib)
+target_link_libraries(test-001-connack PRIVATE mister testlib)
 
  # COMMAND can be a target
-add_test(NAME test-000-connect COMMAND test-000-connect)
+ add_test(NAME test-000-connect COMMAND test-000-connect)
+ add_test(NAME test-001-connack COMMAND test-001-connack)
 
 # set up fixture files - configure_file recopies if a file changes
 configure_file("fixtures/default_connect_printable_mdata.txt" "fixtures/default_connect_printable_mdata.txt" COPYONLY)
@@ -23,3 +28,8 @@ configure_file("fixtures/will_connect_printable_mdata.txt" "fixtures/will_connec
 configure_file("fixtures/will_connect_packet.bin" "fixtures/will_connect_packet.bin" COPYONLY)
 configure_file("fixtures/complex_connect_printable_mdata.txt" "fixtures/complex_connect_printable_mdata.txt" COPYONLY)
 configure_file("fixtures/complex_connect_packet.bin" "fixtures/complex_connect_packet.bin" COPYONLY)
+
+configure_file("fixtures/default_connack_printable_mdata.txt" "fixtures/default_connack_printable_mdata.txt" COPYONLY)
+configure_file("fixtures/default_connack_packet.bin" "fixtures/default_connack_packet.bin" COPYONLY)
+configure_file("fixtures/complex_connack_printable_mdata.txt" "fixtures/complex_connack_printable_mdata.txt" COPYONLY)
+configure_file("fixtures/complex_connack_packet.bin" "fixtures/complex_connack_packet.bin" COPYONLY)
