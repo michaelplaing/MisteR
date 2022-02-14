@@ -20,7 +20,7 @@ TEST_CASE("happy CONNACK packet", "[connack][happy]") {
     // *** test sections ***
 
     SECTION("default packet") {
-        strlcpy(printable_filename, "fixtures/default_connack_printable_mdata.txt", 50);
+        strlcpy(printable_filename, "fixtures/default_connack_printable.txt", 50);
         strlcpy(packet_filename, "fixtures/default_connack_packet.bin", 50);
     }
 
@@ -65,14 +65,14 @@ TEST_CASE("happy CONNACK packet", "[connack][happy]") {
         REQUIRE(mr_set_connack_authentication_data(pctx, authentication_data, authentication_data_len) == 0);
 
         SECTION("+remaining") { // default + remaining
-            strlcpy(printable_filename, "fixtures/complex_connack_printable_mdata.txt", 50);
+            strlcpy(printable_filename, "fixtures/complex_connack_printable.txt", 50);
             strlcpy(packet_filename, "fixtures/complex_connack_packet.bin", 50);
         }
 /*
         SECTION("-will packet") { // default + will - will
             // dzlog_info("section: reset/test will");
 
-            strlcpy(printable_filename, "fixtures/default_connack_printable_mdata.txt", 50);
+            strlcpy(printable_filename, "fixtures/default_connack_printable.txt", 50);
             strlcpy(packet_filename, "fixtures/default_connack_packet.bin", 50);
 
             // reset all the will-related values set above by setting the will_flag to false
@@ -115,14 +115,14 @@ TEST_CASE("happy CONNACK packet", "[connack][happy]") {
             SECTION("+complex packet") { // default + will + all remaining
                 // dzlog_info("section: set/test complex");
 
-                strlcpy(printable_filename, "fixtures/complex_connack_printable_mdata.txt", 50);
+                strlcpy(printable_filename, "fixtures/complex_connack_printable.txt", 50);
                 strlcpy(packet_filename, "fixtures/complex_connack_packet.bin", 50);
             }
 
             SECTION("-complex packet") { // default + will + all remaining - will - all remaining
                 // dzlog_info("section: reset/test will & complex");
 
-                strlcpy(printable_filename, "fixtures/default_connack_printable_mdata.txt", 50);
+                strlcpy(printable_filename, "fixtures/default_connack_printable.txt", 50);
                 strlcpy(packet_filename, "fixtures/default_connack_packet.bin", 50);
 
                 // reset all the will-related values set above by setting the will_flag to false
@@ -159,7 +159,7 @@ TEST_CASE("happy CONNACK packet", "[connack][happy]") {
     char *file_printable;
     size_t mdsz;
     REQUIRE(get_binary_file_content(printable_filename, (uint8_t **)&file_printable, &mdsz) == 0);
-    // printf("\nprintable_mdata (%s)::\n%s\n\npacket_printable::\n%s\n", printable_filename, file_printable, packet_printable);
+    // printf("\nfile printable (%s)::\n%s\n\npacket printable::\n%s\n", printable_filename, file_printable, packet_printable);
     REQUIRE(mdsz == strlen(packet_printable) + 1);
     REQUIRE(strcmp(file_printable, packet_printable) == 0);
     free(file_printable);

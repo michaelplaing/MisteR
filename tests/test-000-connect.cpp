@@ -25,7 +25,7 @@ TEST_CASE("happy CONNECT packet", "[connect][happy]") {
     SECTION("default packet") {
         // dzlog_info("section: test default");
 
-        strlcpy(printable_filename, "fixtures/default_connect_printable_mdata.txt", 50);
+        strlcpy(printable_filename, "fixtures/default_connect_printable.txt", 50);
         strlcpy(packet_filename, "fixtures/default_connect_packet.bin", 50);
     }
 
@@ -68,14 +68,14 @@ TEST_CASE("happy CONNECT packet", "[connect][happy]") {
         SECTION("+will packet") { // default + will
             // dzlog_info("section: test will");
 
-            strlcpy(printable_filename, "fixtures/will_connect_printable_mdata.txt", 50);
+            strlcpy(printable_filename, "fixtures/will_connect_printable.txt", 50);
             strlcpy(packet_filename, "fixtures/will_connect_packet.bin", 50);
         }
 
         SECTION("-will packet") { // default + will - will
             // dzlog_info("section: reset/test will");
 
-            strlcpy(printable_filename, "fixtures/default_connect_printable_mdata.txt", 50);
+            strlcpy(printable_filename, "fixtures/default_connect_printable.txt", 50);
             strlcpy(packet_filename, "fixtures/default_connect_packet.bin", 50);
 
             // reset all the will-related values set above by setting the will_flag to false
@@ -118,14 +118,14 @@ TEST_CASE("happy CONNECT packet", "[connect][happy]") {
             SECTION("+complex packet") { // default + will + all remaining
                 // dzlog_info("section: set/test complex");
 
-                strlcpy(printable_filename, "fixtures/complex_connect_printable_mdata.txt", 50);
+                strlcpy(printable_filename, "fixtures/complex_connect_printable.txt", 50);
                 strlcpy(packet_filename, "fixtures/complex_connect_packet.bin", 50);
             }
 
             SECTION("-complex packet") { // default + will + all remaining - will - all remaining
                 // dzlog_info("section: reset/test will & complex");
 
-                strlcpy(printable_filename, "fixtures/default_connect_printable_mdata.txt", 50);
+                strlcpy(printable_filename, "fixtures/default_connect_printable.txt", 50);
                 strlcpy(packet_filename, "fixtures/default_connect_packet.bin", 50);
 
                 // reset all the will-related values set above by setting the will_flag to false
@@ -163,7 +163,7 @@ TEST_CASE("happy CONNECT packet", "[connect][happy]") {
     char *file_printable;
     size_t mdsz;
     REQUIRE(get_binary_file_content(printable_filename, (uint8_t **)&file_printable, &mdsz) == 0);
-    // printf("\nprintable_mdata (%s)::\n%s\n\npacket_printable::\n%s\n", printable_filename, file_printable, packet_printable);
+    // printf("\nfile printable (%s)::\n%s\n\npacket printable::\n%s\n", printable_filename, file_printable, packet_printable);
     REQUIRE(mdsz == strlen(packet_printable) + 1);
     REQUIRE(strcmp(file_printable, packet_printable) == 0);
     free(file_printable);
