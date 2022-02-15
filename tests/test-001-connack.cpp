@@ -68,85 +68,31 @@ TEST_CASE("happy CONNACK packet", "[connack][happy]") {
             strlcpy(printable_filename, "fixtures/complex_connack_printable.txt", 50);
             strlcpy(packet_filename, "fixtures/complex_connack_packet.bin", 50);
         }
-/*
-        SECTION("-will packet") { // default + will - will
-            // dzlog_info("section: reset/test will");
 
+        SECTION("-remaining") { // default + remaining - remaining
             strlcpy(printable_filename, "fixtures/default_connack_printable.txt", 50);
             strlcpy(packet_filename, "fixtures/default_connack_packet.bin", 50);
 
-            // reset all the will-related values set above by setting the will_flag to false
-            REQUIRE(mr_set_connack_will_flag(pctx, false) == 0);
+            REQUIRE(mr_set_connack_session_present(pctx, false) == 0);
+            REQUIRE(mr_set_connack_connect_reason_code(pctx, 0) == 0);
+            REQUIRE(mr_reset_connack_session_expiry_interval(pctx) == 0);
+            REQUIRE(mr_reset_connack_receive_maximum(pctx) == 0);
+            REQUIRE(mr_reset_connack_maximum_qos(pctx) == 0);
+            REQUIRE(mr_reset_connack_retain_available(pctx) == 0);
+            REQUIRE(mr_reset_connack_maximum_packet_size(pctx) == 0);
+            REQUIRE(mr_reset_connack_assigned_client_identifier(pctx) == 0);
+            REQUIRE(mr_reset_connack_topic_alias_maximum(pctx) == 0);
+            REQUIRE(mr_reset_connack_reason_string(pctx) == 0);
+            REQUIRE(mr_reset_connack_user_properties(pctx) == 0);
+            REQUIRE(mr_reset_connack_wildcard_subscription_available(pctx) == 0);
+            REQUIRE(mr_reset_connack_subscription_identifiers_available(pctx) == 0);
+            REQUIRE(mr_reset_connack_shared_subscription_available(pctx) == 0);
+            REQUIRE(mr_reset_connack_server_keep_alive(pctx) == 0);
+            REQUIRE(mr_reset_connack_response_information(pctx) == 0);
+            REQUIRE(mr_reset_connack_server_reference(pctx) == 0);
+            REQUIRE(mr_reset_connack_authentication_method(pctx) == 0);
+            REQUIRE(mr_reset_connack_authentication_data(pctx) == 0);
         }
-
-        SECTION("complex packet") { // default + will + all remaining
-            // dzlog_info("section: complex packet");
-
-            // build additional vector values
-            char flim[] = "flim";
-            char flop[] = "flop";
-            mr_string_pair spflim = {flim, flop};
-            char flam[] = "flam";
-            char floop[] = "floop";
-            mr_string_pair spflam = {flam, floop};
-            mr_string_pair user_properties[] = {spflim, spflam};
-            char authentication_method[] = "authentication_method";
-            uint8_t authentication_data[] = {'d', 'e', 'f'};
-            char client_identifier[] = "client_identifier";
-            char user_name[] = "user_name";
-            uint8_t password[] = {'g', 'h', 'i'};
-
-            REQUIRE(mr_set_connack_clean_start(pctx, true) == 0);
-            REQUIRE(mr_set_connack_keep_alive(pctx, 5) == 0);
-            REQUIRE(mr_set_connack_session_expiry_interval(pctx, 3600) == 0);
-            REQUIRE(mr_set_connack_receive_maximum(pctx, 1000) == 0);
-            REQUIRE(mr_set_connack_maximum_packet_size(pctx, 32768) == 0);
-            REQUIRE(mr_set_connack_topic_alias_maximum(pctx, 10) == 0);
-            REQUIRE(mr_set_connack_request_response_information(pctx, 1) == 0);
-            REQUIRE(mr_set_connack_request_problem_information(pctx, 1) == 0);
-
-            REQUIRE(mr_set_connack_user_properties(pctx, user_properties, sizeof(user_properties) / sizeof(mr_string_pair)) == 0);
-            REQUIRE(mr_set_connack_authentication_method(pctx, authentication_method) == 0);
-            REQUIRE(mr_set_connack_authentication_data(pctx, authentication_data, sizeof(authentication_data)) == 0);
-            REQUIRE(mr_set_connack_client_identifier(pctx, client_identifier) == 0);
-            REQUIRE(mr_set_connack_user_name(pctx, user_name) == 0);
-            REQUIRE(mr_set_connack_password(pctx, password, sizeof(password)) == 0);
-
-            SECTION("+complex packet") { // default + will + all remaining
-                // dzlog_info("section: set/test complex");
-
-                strlcpy(printable_filename, "fixtures/complex_connack_printable.txt", 50);
-                strlcpy(packet_filename, "fixtures/complex_connack_packet.bin", 50);
-            }
-
-            SECTION("-complex packet") { // default + will + all remaining - will - all remaining
-                // dzlog_info("section: reset/test will & complex");
-
-                strlcpy(printable_filename, "fixtures/default_connack_printable.txt", 50);
-                strlcpy(packet_filename, "fixtures/default_connack_packet.bin", 50);
-
-                // reset all the will-related values set above by setting the will_flag to false
-                REQUIRE(mr_set_connack_will_flag(pctx, false) == 0);
-
-                // reset the additional values
-                REQUIRE(mr_set_connack_clean_start(pctx, false) == 0); // bit_flags always exist ∴ cannot be reset
-                REQUIRE(mr_set_connack_keep_alive(pctx, 0) == 0); // keep_alive always exists ∴ cannot be reset
-                REQUIRE(mr_reset_connack_session_expiry_interval(pctx) == 0);
-                REQUIRE(mr_reset_connack_receive_maximum(pctx) == 0);
-                REQUIRE(mr_reset_connack_maximum_packet_size(pctx) == 0);
-                REQUIRE(mr_reset_connack_topic_alias_maximum(pctx) == 0);
-                REQUIRE(mr_reset_connack_request_response_information(pctx) == 0);
-                REQUIRE(mr_reset_connack_request_problem_information(pctx) == 0);
-
-                REQUIRE(mr_reset_connack_user_properties(pctx) == 0);
-                REQUIRE(mr_reset_connack_authentication_method(pctx) == 0);
-                REQUIRE(mr_reset_connack_authentication_data(pctx) == 0);
-                REQUIRE(mr_set_connack_client_identifier(pctx, _S0L) == 0);
-                REQUIRE(mr_reset_connack_user_name(pctx) == 0);
-                REQUIRE(mr_reset_connack_password(pctx) == 0);
-            }
-        }
- */
     }
     // *** common test epilog ***
 
@@ -203,10 +149,9 @@ TEST_CASE("happy CONNACK packet", "[connack][happy]") {
 
     zlog_fini();
 }
-/*
-TEST_CASE("unhappy CONNECT packet", "[connack][unhappy]") {
+
+TEST_CASE("unhappy CONNACK packet", "[connack][unhappy]") {
     dzlog_init("", "mr_init");
-    // dzlog_info("common test prolog");
 
     // *** common test prolog ***
 
@@ -221,60 +166,54 @@ TEST_CASE("unhappy CONNECT packet", "[connack][unhappy]") {
 
     // *** test sections ***
 
-    SECTION("will_qos") {
-        CHECK(mr_set_connack_will_qos(pctx, -1) == -1);
-        CHECK(mr_set_connack_will_qos(pctx, 0) == 0);
-        CHECK(mr_set_connack_will_qos(pctx, 1) == 0);
-        CHECK(mr_set_connack_will_qos(pctx, 2) == 0);
-        CHECK(mr_set_connack_will_qos(pctx, 3) == -1);
+    SECTION("connect_reason_code") {
+        CHECK(mr_set_connack_connect_reason_code(pctx, -1) == -1);
+        CHECK(mr_set_connack_connect_reason_code(pctx, 0) == 0);
     }
 
     SECTION("receive_maximum") {
-        CHECK(mr_set_connack_receive_maximum(pctx, -1) == 0);
         CHECK(mr_set_connack_receive_maximum(pctx, 0) == -1);
         CHECK(mr_set_connack_receive_maximum(pctx, 1) == 0);
     }
 
-    SECTION("request_response_information") {
-        CHECK(mr_set_connack_request_response_information(pctx, -1) == -1);
-        CHECK(mr_set_connack_request_response_information(pctx, 0) == 0);
-        CHECK(mr_set_connack_request_response_information(pctx, 1) == 0);
-        CHECK(mr_set_connack_request_response_information(pctx, 2) == -1);
+    SECTION("maximum_qos") {
+        CHECK(mr_set_connack_maximum_qos(pctx, -1) == -1);
+        CHECK(mr_set_connack_maximum_qos(pctx, 0) == 0);
+        CHECK(mr_set_connack_maximum_qos(pctx, 1) == 0);
+        CHECK(mr_set_connack_maximum_qos(pctx, 2) == -1);
     }
 
-    SECTION("request_problem_information") {
-        CHECK(mr_set_connack_request_problem_information(pctx, -1) == -1);
-        CHECK(mr_set_connack_request_problem_information(pctx, 0) == 0);
-        CHECK(mr_set_connack_request_problem_information(pctx, 1) == 0);
-        CHECK(mr_set_connack_request_problem_information(pctx, 2) == -1);
+    SECTION("retain_available") {
+        CHECK(mr_set_connack_retain_available(pctx, -1) == -1);
+        CHECK(mr_set_connack_retain_available(pctx, 0) == 0);
+        CHECK(mr_set_connack_retain_available(pctx, 1) == 0);
+        CHECK(mr_set_connack_retain_available(pctx, 2) == -1);
     }
 
-    SECTION("payload_format_indicator & will_payload") {
-        // already checked above:
-        // . will_flag == false && not payload_format_indicator exists
-        // . will_flag == true  && payload_format_indicator exists && == 1 && will_payload is valid utf8
-        REQUIRE(mr_set_connack_payload_format_indicator(pctx, -1) == 0);
-        CHECK(mr_pack_connack_packet(pctx, &u8v0, &u8vlen) == -1);
-        REQUIRE(mr_set_connack_payload_format_indicator(pctx, 0) == 0);
-        CHECK(mr_pack_connack_packet(pctx, &u8v0, &u8vlen) == 0);
-        REQUIRE(mr_set_connack_payload_format_indicator(pctx, 2) == 0);
-        CHECK(mr_pack_connack_packet(pctx, &u8v0, &u8vlen) == -1);
-
-        uint8_t u8v[] = {'\0'}; // invalid utf8 for mqtt
-        REQUIRE(mr_set_connack_will_payload(pctx, u8v, 1) == 0);
-        REQUIRE(mr_set_connack_payload_format_indicator(pctx, 0) == 0);
-        CHECK(mr_pack_connack_packet(pctx, &u8v0, &u8vlen) == 0);
-        REQUIRE(mr_set_connack_payload_format_indicator(pctx, 1) == 0); // will_payload is utf8
-        CHECK(mr_pack_connack_packet(pctx, &u8v0, &u8vlen) == -1);
+    SECTION("maximum_packet_size") {
+        CHECK(mr_set_connack_maximum_packet_size(pctx, 0) == -1);
+        CHECK(mr_set_connack_maximum_packet_size(pctx, 1) == 0);
     }
 
-    SECTION("authentication_method & authentication_data") {
-        REQUIRE(mr_reset_connack_authentication_method(pctx) == 0);
-        CHECK(mr_pack_connack_packet(pctx, &u8v0, &u8vlen) == -1);
-        REQUIRE(mr_reset_connack_authentication_data(pctx) == 0);
-        CHECK(mr_pack_connack_packet(pctx, &u8v0, &u8vlen) == 0);
-        REQUIRE(mr_set_connack_authentication_method(pctx, _S0L) == 0);
-        CHECK(mr_pack_connack_packet(pctx, &u8v0, &u8vlen) == 0); // ok to have a method and no data
+    SECTION("wildcard_subscription_available") {
+        CHECK(mr_set_connack_wildcard_subscription_available(pctx, -1) == -1);
+        CHECK(mr_set_connack_wildcard_subscription_available(pctx, 0) == 0);
+        CHECK(mr_set_connack_wildcard_subscription_available(pctx, 1) == 0);
+        CHECK(mr_set_connack_wildcard_subscription_available(pctx, 2) == -1);
+    }
+
+    SECTION("subscription_identifiers_available") {
+        CHECK(mr_set_connack_subscription_identifiers_available(pctx, -1) == -1);
+        CHECK(mr_set_connack_subscription_identifiers_available(pctx, 0) == 0);
+        CHECK(mr_set_connack_subscription_identifiers_available(pctx, 1) == 0);
+        CHECK(mr_set_connack_subscription_identifiers_available(pctx, 2) == -1);
+    }
+
+    SECTION("shared_subscription_available") {
+        CHECK(mr_set_connack_shared_subscription_available(pctx, -1) == -1);
+        CHECK(mr_set_connack_shared_subscription_available(pctx, 0) == 0);
+        CHECK(mr_set_connack_shared_subscription_available(pctx, 1) == 0);
+        CHECK(mr_set_connack_shared_subscription_available(pctx, 2) == -1);
     }
 
     // common test epilog
@@ -285,4 +224,3 @@ TEST_CASE("unhappy CONNECT packet", "[connack][unhappy]") {
 
     zlog_fini();
 }
- */
