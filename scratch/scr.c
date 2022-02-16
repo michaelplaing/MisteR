@@ -1,136 +1,73 @@
-/*
 #include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>
-#include <stdbool.h>
- */
+#include <uuid/uuid.h>
+// #include <ctype.h>
+// #include <stdbool.h>
+#include <math.h>
+
 #include <string.h>
-#include <zlog.h>
+// #include <zlog.h>
 
-#include "mister/mister.h"
-#include "util.h"
+#define _BASE 62
 
-int get_binary_file_content(const char *fixfilename, uint8_t **pu8v, uint32_t *pffsz) {
-    FILE *fixfile;
-    fixfile = fopen(fixfilename, "r");
-    if (fixfile == NULL) return -1;
-    fseek(fixfile, 0, SEEK_END);
-    *pffsz = ftell(fixfile);
-    fseek(fixfile, 0, SEEK_SET);
-    *pu8v = (uint8_t *)calloc(*pffsz, 1);
-    if (*pu8v == NULL) return -2;
-    fread(*pu8v, 1, *pffsz, fixfile);
-    fclose(fixfile);
-    return 0;
+void itoa(uint64_t u64, char* cv) {
+    if (u64 == 0) {
+        cv[0] = '0';
+        cv[1] = '\0';
+    }
+
+    int pos;
+    const int len = (uint64_t)floor(log(u64) / log(_BASE)) + 1;
+    for (pos = 0; pos < len; pos++) {
+        uint64_t base = (uint64_t)pow(_BASE, len - 1 - pos);
+        uint64_t offset = u64 / base;
+
+        char offset_char;
+        if (offset < 10) {
+            offset_char = offset + '0';
+        }
+        else if (offset < 36) {
+            offset_char = offset - 10 + 'A';
+        }
+        else {
+            offset_char = offset - 36 + 'a';
+        }
+
+        cv[pos] = offset_char;
+        u64 -= base * offset;
+    }
+
+    cv[pos] = '\0';
 }
 
-int put_binary_file_content(const char *fixfilename, uint8_t *u8v, uint32_t ffsz) {
-    FILE *fixfile;
-    fixfile = fopen(fixfilename, "w");
-    if (fixfile == NULL) return -1;
-    fwrite(u8v, 1, ffsz, fixfile);
-    fclose(fixfile);
-    return 0;
-}
+int main() {
+    char cv[256];
 
-int main(void) {
-/*
-    // *** common test prolog ***
+    uint64_t d = 62;
+    itoa(d, cv);
+    printf("Input = %llu, cv = %s\n", d, cv);
 
-    dzlog_init("", "mr_init");
-    int rc;
-    mr_packet_ctx *pctx;
-    char printable_filename[50];
-    char packet_filename[50];
+    uint64_t a = UINT64_MAX; // 18446744073709551615
+    itoa(a, cv);
+    printf("Input = %llu, cv = %s\n", a, cv);
 
-    // init
-    mr_init_connect_packet(&pctx);
+    uint64_t b = 0;
+    itoa(b, cv);
+    printf("Input = %llu, cv = %s\n", b, cv);
 
-    // *** test sections ***
+    uuid_t uuidv;
+    uuid_generate(uuidv);
+    uint64_t slice_u64;
+    char uuid_cv[256] = "";
 
-        // *** section prolog ***
+    for (int i = 0; i < 2; i++) {
+        slice_u64 = 0;
+        for (int j = 0; j < 8; j++) slice_u64 += (uuidv[i * 4 + j] << j * 8);
+        itoa(slice_u64, cv);
+        strcat(uuid_cv, cv);
+        printf("uuid slice %d: %llu; cv: %s\n", i, slice_u64, cv);
+    }
 
-    // build will vector values
-    char content_type[] = "content_type";
-    char response_topic[] = "response_topic";
-    uint8_t correlation_data[] = {'1', '2', '3'};
-    size_t correlation_data_len = 3;
-    char baz[] = "baz";
-    char bip[] = "bip";
-    mr_string_pair spbaz = {baz, bip};
-    char bam[] = "bam";
-    char boop[] = "boop";
-    mr_string_pair spbam = {bam, boop};
-    mr_string_pair will_user_properties[] = {spbaz, spbam};
-    size_t will_user_properties_len = 2;
-    char will_topic[] = "will_topic";
-    uint8_t will_payload[] = {'a', 'b', 'c'};
-    size_t will_payload_len = 3;
-
-    mr_set_connect_will_flag(pctx, true);
-    mr_set_connect_will_qos(pctx, 2);
-    mr_set_connect_will_retain(pctx, true);
-    mr_set_connect_will_delay_interval(pctx, 1000);
-    mr_set_connect_payload_format_indicator(pctx, 1);
-    mr_set_connect_message_expiry_interval(pctx, 1000);
-
-    mr_set_connect_content_type(pctx, content_type);
-    mr_set_connect_response_topic(pctx, response_topic);
-    mr_set_connect_correlation_data(pctx, correlation_data, correlation_data_len);
-    mr_set_connect_will_user_properties(pctx, will_user_properties, will_user_properties_len);
-    mr_set_connect_will_topic(pctx, will_topic);
-    mr_set_connect_will_payload(pctx, will_payload, will_payload_len);
-
-    strlcpy(printable_filename, "../tests/fixtures/will_connect_printable_mdata.txt", 50);
-    strlcpy(packet_filename, "../tests/fixtures/will_connect_packet.bin", 50);
-
-    // *** common test epilog ***
-
-    // validate
-    mr_validate_connect_values(pctx);
-
-    // dump
-    mr_create_connect_printable(pctx, false);
-    // put_binary_file_content(printable_filename, (uint8_t *)pctx->printable_mdata, strlen(pctx->printable_mdata) + 1);
-
-    // check dump
-    char *printable_mdata;
-    uint32_t mdsz;
-    get_binary_file_content(printable_filename, (uint8_t **)&printable_mdata, &mdsz);
-    printf("\nprintable_mdata (%s)::\n%s\n\npctx->mdata::\n%s\n", printable_filename, printable_mdata, pctx->printable_mdata);
-    strcmp(printable_mdata, pctx->printable_mdata);
-    free(printable_mdata);
-
-    // pack
-    mr_pack_connect_packet(pctx);
-    printf("\n\npacket::\n");
-    mr_print_hexdump(pctx->u8v0, pctx->u8vlen);
-    // put_binary_file_content(packet_filename, pctx->u8v0, pctx->u8vlen);
-
-    // check packet
-    uint8_t *u8v0;
-    uint32_t u8vlen;
-    get_binary_file_content(packet_filename, &u8v0, &u8vlen);
-    free(u8v0);
-
-    // free pack context
-    mr_free_connect_packet(pctx);
-
-    // init unpack context / unpack packet
-    mr_init_unpack_connect_packet(&pctx, u8v0, u8vlen);
-
-    // unpack dump
-    mr_create_connect_printable(pctx, false);
-
-    // check unpack dump
-    strcmp(printable_mdata, pctx->printable_mdata);
-    free(printable_mdata);
-
-    // free unpack context
-    mr_free_connect_packet(pctx);
-
-    zlog_fini();
-
- */
+    printf("uuid_cv: %s\n", uuid_cv);
     return 0;
 }
