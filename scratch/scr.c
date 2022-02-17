@@ -10,64 +10,58 @@
 
 #define _BASE 62
 
-void itoa(uint64_t u64, char* cv) {
+void u64tobase62cv(uint64_t u64, char* cv) {
     if (u64 == 0) {
         cv[0] = '0';
         cv[1] = '\0';
+        return;
     }
 
-    int pos;
-    const int len = (uint64_t)floor(log(u64) / log(_BASE)) + 1;
+    size_t pos;
+    const size_t len = (uint64_t)floor(log(u64) / log(_BASE)) + 1;
     for (pos = 0; pos < len; pos++) {
-        uint64_t base = (uint64_t)pow(_BASE, len - 1 - pos);
-        uint64_t offset = u64 / base;
+        uint64_t power = (uint64_t)pow(_BASE, len - 1 - pos);
+        uint64_t offset = u64 / power;
 
-        char offset_char;
         if (offset < 10) {
-            offset_char = offset + '0';
+            cv[pos] = offset + '0';
         }
         else if (offset < 36) {
-            offset_char = offset - 10 + 'A';
+            cv[pos] = offset - 10 + 'A';
         }
         else {
-            offset_char = offset - 36 + 'a';
+            cv[pos] = offset - 36 + 'a';
         }
 
-        cv[pos] = offset_char;
-        u64 -= base * offset;
+        u64 -= power * offset;
     }
 
     cv[pos] = '\0';
 }
 
 int main() {
-    char cv[256];
-
-    uint64_t d = 62;
-    itoa(d, cv);
-    printf("Input = %llu, cv = %s\n", d, cv);
+    char base62cv[12];
 
     uint64_t a = UINT64_MAX; // 18446744073709551615
-    itoa(a, cv);
-    printf("Input = %llu, cv = %s\n", a, cv);
+    u64tobase62cv(a, base62cv);
+    printf("Input = %llu, base62cv = %s\n", a, base62cv);
 
-    uint64_t b = 0;
-    itoa(b, cv);
-    printf("Input = %llu, cv = %s\n", b, cv);
-
-    uuid_t uuidv;
-    uuid_generate(uuidv);
-    uint64_t slice_u64;
-    char uuid_cv[256] = "";
+    uuid_t uuidu8v;
+    uuid_generate(uuidu8v);
+    uuid_string_t uuidcv;
+    uuid_unparse(uuidu8v, uuidcv);
+    printf("uuidcv: %s\n", uuidcv);
+    uint64_t u64;
+    char uuidbase62cv[23] = "";
 
     for (int i = 0; i < 2; i++) {
-        slice_u64 = 0;
-        for (int j = 0; j < 8; j++) slice_u64 += (uuidv[i * 4 + j] << j * 8);
-        itoa(slice_u64, cv);
-        strcat(uuid_cv, cv);
-        printf("uuid slice %d: %llu; cv: %s\n", i, slice_u64, cv);
+        u64 = 0;
+        for (int j = 0; j < 8; j++) u64 += (uuidu8v[i * 8 + j] << 8 * (7 - j));
+        u64tobase62cv(u64, base62cv);
+        strlcat(uuidbase62cv, base62cv, 23);
+        printf("uuid slice %d: %llu; base62cv: %s\n", i, u64, base62cv);
     }
 
-    printf("uuid_cv: %s\n", uuid_cv);
+    printf("uuidbase62cv: %s\n", uuidbase62cv);
     return 0;
 }
