@@ -3,6 +3,8 @@
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
+#include <uuid/uuid.h>
+#include <math.h>
 
 #include <zlog.h>
 
@@ -286,4 +288,47 @@ void mr_compress_spaces_lines(char *cv) {
     }
 
     strlcpy(cv, resultv, slen);
+}
+
+void u64tobase62cv(uint64_t u64, char* cv) {
+    if (u64 == 0) {
+        cv[0] = '0';
+        cv[1] = '\0';
+        return;
+    }
+
+    const size_t cvlen = floor(log(u64) / log(62)) + 1;
+    for (size_t pos = 0; pos < cvlen; pos++) {
+        uint64_t power = pow(62, cvlen - 1 - pos);
+        uint64_t offset = u64 / power;
+
+        if (offset < 10) {
+            cv[pos] = offset + '0';
+        }
+        else if (offset < 36) {
+            cv[pos] = offset - 10 + 'A';
+        }
+        else { // offset < 62
+            cv[pos] = offset - 36 + 'a';
+        }
+
+        u64 -= power * offset;
+    }
+
+    cv[cvlen] = '\0';
+}
+
+void get_uuidbase62cv(char *uuidbase62cv) {
+    char base62cv[12];
+    uuid_t uuidu8v;
+    uuid_generate(uuidu8v);
+
+    uint64_t u64;
+    uuidbase62cv[0] = '\0';
+    for (int i = 0; i < 2; i++) {
+        u64 = 0;
+        for (int j = 0; j < 8; j++) u64 += (uuidu8v[i * 8 + j] << 8 * (7 - j));
+        u64tobase62cv(u64, base62cv);
+        strlcat(uuidbase62cv, base62cv, 23);
+    }
 }

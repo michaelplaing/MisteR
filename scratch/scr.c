@@ -8,8 +8,6 @@
 #include <string.h>
 // #include <zlog.h>
 
-#define _BASE 62
-
 void u64tobase62cv(uint64_t u64, char* cv) {
     if (u64 == 0) {
         cv[0] = '0';
@@ -17,10 +15,9 @@ void u64tobase62cv(uint64_t u64, char* cv) {
         return;
     }
 
-    size_t pos;
-    const size_t len = (uint64_t)floor(log(u64) / log(_BASE)) + 1;
-    for (pos = 0; pos < len; pos++) {
-        uint64_t power = (uint64_t)pow(_BASE, len - 1 - pos);
+    const size_t cvlen = floor(log(u64) / log(62)) + 1;
+    for (size_t pos = 0; pos < cvlen; pos++) {
+        uint64_t power = pow(62, cvlen - 1 - pos);
         uint64_t offset = u64 / power;
 
         if (offset < 10) {
@@ -29,14 +26,29 @@ void u64tobase62cv(uint64_t u64, char* cv) {
         else if (offset < 36) {
             cv[pos] = offset - 10 + 'A';
         }
-        else {
+        else { // offset < 62
             cv[pos] = offset - 36 + 'a';
         }
 
         u64 -= power * offset;
     }
 
-    cv[pos] = '\0';
+    cv[cvlen] = '\0';
+}
+
+void get_uuidbase62cv(char *uuidbase62cv) {
+    char base62cv[12];
+    uuid_t uuidu8v;
+    uuid_generate(uuidu8v);
+
+    uint64_t u64;
+    uuidbase62cv[0] = '\0';
+    for (int i = 0; i < 2; i++) {
+        u64 = 0;
+        for (int j = 0; j < 8; j++) u64 += (uuidu8v[i * 8 + j] << 8 * (7 - j));
+        u64tobase62cv(u64, base62cv);
+        strlcat(uuidbase62cv, base62cv, 23);
+    }
 }
 
 int main() {
@@ -51,9 +63,9 @@ int main() {
     uuid_string_t uuidcv;
     uuid_unparse(uuidu8v, uuidcv);
     printf("uuidcv: %s\n", uuidcv);
+
     uint64_t u64;
     char uuidbase62cv[23] = "";
-
     for (int i = 0; i < 2; i++) {
         u64 = 0;
         for (int j = 0; j < 8; j++) u64 += (uuidu8v[i * 8 + j] << 8 * (7 - j));
@@ -63,5 +75,9 @@ int main() {
     }
 
     printf("uuidbase62cv: %s\n", uuidbase62cv);
+
+    get_uuidbase62cv(uuidbase62cv);
+    printf("uuidbase62cv: %s\n", uuidbase62cv);
+
     return 0;
 }

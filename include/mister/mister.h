@@ -90,6 +90,8 @@ typedef struct mr_string_pair {
 int mr_print_hexdump(uint8_t *u8v, const size_t u8vlen);
 int mr_get_hexdump(char *cv0, const size_t cvlen, const uint8_t *u8v, const size_t u8vlen);
 void mr_compress_spaces_lines(char *cv);
+void u64tobase62cv(uint64_t u64, char* cv);
+void get_uuidbase62cv(char *uuidbase62cv);
 
 // connect packet
 
