@@ -276,8 +276,7 @@ static int mr_pack_u16(mr_packet_ctx *pctx, mr_mdata *mdata) {
 static int mr_unpack_u16(mr_packet_ctx *pctx, mr_mdata *mdata) {
     mdata->vexists = true;
     uint8_t *u8v = pctx->u8v0 + pctx->u8vpos;
-    uint16_t u16v[] = {u8v[0], u8v[1]};
-    mdata->value = (u16v[0] << 8) + u16v[1];
+    mdata->value = (u8v[0] << 8) + u8v[1];
     pctx->u8vpos += 2;
     return 0;
 }
@@ -302,8 +301,7 @@ static int mr_pack_u32(mr_packet_ctx *pctx, mr_mdata *mdata) {
 
 static int mr_unpack_u32(mr_packet_ctx *pctx, mr_mdata *mdata) {
     uint8_t *u8v = pctx->u8v0 + pctx->u8vpos;
-    uint32_t u32v[] = {u8v[0], u8v[1], u8v[2], u8v[3]};
-    mdata->value = (u32v[0] << 24) + (u32v[1] << 16) + (u32v[2] << 8) + u32v[3];
+    mdata->value = (u8v[0] << 24) + (u8v[1] << 16) + (u8v[2] << 8) + u8v[3];
     mdata->vexists = true;
     pctx->u8vpos += 4;
     return 0;
@@ -359,14 +357,8 @@ static int mr_pack_bits_in_value(mr_packet_ctx *pctx, mr_mdata *mdata) {
     uint8_t bitpos = mdata->bitpos;
     mr_mdata *flags_mdata = pctx->mdata0 + mdata->link;
     uint8_t flags_u8 = flags_mdata->value;
-
     flags_u8 &= ~(_BIT_MASKS[mdata->vlen] << bitpos); // reset
-
-    if (mdata->value) {
-        uint8_t u8 = mdata->value;
-        flags_u8 |= u8 << bitpos; // set
-    }
-
+    if (mdata->value) flags_u8 |= mdata->value << bitpos; // set
     flags_mdata->value = flags_u8;
     return 0;
 }
@@ -374,14 +366,8 @@ static int mr_pack_bits_in_value(mr_packet_ctx *pctx, mr_mdata *mdata) {
 static int mr_pack_bits(mr_packet_ctx *pctx, mr_mdata *mdata) { // don't advance pctx->u8vpos
     uint8_t bitpos = mdata->bitpos;
     uint8_t *pu8 = pctx->u8v0 + pctx->u8vpos;
-
     *pu8 &= ~(_BIT_MASKS[mdata->vlen] << bitpos); // reset
-
-    if (mdata->value) {
-        uint8_t u8 = mdata->value;
-        *pu8 |= u8 << bitpos; // set
-    }
-
+    if (mdata->value) *pu8 |= mdata->value << bitpos; // set
     return 0;
 }
 
@@ -464,8 +450,8 @@ static int mr_pack_u8v(mr_packet_ctx *pctx, mr_mdata *mdata) {
 static int mr_unpack_u8v(mr_packet_ctx *pctx, mr_mdata *mdata) {
     bool str_flag = mdata->dtype == MR_STR_DTYPE;
     uint8_t *u8v = pctx->u8v0 + pctx->u8vpos;
-    uint16_t u16v[] = {u8v[0], u8v[1]}; u8v += 2;
-    size_t u8vlen = (u16v[0] << 8) + u16v[1];
+    size_t u8vlen = (u8v[0] << 8) + u8v[1];
+    u8v += 2;
     size_t vlen = u8vlen + (str_flag ? 1 : 0);
     uint8_t *value;
     if (mr_calloc((void **)&value, vlen, 1)) return -1;
@@ -584,18 +570,20 @@ static int mr_pack_spv(mr_packet_ctx *pctx, mr_mdata *mdata) {
 static int mr_unpack_spv(mr_packet_ctx *pctx, mr_mdata *mdata) {
     uint8_t *u8v = pctx->u8v0 + pctx->u8vpos;
 
-    uint16_t u16v[] = {u8v[0], u8v[1]}; u8v += 2;
-    size_t namelen = (u16v[0] << 8) + u16v[1];
+    size_t namelen = (u8v[0] << 8) + u8v[1];
+    u8v += 2;
     char *name;
     if (mr_malloc((void **)&name, namelen + 1)) return -1;
-    memcpy(name, u8v, namelen); u8v += namelen;
+    memcpy(name, u8v, namelen);
+    u8v += namelen;
     name[namelen] = '\0';
 
-    u16v[0] = u8v[0]; u16v[1] = u8v[1]; u8v += 2;
-    size_t valuelen = (u16v[0] << 8) + u16v[1];
+    size_t valuelen = (u8v[0] << 8) + u8v[1];
+    u8v += 2;
     char *value;
     if (mr_malloc((void **)&value, valuelen + 1)) return -1;
-    memcpy(value, u8v, valuelen); u8v += valuelen;
+    memcpy(value, u8v, valuelen);
+    u8v += valuelen;
     value[valuelen] = '\0';
 
     mr_string_pair *spv0, *psp;

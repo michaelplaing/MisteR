@@ -299,20 +299,20 @@ void u64tobase62cv(uint64_t u64, char* cv) {
 
     const size_t cvlen = floor(log(u64) / log(62)) + 1;
     for (size_t pos = 0; pos < cvlen; pos++) {
-        uint64_t power = pow(62, cvlen - 1 - pos);
-        uint64_t offset = u64 / power;
+        uint64_t base62_power = pow(62, cvlen - 1 - pos);
+        uint64_t base62_offset = u64 / base62_power;
 
-        if (offset < 10) {
-            cv[pos] = offset + '0';
+        if (base62_offset < 10) {
+            cv[pos] = base62_offset + '0';
         }
-        else if (offset < 36) {
-            cv[pos] = offset - 10 + 'A';
+        else if (base62_offset < 36) {
+            cv[pos] = base62_offset - 10 + 'A';
         }
-        else { // offset < 62
-            cv[pos] = offset - 36 + 'a';
+        else { // base62_offset < 62
+            cv[pos] = base62_offset - 36 + 'a';
         }
 
-        u64 -= power * offset;
+        u64 -= base62_power * base62_offset;
     }
 
     cv[cvlen] = '\0';
