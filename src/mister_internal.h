@@ -13,24 +13,24 @@ extern "C" {
 /**
  * @brief MQTT5 packet types.
  *
- * The left 4-bit nibble (>> 4) of the mqtt_packet_type is the 1-based index.
  */
 enum mqtt_packet_type {
-    MQTT_CONNECT        = 0x10U,
-    MQTT_CONNACK        = 0x20U,
-    MQTT_PUBLISH        = 0x30U,
-    MQTT_PUBACK         = 0x40U,
-    MQTT_PUBREC         = 0x50U,
-    MQTT_PUBREL         = 0x60U,
-    MQTT_PUBCOMP        = 0x70U,
-    MQTT_SUBSCRIBE      = 0x80U,
-    MQTT_SUBACK         = 0x90U,
-    MQTT_UNSUBSCRIBE    = 0xA0U,
-    MQTT_UNSUBACK       = 0xB0U,
-    MQTT_PINGREQ        = 0xC0U,
-    MQTT_PINGRESP       = 0xD0U,
-    MQTT_DISCONNECT     = 0xE0U,
-    MQTT_AUTH           = 0xF0U
+    MQTT_RESERVED,
+    MQTT_CONNECT,
+    MQTT_CONNACK,
+    MQTT_PUBLISH,
+    MQTT_PUBACK,
+    MQTT_PUBREC,
+    MQTT_PUBREL,
+    MQTT_PUBCOMP,
+    MQTT_SUBSCRIBE,
+    MQTT_SUBACK,
+    MQTT_UNSUBSCRIBE,
+    MQTT_UNSUBACK,
+    MQTT_PINGREQ,
+    MQTT_PINGRESP,
+    MQTT_DISCONNECT,
+    MQTT_AUTH
 };
 
 // from mosquitto & spec

@@ -100,12 +100,15 @@ TEST_CASE("happy CONNACK packet", "[connack][happy]") {
     char *packet_printable;
     REQUIRE(mr_get_connack_printable(pctx, false, &packet_printable) == 0);
     // REQUIRE(put_binary_file_content(printable_filename, (uint8_t *)packet_printable, strlen(packet_printable) + 1) == 0);
+    // printf("packet_printable:: strlen: %lu; hexdump:\n", strlen(packet_printable));
+    // mr_print_hexdump((uint8_t *)packet_printable, strlen(packet_printable) + 1);
 
     // check dump
     char *file_printable;
     size_t mdsz;
     REQUIRE(get_binary_file_content(printable_filename, (uint8_t **)&file_printable, &mdsz) == 0);
     // printf("\nfile printable (%s)::\n%s\n\npacket printable::\n%s\n", printable_filename, file_printable, packet_printable);
+    // printf("packet_printable:: strlen: %lu\n", strlen(packet_printable));
     REQUIRE(mdsz == strlen(packet_printable) + 1);
     REQUIRE(strcmp(file_printable, packet_printable) == 0);
     free(file_printable);
@@ -132,9 +135,15 @@ TEST_CASE("happy CONNACK packet", "[connack][happy]") {
 
     // init unpack context / unpack packet
     REQUIRE(mr_init_unpack_connack_packet(&pctx, u8v0, u8vlen) == 0);
+    // uint8_t u8;
+    // mr_get_connack_reserved_header(pctx, &u8);
+    // printf("reserved_header:\n");
+    // mr_print_hexdump(&u8, 1);
 
     // unpack dump
     REQUIRE(mr_get_connack_printable(pctx, false, &packet_printable) == 0);
+    // printf("packet_printable (unpack):: strlen: %lu; hexdump:\n", strlen(packet_printable));
+    // mr_print_hexdump((uint8_t *)packet_printable, strlen(packet_printable) + 1);
 
     // check unpack dump
     REQUIRE(mdsz == strlen(packet_printable) + 1);
@@ -142,7 +151,7 @@ TEST_CASE("happy CONNACK packet", "[connack][happy]") {
     free(file_printable);
 
     REQUIRE(mr_get_connack_printable(pctx, true, &packet_printable) == 0); // test true flag
-    printf("\npacket_printable::\n%s\n", packet_printable);
+    // printf("\npacket_printable::\n%s\n", packet_printable);
 
     // free unpack context
     REQUIRE(mr_free_connack_packet(pctx) == 0);

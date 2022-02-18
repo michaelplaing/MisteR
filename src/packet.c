@@ -50,14 +50,11 @@ typedef struct mr_ptype {
  *
  * This vector has the same order as mqtt_packet_type.
  *
- * The mqtt_packet_type index is 1-based, hence there is a dummy row 0.
- * The left 4-bit nibble (>> 4) of the mqtt_packet_type is the index.
- *
  * The ptype_fn is invoked at the end of unpacking the packet
  */
 static const mr_ptype _PACKET_TYPE[] = {
 //   mqtt_packet_type   mqtt_packet_name    ptype_fn
-    {0,                 "",                 NULL},
+    {MQTT_RESERVED,     "RESERVED",         NULL},
     {MQTT_CONNECT,      "CONNECT",          mr_validate_connect_unpack},
     {MQTT_CONNACK,      "CONNACK",          mr_validate_connack_unpack},
     {MQTT_PUBLISH,      "PUBLISH",          NULL},
@@ -98,7 +95,7 @@ int mr_init_packet(mr_packet_ctx **ppctx, const mr_mdata *MDATA_TEMPLATE, size_t
     memcpy(mdata0, MDATA_TEMPLATE, mdata_count * sizeof(mr_mdata));
     pctx->mdata0 = mdata0;
     pctx->mqtt_packet_type = mdata0->value; // always the value of the 0th mdata row
-    pctx->mqtt_packet_name = _PACKET_TYPE[pctx->mqtt_packet_type >> 4].mqtt_packet_name; // left nibble is index
+    pctx->mqtt_packet_name = _PACKET_TYPE[pctx->mqtt_packet_type].mqtt_packet_name;
     *ppctx = pctx;
     return 0;
 }
@@ -119,7 +116,7 @@ static int mr_unpack_packet(mr_packet_ctx *pctx) {
         }
     }
 
-    mr_ptype_fn ptype_fn = _PACKET_TYPE[pctx->mqtt_packet_type >> 4].ptype_fn; // index is left nibble
+    mr_ptype_fn ptype_fn = _PACKET_TYPE[pctx->mqtt_packet_type].ptype_fn;
     if (ptype_fn && ptype_fn(pctx)) return -1;
 
     if (pctx->u8vpos == pctx->u8vlen) {
@@ -712,13 +709,8 @@ static int mr_printable_scalar(mr_packet_ctx *pctx, mr_mdata *mdata) {
 
 static int mr_printable_hexvalue(mr_packet_ctx *pctx, mr_mdata *mdata) {
     char cv[100] = {'\0'};
-    uint8_t u8v[4];
-    uint32_t u32 = mdata->value;
-    u8v[0] = (u32 >> 24) & 0xFF;
-    u8v[1] = (u32 >> 16) & 0xFF;
-    u8v[2] = (u32 >> 8) & 0xFF;
-    u8v[3] = u32 & 0xFF;
-    if (mr_get_hexdump(cv, sizeof(cv), u8v, 4)) return -1;
+    uint8_t u8 = mdata->value;
+    if (mr_get_hexdump(cv, sizeof(cv), &u8, 1)) return -1;
     mr_compress_spaces_lines(cv); // make into a single line
     size_t slen = strlen(cv);
     char *printable;

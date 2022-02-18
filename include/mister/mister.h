@@ -101,6 +101,7 @@ int mr_pack_connect_packet(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *pu8vlen
 int mr_free_connect_packet(mr_packet_ctx *pctx);
 
 int mr_get_connect_packet_type(mr_packet_ctx *pctx, uint8_t *pu8);
+int mr_get_connect_reserved_header(mr_packet_ctx *pctx, uint8_t *pu8);
 int mr_get_connect_remaining_length(mr_packet_ctx *pctx, uint32_t *pu32);
 int mr_get_connect_protocol_name(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *plen);
 int mr_get_connect_protocol_version(mr_packet_ctx *pctx, uint8_t *pu8);
@@ -221,6 +222,7 @@ int mr_pack_connack_packet(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *pu8vlen
 int mr_free_connack_packet(mr_packet_ctx *pctx);
 
 int mr_get_connack_packet_type(mr_packet_ctx *pctx, uint8_t *pu8);
+int mr_get_connack_reserved_header(mr_packet_ctx *pctx, uint8_t *pu8);
 int mr_get_connack_remaining_length(mr_packet_ctx *pctx, uint32_t *pu32);
 
 int mr_get_connack_session_present(mr_packet_ctx *pctx, bool *pflag_value);

@@ -200,7 +200,7 @@ TEST_CASE("happy CONNECT packet", "[connect][happy]") {
     free(file_printable);
 
     REQUIRE(mr_get_connect_printable(pctx, true, &packet_printable) == 0); // test true flag
-    printf("\npacket_printable::\n%s\n", packet_printable);
+    // printf("\npacket_printable::\n%s\n", packet_printable);
 
     // free unpack context
     REQUIRE(mr_free_connect_packet(pctx) == 0);

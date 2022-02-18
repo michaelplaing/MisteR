@@ -19,6 +19,8 @@
 
 enum MR_CONNECT_MDATA_FIELDS { // Same order as _CONNECT_MDATA_TEMPLATE
     CONNECT_PACKET_TYPE,
+    CONNECT_RESERVED_HEADER,
+    CONNECT_MR_HEADER,
     CONNECT_REMAINING_LENGTH,
     CONNECT_PROTOCOL_NAME,
     CONNECT_PROTOCOL_VERSION,
@@ -88,12 +90,15 @@ static const uint8_t _CWP[] = { // connect will property values
 #define _CWPSZ 7
 
 static const char _S0L[] = "";
+static const mr_mvalue_t _MR_CONNECT_HEADER = MQTT_CONNECT << 4;
 
 static const mr_mdata _CONNECT_MDATA_TEMPLATE[] = { // Same order as enum CONNECT_MDATA_FIELDS (see column idx)
 //   name                           dtype               bitpos  value               valloc  vlen    u8vlen  vexists link                            propid                                  flagid                  idx                                     printable
-    {"packet_type",                 MR_U8_DTYPE,        _NA,    MQTT_CONNECT,       false,  1,      1,      true,   _NA,                            _NA,                                    _NA,                    CONNECT_PACKET_TYPE,                    NULL},
+    {"packet_type",                 MR_BITS_DTYPE,      4,      MQTT_CONNECT,       false,  4,      0,      true,   CONNECT_MR_HEADER,              _NA,                                    _NA,                    CONNECT_PACKET_TYPE,                    NULL},
+    {"reserved_header",             MR_BITS_DTYPE,      0,      0,                  false,  4,      0,      true,   CONNECT_MR_HEADER,              _NA,                                    _NA,                    CONNECT_RESERVED_HEADER,                NULL},
+    {"mr_header",                   MR_FLAGS_DTYPE,     _NA,    _MR_CONNECT_HEADER, false,  1,      1,      true,   _NA,                            _NA,                                    _NA,                    CONNECT_MR_HEADER,                      NULL},
     {"remaining_length",            MR_VBI_DTYPE,       _NA,    0,                  false,  0,      0,      true,   CONNECT_PASSWORD,               _NA,                                    _NA,                    CONNECT_REMAINING_LENGTH,               NULL},
-    {"protocol_name",               MR_U8V_DTYPE,       _NA,    (mr_mvalue_t)_PS,   false,  _PSSZ,  _PSSZ+2,true,   _NA,                            _NA,                                    _NA,                    CONNECT_PROTOCOL_NAME,                  NULL},
+    {"protocol_name",               MR_U8V_DTYPE,       _NA,    _PS,   false,  _PSSZ,  _PSSZ+2,true,   _NA,                            _NA,                                    _NA,                    CONNECT_PROTOCOL_NAME,                  NULL},
     {"protocol_version",            MR_U8_DTYPE,        _NA,    _PV,                false,  1,      1,      true,   _NA,                            _NA,                                    _NA,                    CONNECT_PROTOCOL_VERSION,               NULL},
     {"reserved",                    MR_BITS_DTYPE,      0,      0,                  false,  1,      0,      true,   CONNECT_MR_FLAGS,               _NA,                                    _NA,                    CONNECT_RESERVED,                       NULL},
     {"clean_start",                 MR_BITS_DTYPE,      1,      0,                  false,  1,      0,      true,   CONNECT_MR_FLAGS,               _NA,                                    _NA,                    CONNECT_CLEAN_START,                    NULL},
@@ -197,6 +202,13 @@ int mr_get_connect_packet_type(mr_packet_ctx *pctx, uint8_t *pu8) {
     bool exists_flag;
     if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_u8(pctx, CONNECT_PACKET_TYPE, pu8, &exists_flag);
+}
+
+// const uint8_t reserved_header
+int mr_get_connect_reserved_header(mr_packet_ctx *pctx, uint8_t *pu8) {
+    bool exists_flag;
+    if (mr_check_connect_packet(pctx)) return -1;
+    return mr_get_u8(pctx, CONNECT_RESERVED_HEADER, pu8, &exists_flag);
 }
 
 // uint32_t remaining_length

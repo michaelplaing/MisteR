@@ -10,6 +10,8 @@
 
 enum CONNACK_MDATA_FIELDS { // Same order as _CONNACK_MDATA_TEMPLATE
     CONNACK_PACKET_TYPE,
+    CONNACK_RESERVED_HEADER,
+    CONNACK_MR_HEADER,
     CONNACK_REMAINING_LENGTH,
     CONNACK_SESSION_PRESENT,
     CONNACK_RESERVED,
@@ -85,9 +87,13 @@ static const uint8_t _CP[] = {
 
 #define _NA 0
 
+static const mr_mvalue_t _MR_CONNACK_HEADER = MQTT_CONNACK << 4;
+
 static const mr_mdata _CONNACK_MDATA_TEMPLATE[] = {
 //   name                                   dtype               bitpos  value               valloc  vlen    u8vlen  vexists link                            propid                                          flagid  idx                                         printable
-    {"packet_type",                         MR_U8_DTYPE,        _NA,    MQTT_CONNACK,       false,  1,      1,      true,   _NA,                            _NA,                                            _NA,    CONNACK_PACKET_TYPE,                        NULL},
+    {"packet_type",                         MR_BITS_DTYPE,      4,      MQTT_CONNACK,       false,  4,      0,      true,   CONNACK_MR_HEADER,              _NA,                                            _NA,    CONNACK_PACKET_TYPE,                        NULL},
+    {"reserved_header",                     MR_BITS_DTYPE,      0,      0,                  false,  4,      0,      true,   CONNACK_MR_HEADER,              _NA,                                            _NA,    CONNACK_RESERVED_HEADER,                    NULL},
+    {"mr_header",                           MR_FLAGS_DTYPE,     _NA,    _MR_CONNACK_HEADER, false,  1,      1,      true,   _NA,                            _NA,                                            _NA,    CONNACK_MR_HEADER,                          NULL},
     {"remaining_length",                    MR_VBI_DTYPE,       _NA,    0,                  false,  0,      0,      true,   CONNACK_AUTHENTICATION_DATA,    _NA,                                            _NA,    CONNACK_REMAINING_LENGTH,                   NULL},
     {"session_present",                     MR_BITS_DTYPE,      0,      0,                  false,  1,      0,      true,   CONNACK_MR_FLAGS,               _NA,                                            _NA,    CONNACK_SESSION_PRESENT,                    NULL},
     {"reserved",                            MR_BITS_DTYPE,      1,      0,                  false,  7,      0,      true,   CONNACK_MR_FLAGS,               _NA,                                            _NA,    CONNACK_RESERVED,                           NULL},
@@ -151,6 +157,13 @@ int mr_get_connack_packet_type(mr_packet_ctx *pctx, uint8_t *pu8) {
     bool exists_flag;
     if (mr_check_connack_packet(pctx)) return -1;
     return mr_get_u8(pctx, CONNACK_PACKET_TYPE, pu8, &exists_flag);
+}
+
+// const uint8_t reserved_header
+int mr_get_connack_reserved_header(mr_packet_ctx *pctx, uint8_t *pu8) {
+    bool exists_flag;
+    if (mr_check_connack_packet(pctx)) return -1;
+    return mr_get_u8(pctx, CONNACK_RESERVED_HEADER, pu8, &exists_flag);
 }
 
 // uint32_t remaining_length
