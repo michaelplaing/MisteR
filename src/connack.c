@@ -93,11 +93,11 @@ static const mr_mdata _CONNACK_MDATA_TEMPLATE[] = {
 //   name                                   dtype               bitpos  value               valloc  vlen    u8vlen  vexists link                            propid                                          flagid  idx                                         printable
     {"packet_type",                         MR_BITS_DTYPE,      4,      MQTT_CONNACK,       false,  4,      0,      true,   CONNACK_MR_HEADER,              _NA,                                            _NA,    CONNACK_PACKET_TYPE,                        NULL},
     {"reserved_header",                     MR_BITS_DTYPE,      0,      0,                  false,  4,      0,      true,   CONNACK_MR_HEADER,              _NA,                                            _NA,    CONNACK_RESERVED_HEADER,                    NULL},
-    {"mr_header",                           MR_FLAGS_DTYPE,     _NA,    _MR_CONNACK_HEADER, false,  1,      1,      true,   _NA,                            _NA,                                            _NA,    CONNACK_MR_HEADER,                          NULL},
+    {"mr_header",                           MR_BITFLD_DTYPE,    _NA,    _MR_CONNACK_HEADER, false,  1,      1,      true,   _NA,                            _NA,                                            _NA,    CONNACK_MR_HEADER,                          NULL},
     {"remaining_length",                    MR_VBI_DTYPE,       _NA,    0,                  false,  0,      0,      true,   CONNACK_AUTHENTICATION_DATA,    _NA,                                            _NA,    CONNACK_REMAINING_LENGTH,                   NULL},
     {"session_present",                     MR_BITS_DTYPE,      0,      0,                  false,  1,      0,      true,   CONNACK_MR_FLAGS,               _NA,                                            _NA,    CONNACK_SESSION_PRESENT,                    NULL},
-    {"reserved",                            MR_BITS_DTYPE,      1,      0,                  false,  7,      0,      true,   CONNACK_MR_FLAGS,               _NA,                                            _NA,    CONNACK_RESERVED,                           NULL},
-    {"mr_flags",                            MR_FLAGS_DTYPE,     _NA,    0,                  false,  1,      1,      true,   _NA,                            _NA,                                            _NA,    CONNACK_MR_FLAGS,                           NULL},
+    {"reserved_flags",                      MR_BITS_DTYPE,      1,      0,                  false,  7,      0,      true,   CONNACK_MR_FLAGS,               _NA,                                            _NA,    CONNACK_RESERVED,                           NULL},
+    {"mr_flags",                            MR_BITFLD_DTYPE,    _NA,    0,                  false,  1,      1,      true,   _NA,                            _NA,                                            _NA,    CONNACK_MR_FLAGS,                           NULL},
     {"connect_reason_code",                 MR_U8_DTYPE,        _NA,    0,                  false,  1,      1,      true,   _NA,                            _NA,                                            _NA,    CONNACK_CONNECT_REASON_CODE,                NULL},
     {"property_length",                     MR_VBI_DTYPE,       _NA,    0,                  false,  0,      0,      true,   CONNACK_AUTHENTICATION_DATA,    _NA,                                            _NA,    CONNACK_PROPERTY_LENGTH,                    NULL},
     {"mr_properties",                       MR_PROPERTIES_DTYPE,_NA,    (mr_mvalue_t)_CP,   _NA,    _CPSZ,  _NA,    true,   _NA,                            _NA,                                            _NA,    CONNACK_MR_PROPERTIES,                      NULL},
@@ -185,8 +185,8 @@ int mr_set_connack_session_present(mr_packet_ctx *pctx, const bool flag_value) {
     return mr_set_scalar(pctx, CONNACK_SESSION_PRESENT, flag_value);
 }
 
-// uint8_t reserved - bits 1-7
-int mr_get_connack_reserved(mr_packet_ctx *pctx, uint8_t *pu8) {
+// uint8_t reserved_flags - bits 1-7
+int mr_get_connack_reserved_flags(mr_packet_ctx *pctx, uint8_t *pu8) {
     bool exists_flag;
     if (mr_check_connack_packet(pctx)) return -1;
     return mr_get_u8(pctx, CONNACK_RESERVED, pu8, &exists_flag);

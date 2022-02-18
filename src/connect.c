@@ -96,18 +96,18 @@ static const mr_mdata _CONNECT_MDATA_TEMPLATE[] = { // Same order as enum CONNEC
 //   name                           dtype               bitpos  value               valloc  vlen    u8vlen  vexists link                            propid                                  flagid                  idx                                     printable
     {"packet_type",                 MR_BITS_DTYPE,      4,      MQTT_CONNECT,       false,  4,      0,      true,   CONNECT_MR_HEADER,              _NA,                                    _NA,                    CONNECT_PACKET_TYPE,                    NULL},
     {"reserved_header",             MR_BITS_DTYPE,      0,      0,                  false,  4,      0,      true,   CONNECT_MR_HEADER,              _NA,                                    _NA,                    CONNECT_RESERVED_HEADER,                NULL},
-    {"mr_header",                   MR_FLAGS_DTYPE,     _NA,    _MR_CONNECT_HEADER, false,  1,      1,      true,   _NA,                            _NA,                                    _NA,                    CONNECT_MR_HEADER,                      NULL},
+    {"mr_header",                   MR_BITFLD_DTYPE,    _NA,    _MR_CONNECT_HEADER, false,  1,      1,      true,   _NA,                            _NA,                                    _NA,                    CONNECT_MR_HEADER,                      NULL},
     {"remaining_length",            MR_VBI_DTYPE,       _NA,    0,                  false,  0,      0,      true,   CONNECT_PASSWORD,               _NA,                                    _NA,                    CONNECT_REMAINING_LENGTH,               NULL},
-    {"protocol_name",               MR_U8V_DTYPE,       _NA,    _PS,   false,  _PSSZ,  _PSSZ+2,true,   _NA,                            _NA,                                    _NA,                    CONNECT_PROTOCOL_NAME,                  NULL},
+    {"protocol_name",               MR_U8V_DTYPE,       _NA,    (mr_mvalue_t)_PS,   false,  _PSSZ,  _PSSZ+2,true,   _NA,                            _NA,                                    _NA,                    CONNECT_PROTOCOL_NAME,                  NULL},
     {"protocol_version",            MR_U8_DTYPE,        _NA,    _PV,                false,  1,      1,      true,   _NA,                            _NA,                                    _NA,                    CONNECT_PROTOCOL_VERSION,               NULL},
-    {"reserved",                    MR_BITS_DTYPE,      0,      0,                  false,  1,      0,      true,   CONNECT_MR_FLAGS,               _NA,                                    _NA,                    CONNECT_RESERVED,                       NULL},
+    {"reserved_flags",              MR_BITS_DTYPE,      0,      0,                  false,  1,      0,      true,   CONNECT_MR_FLAGS,               _NA,                                    _NA,                    CONNECT_RESERVED,                       NULL},
     {"clean_start",                 MR_BITS_DTYPE,      1,      0,                  false,  1,      0,      true,   CONNECT_MR_FLAGS,               _NA,                                    _NA,                    CONNECT_CLEAN_START,                    NULL},
     {"will_flag",                   MR_BITS_DTYPE,      2,      0,                  false,  1,      0,      true,   CONNECT_MR_FLAGS,               _NA,                                    _NA,                    CONNECT_WILL_FLAG,                      NULL},
     {"will_qos",                    MR_BITS_DTYPE,      3,      0,                  false,  2,      0,      true,   CONNECT_MR_FLAGS,               _NA,                                    CONNECT_WILL_FLAG,      CONNECT_WILL_QOS,                       NULL},
     {"will_retain",                 MR_BITS_DTYPE,      5,      0,                  false,  1,      0,      true,   CONNECT_MR_FLAGS,               _NA,                                    CONNECT_WILL_FLAG,      CONNECT_WILL_RETAIN,                    NULL},
     {"password_flag",               MR_BITS_DTYPE,      6,      0,                  false,  1,      0,      true,   CONNECT_MR_FLAGS,               _NA,                                    _NA,                    CONNECT_PASSWORD_FLAG,                  NULL},
     {"username_flag",               MR_BITS_DTYPE,      7,      0,                  false,  1,      0,      true,   CONNECT_MR_FLAGS,               _NA,                                    _NA,                    CONNECT_USERNAME_FLAG,                  NULL},
-    {"mr_flags",                    MR_FLAGS_DTYPE,     _NA,    0,                  false,  1,      1,      true,   _NA,                            _NA,                                    _NA,                    CONNECT_MR_FLAGS,                       NULL},
+    {"mr_flags",                    MR_BITFLD_DTYPE,    _NA,    0,                  false,  1,      1,      true,   _NA,                            _NA,                                    _NA,                    CONNECT_MR_FLAGS,                       NULL},
     {"keep_alive",                  MR_U16_DTYPE,       _NA,    0,                  false,  2,      2,      true,   _NA,                            _NA,                                    _NA,                    CONNECT_KEEP_ALIVE,                     NULL},
     {"property_length",             MR_VBI_DTYPE,       _NA,    0,                  false,  0,      0,      true,   CONNECT_AUTHENTICATION_DATA,    _NA,                                    _NA,                    CONNECT_PROPERTY_LENGTH,                NULL},
     {"mr_properties",               MR_PROPERTIES_DTYPE,_NA,    (mr_mvalue_t)_CP,   _NA,    _CPSZ,  _NA,    true,   _NA,                            _NA,                                    _NA,                    CONNECT_MR_PROPERTIES,                  NULL},
@@ -232,8 +232,8 @@ int mr_get_connect_protocol_version(mr_packet_ctx *pctx, uint8_t *pu8) {
     return mr_get_u8(pctx, CONNECT_PROTOCOL_VERSION, pu8, &exists_flag);
 }
 
-// const bool reserved
-int mr_get_connect_reserved(mr_packet_ctx *pctx, bool *pflag_value) {
+// const bool reserved_flags
+int mr_get_connect_reserved_flags(mr_packet_ctx *pctx, bool *pflag_value) {
     bool exists_flag;
     if (mr_check_connect_packet(pctx)) return -1;
     return mr_get_boolean(pctx, CONNECT_RESERVED, pflag_value, &exists_flag);

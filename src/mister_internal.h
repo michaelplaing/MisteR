@@ -71,9 +71,10 @@ enum mr_data_types {
     MR_VBI_DTYPE,
     MR_BITS_DTYPE,
     MR_U8V_DTYPE,
+    MR_PAYLOAD_DTYPE,
     MR_STR_DTYPE,
     MR_SPV_DTYPE,
-    MR_FLAGS_DTYPE,
+    MR_BITFLD_DTYPE,
     MR_PROPERTIES_DTYPE
 };
 
@@ -162,6 +163,10 @@ static int mr_count_u8v(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_pack_u8v(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_unpack_u8v(mr_packet_ctx *pctx, mr_mdata *mdata);
 int mr_validate_u8v_utf8(mr_packet_ctx *pctx, const int idx);
+
+static int mr_count_payload(mr_packet_ctx *pctx, mr_mdata *mdata);
+static int mr_pack_payload(mr_packet_ctx *pctx, mr_mdata *mdata);
+static int mr_unpack_payload(mr_packet_ctx *pctx, mr_mdata *mdata);
 
 int mr_get_str(mr_packet_ctx *pctx, const int idx, char **pcv0, bool *pexists);
 static int mr_count_str(mr_packet_ctx *pctx, mr_mdata *mdata);

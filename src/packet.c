@@ -73,17 +73,18 @@ static const mr_ptype _PACKET_TYPE[] = {
 };
 
 static const mr_dtype _DATA_TYPE[] = { // same order as mr_data_types enum
-//   dtype idx              name                        count_fn        pack_fn             unpack_fn               print_fn               validate_fn         free_fn
-    {MR_U8_DTYPE,           "uint8",                    NULL,           mr_pack_u8,         mr_unpack_u8,           mr_printable_scalar,   NULL,               NULL},
-    {MR_U16_DTYPE,          "uint16",                   NULL,           mr_pack_u16,        mr_unpack_u16,          mr_printable_scalar,   NULL,               NULL},
-    {MR_U32_DTYPE,          "uint32",                   NULL,           mr_pack_u32,        mr_unpack_u32,          mr_printable_scalar,   NULL,               NULL},
-    {MR_VBI_DTYPE,          "variable byte int",        mr_count_VBI,   mr_pack_VBI,        mr_unpack_VBI,          mr_printable_scalar,   NULL,               NULL},
-    {MR_BITS_DTYPE,         "bits in uint8 flag",       NULL,           mr_pack_bits,       mr_unpack_bits,         mr_printable_scalar,   NULL,               NULL},
-    {MR_U8V_DTYPE,          "binary data - uint8 vec",  mr_count_u8v,   mr_pack_u8v,        mr_unpack_u8v,          mr_printable_hexdump,  NULL,               mr_free_vector},
-    {MR_STR_DTYPE,          "utf8 prefix string",       mr_count_str,   mr_pack_u8v,        mr_unpack_u8v,          mr_printable_string,   mr_validate_str,    mr_free_vector},
-    {MR_SPV_DTYPE,          "string pair vector",       mr_count_spv,   mr_pack_spv,        mr_unpack_spv,          mr_printable_spv,      mr_validate_spv,    mr_free_spv},
-    {MR_FLAGS_DTYPE,        "uint8 flag",               NULL,           mr_pack_incr1,      mr_unpack_u8,           mr_printable_hexvalue, NULL,               NULL},
-    {MR_PROPERTIES_DTYPE,   "properties",               NULL,           NULL,               mr_unpack_properties,   NULL,                  NULL,               NULL}
+//   dtype idx              name                        count_fn            pack_fn             unpack_fn               print_fn               validate_fn         free_fn
+    {MR_U8_DTYPE,           "uint8",                    NULL,               mr_pack_u8,         mr_unpack_u8,           mr_printable_scalar,   NULL,               NULL},
+    {MR_U16_DTYPE,          "uint16",                   NULL,               mr_pack_u16,        mr_unpack_u16,          mr_printable_scalar,   NULL,               NULL},
+    {MR_U32_DTYPE,          "uint32",                   NULL,               mr_pack_u32,        mr_unpack_u32,          mr_printable_scalar,   NULL,               NULL},
+    {MR_VBI_DTYPE,          "variable byte integer",    mr_count_VBI,       mr_pack_VBI,        mr_unpack_VBI,          mr_printable_scalar,   NULL,               NULL},
+    {MR_BITS_DTYPE,         "bits in uint8 bit field",  NULL,               mr_pack_bits,       mr_unpack_bits,         mr_printable_scalar,   NULL,               NULL},
+    {MR_U8V_DTYPE,          "binary data - u8 vector",  mr_count_u8v,       mr_pack_u8v,        mr_unpack_u8v,          mr_printable_hexdump,  NULL,               mr_free_vector},
+    {MR_PAYLOAD_DTYPE,      "Final U8V - no prefix",    mr_count_payload,   mr_pack_payload,    mr_unpack_payload,      mr_printable_hexdump,  NULL,               mr_free_vector},
+    {MR_STR_DTYPE,          "utf8 prefix string",       mr_count_str,       mr_pack_u8v,        mr_unpack_u8v,          mr_printable_string,   mr_validate_str,    mr_free_vector},
+    {MR_SPV_DTYPE,          "string pair vector",       mr_count_spv,       mr_pack_spv,        mr_unpack_spv,          mr_printable_spv,      mr_validate_spv,    mr_free_spv},
+    {MR_BITFLD_DTYPE,       "uint8 flag",               NULL,               mr_pack_incr1,      mr_unpack_u8,           mr_printable_hexvalue, NULL,               NULL},
+    {MR_PROPERTIES_DTYPE,   "properties",               NULL,               NULL,               mr_unpack_properties,   NULL,                  NULL,               NULL}
 };
 
 int mr_init_packet(mr_packet_ctx **ppctx, const mr_mdata *MDATA_TEMPLATE, size_t mdata_count) {
@@ -432,6 +433,11 @@ static int mr_count_u8v(mr_packet_ctx *pctx, mr_mdata *mdata) {
     return 0;
 }
 
+static int mr_count_payload(mr_packet_ctx *pctx, mr_mdata *mdata) {
+    mdata->u8vlen = mdata->vlen;
+    return 0;
+}
+
 static int mr_pack_u8v(mr_packet_ctx *pctx, mr_mdata *mdata) {
     bool str_flag = mdata->dtype == MR_STR_DTYPE;
     uint8_t propid = mdata->propid;
@@ -443,6 +449,13 @@ static int mr_pack_u8v(mr_packet_ctx *pctx, mr_mdata *mdata) {
     pctx->u8vpos += u16;
     return 0;
 }
+
+static int mr_pack_payload(mr_packet_ctx *pctx, mr_mdata *mdata) {
+    memcpy(pctx->u8v0 + pctx->u8vpos, (uint8_t *)mdata->value, mdata->vlen);
+    pctx->u8vpos += mdata->vlen;
+    return 0;
+}
+
 
 static int mr_unpack_u8v(mr_packet_ctx *pctx, mr_mdata *mdata) {
     bool str_flag = mdata->dtype == MR_STR_DTYPE;
@@ -459,6 +472,14 @@ static int mr_unpack_u8v(mr_packet_ctx *pctx, mr_mdata *mdata) {
     mdata->valloc = true;
     mdata->u8vlen = (mdata->propid ? 1 : 0) + 2 + u8vlen;
     pctx->u8vpos += 2 + u8vlen;
+    return 0;
+}
+
+static int mr_unpack_payload(mr_packet_ctx *pctx, mr_mdata *mdata) {
+    mdata->value = (mr_mvalue_t)(pctx->u8v0 + pctx->u8vpos);
+    mdata->vexists = true;
+    mdata->valloc = false;
+    mdata->u8vlen = mdata->vlen = pctx->u8vlen - pctx->u8vpos;
     return 0;
 }
 
