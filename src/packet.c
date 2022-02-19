@@ -83,7 +83,7 @@ static const mr_dtype _DATA_TYPE[] = { // same order as mr_data_types enum
     {MR_PAYLOAD_DTYPE,      "Final U8V - no prefix",    mr_count_payload,   mr_pack_payload,    mr_unpack_payload,      mr_printable_hexdump,  NULL,               mr_free_vector},
     {MR_STR_DTYPE,          "utf8 prefix string",       mr_count_str,       mr_pack_u8v,        mr_unpack_u8v,          mr_printable_string,   mr_validate_str,    mr_free_vector},
     {MR_SPV_DTYPE,          "string pair vector",       mr_count_spv,       mr_pack_spv,        mr_unpack_spv,          mr_printable_spv,      mr_validate_spv,    mr_free_spv},
-    {MR_VBIV_DTYPE,         "VBI vector",               mr_count_VBIv,      mr_pack_VBIv,       mr_unpack_VBIv,         mr_printable_VBIv,     mr_validate_VBIv,   mr_free_VBIv},
+    {MR_VBIV_DTYPE,         "VBI vector",               mr_count_VBIv,      mr_pack_VBIv,       mr_unpack_VBIv,         mr_printable_VBIv,     mr_validate_VBIv,   mr_free_vector},
     {MR_BITFLD_DTYPE,       "uint8 flag",               NULL,               mr_pack_incr1,      mr_unpack_u8,           mr_printable_hexvalue, NULL,               NULL},
     {MR_PROPERTIES_DTYPE,   "properties",               NULL,               NULL,               mr_unpack_properties,   NULL,                  NULL,               NULL}
 };
@@ -506,23 +506,99 @@ int mr_get_VBIv(mr_packet_ctx *pctx, const int idx, uint32_t **pu32v0, size_t *p
     return 0;
 }
 
-static int mr_count_VBIv(mr_packet_ctx *pctx, mr_mdata *mdata) {
+static int mr_count_VBIv(mr_packet_ctx *pctx, mr_mdata *mdata) { // VBIv's are properties
+    if (!mdata->value) {
+        dzlog_error("NULL pointer: packet: %s; name: %s", pctx->mqtt_packet_name, mdata->name);
+        return -1;
+    }
+
+    uint32_t *VBIv0 = (uint32_t *)mdata->value;
+
+    mdata->u8vlen = 0;
+    for (int i = 0; i < mdata->vlen; i++) { // propid(u8) + VBI byte count
+        int bytecount = mr_bytecount_VBI(VBIv0[i]);
+
+        if (bytecount < 0) {
+            dzlog_error("VBI too big for 4 bytes: packet: %s; name: %s", pctx->mqtt_packet_name, mdata->name);
+            return -1;
+        }
+
+        mdata->u8vlen += 1 + bytecount;
+    }
+
     return 0;
 }
 
 static int mr_pack_VBIv(mr_packet_ctx *pctx, mr_mdata *mdata) {
+    if (!mdata->value) {
+        dzlog_error("NULL pointer: packet: %s; name: %s", pctx->mqtt_packet_name, mdata->name);
+        return -1;
+    }
+
+    uint32_t *VBIv0 = (uint32_t *)mdata->value;
+
+    for (int i = 0; i < mdata->vlen; i++) {
+        pctx->u8v0[pctx->u8vpos++] = mdata->propid;
+        int bytecount = mr_make_VBI(VBIv0[i], &pctx->u8v0[pctx->u8vpos]);
+
+        if (bytecount < 0) {
+            dzlog_error("VBI too big for 4 bytes: packet: %s; name: %s", pctx->mqtt_packet_name, mdata->name);
+            return -1;
+        }
+
+        pctx->u8vpos += bytecount;
+    }
+
     return 0;
 }
 
 static int mr_unpack_VBIv(mr_packet_ctx *pctx, mr_mdata *mdata) {
+    uint8_t *pu8 = pctx->u8v0 + pctx->u8vpos;
+    uint32_t u32;
+    int bytecount = mr_get_VBI(&u32, pu8);
+
+    if (bytecount < 0) {
+        dzlog_error("VBI too big for 4 bytes: packet: %s; name: %s", pctx->mqtt_packet_name, mdata->name);
+        return -1;
+    }
+
+    uint32_t *VBIv0;
+    if (mdata->valloc) {
+        VBIv0 = (uint32_t *)mdata->value;
+        if (mr_realloc((void **)&VBIv0, (mdata->vlen + 1) * sizeof(uint32_t))) return -1;
+    }
+    else {
+        if (mr_malloc((void **)&VBIv0, sizeof(uint32_t))) return -1;
+        mdata->vlen = 0; // incremented below
+    }
+
+    mdata->value = (mr_mvalue_t)VBIv0;
+    *(VBIv0 + mdata->vlen) = u32;
+    mdata->vlen++;
+    mdata->vexists = true;
+    mdata->valloc = true;
+    mdata->u8vlen += 1 + bytecount;
+    pctx->u8vpos += bytecount; // propid has already been consumed
     return 0;
 }
 
 static int mr_validate_VBIv(mr_packet_ctx *pctx, mr_mdata *mdata) {
-    return 0;
-}
+    if (!mdata->value) {
+        dzlog_error("NULL pointer: packet: %s; name: %s", pctx->mqtt_packet_name, mdata->name);
+        return -1;
+    }
 
-static int mr_free_VBIv(mr_packet_ctx *pctx, mr_mdata *mdata) {
+    uint32_t *VBIv0 = (uint32_t *)mdata->value;
+
+    for (int i = 0; i < mdata->vlen; i++) {
+        int bytecount = mr_bytecount_VBI(VBIv0[i]);
+
+        if (bytecount < 0) {
+            dzlog_error("VBI too big for 4 bytes: packet: %s; name: %s", pctx->mqtt_packet_name, mdata->name);
+            return -1;
+        }
+    }
+
     return 0;
 }
 
@@ -813,6 +889,24 @@ static int mr_printable_spv(mr_packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_printable_VBIv(mr_packet_ctx *pctx, mr_mdata *mdata) {
+    char *printable;
+    uint32_t *VBIv0 = (uint32_t *)mdata->value;
+
+    char cv[16];
+    size_t len = 0;
+    for (int i = 0; i < mdata->vlen; i++) {
+        len += sprintf(cv, "%u;", VBIv0[i]);
+    }
+
+    if (mr_calloc((void **)&printable, len + 1, 1)) return -1;
+
+    char *pc = printable;
+    for (int i = 0; i < mdata->vlen; i++) {
+        pc += sprintf(pc, "%u;", VBIv0[i]);
+    }
+
+    *(pc - 1) = '\0'; // overwrite trailing ';'
+    mdata->printable = printable;
     return 0;
 }
 

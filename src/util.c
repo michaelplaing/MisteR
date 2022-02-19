@@ -149,8 +149,8 @@ int mr_make_VBI(uint32_t u32, uint8_t *u8v0) {
     return i;
 }
 
-int mr_get_VBI(uint32_t *pu32, uint8_t *u8v) {
-    uint8_t *pu8 = u8v;
+int mr_get_VBI(uint32_t *pu32, uint8_t *u8v0) {
+    uint8_t *pu8 = u8v0;
     uint32_t u32, result_u32 = 0;
     int i;
 

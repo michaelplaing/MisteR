@@ -174,7 +174,6 @@ static int mr_count_VBIv(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_pack_VBIv(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_unpack_VBIv(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_validate_VBIv(mr_packet_ctx *pctx, mr_mdata *mdata);
-static int mr_free_VBIv(mr_packet_ctx *pctx, mr_mdata *mdata);
 
 int mr_get_str(mr_packet_ctx *pctx, const int idx, char **pcv0, bool *pexists);
 static int mr_count_str(mr_packet_ctx *pctx, mr_mdata *mdata);
