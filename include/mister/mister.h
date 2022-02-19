@@ -305,6 +305,21 @@ int mr_reset_connack_authentication_data(mr_packet_ctx *pctx);
 
 int mr_get_connack_printable(mr_packet_ctx *pctx, const bool all_flag, char **pcv);
 
+// PUBLISH
+
+int mr_init_publish_packet(mr_packet_ctx **ppctx);
+int mr_init_unpack_publish_packet(mr_packet_ctx **ppctx, const uint8_t *u8v0, const size_t u8vlen);
+int mr_pack_publish_packet(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *pu8vlen);
+int mr_free_publish_packet(mr_packet_ctx *pctx);
+
+int mr_get_publish_packet_type(mr_packet_ctx *pctx, uint8_t *pu8);
+
+int mr_get_publish_subscription_identifiers(mr_packet_ctx *pctx, uint32_t **pu32v0, size_t *plen, bool *pexists_flag);
+int mr_set_publish_subscription_identifiers(mr_packet_ctx *pctx, const uint32_t *u32v0, const size_t len);
+int mr_reset_publish_subscription_identifiers(mr_packet_ctx *pctx);
+
+int mr_get_publish_printable(mr_packet_ctx *pctx, const bool all_flag, char **pcv);
+
 #ifdef __cplusplus
 }
 #endif

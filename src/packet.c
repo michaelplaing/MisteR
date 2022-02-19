@@ -83,6 +83,7 @@ static const mr_dtype _DATA_TYPE[] = { // same order as mr_data_types enum
     {MR_PAYLOAD_DTYPE,      "Final U8V - no prefix",    mr_count_payload,   mr_pack_payload,    mr_unpack_payload,      mr_printable_hexdump,  NULL,               mr_free_vector},
     {MR_STR_DTYPE,          "utf8 prefix string",       mr_count_str,       mr_pack_u8v,        mr_unpack_u8v,          mr_printable_string,   mr_validate_str,    mr_free_vector},
     {MR_SPV_DTYPE,          "string pair vector",       mr_count_spv,       mr_pack_spv,        mr_unpack_spv,          mr_printable_spv,      mr_validate_spv,    mr_free_spv},
+    {MR_VBIV_DTYPE,         "VBI vector",               mr_count_VBIv,      mr_pack_VBIv,       mr_unpack_VBIv,         mr_printable_VBIv,     mr_validate_VBIv,   mr_free_VBIv},
     {MR_BITFLD_DTYPE,       "uint8 flag",               NULL,               mr_pack_incr1,      mr_unpack_u8,           mr_printable_hexvalue, NULL,               NULL},
     {MR_PROPERTIES_DTYPE,   "properties",               NULL,               NULL,               mr_unpack_properties,   NULL,                  NULL,               NULL}
 };
@@ -456,7 +457,6 @@ static int mr_pack_payload(mr_packet_ctx *pctx, mr_mdata *mdata) {
     return 0;
 }
 
-
 static int mr_unpack_u8v(mr_packet_ctx *pctx, mr_mdata *mdata) {
     bool str_flag = mdata->dtype == MR_STR_DTYPE;
     uint8_t *u8v = pctx->u8v0 + pctx->u8vpos;
@@ -496,6 +496,33 @@ int mr_validate_u8v_utf8(mr_packet_ctx *pctx, const int idx) {
         return -1;
     }
 
+    return 0;
+}
+
+int mr_get_VBIv(mr_packet_ctx *pctx, const int idx, uint32_t **pu32v0, size_t *plen, bool *pexists) {
+    mr_mvalue_t pvoid;
+    mr_get_vector(pctx, idx, &pvoid, plen, pexists);
+    *pu32v0 = (uint32_t *)pvoid;
+    return 0;
+}
+
+static int mr_count_VBIv(mr_packet_ctx *pctx, mr_mdata *mdata) {
+    return 0;
+}
+
+static int mr_pack_VBIv(mr_packet_ctx *pctx, mr_mdata *mdata) {
+    return 0;
+}
+
+static int mr_unpack_VBIv(mr_packet_ctx *pctx, mr_mdata *mdata) {
+    return 0;
+}
+
+static int mr_validate_VBIv(mr_packet_ctx *pctx, mr_mdata *mdata) {
+    return 0;
+}
+
+static int mr_free_VBIv(mr_packet_ctx *pctx, mr_mdata *mdata) {
     return 0;
 }
 
@@ -782,6 +809,10 @@ static int mr_printable_spv(mr_packet_ctx *pctx, mr_mdata *mdata) {
 
     *(pc - 1) = '\0'; // overwrite trailing ';'
     mdata->printable = printable;
+    return 0;
+}
+
+static int mr_printable_VBIv(mr_packet_ctx *pctx, mr_mdata *mdata) {
     return 0;
 }
 

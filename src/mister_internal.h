@@ -74,6 +74,7 @@ enum mr_data_types {
     MR_PAYLOAD_DTYPE,
     MR_STR_DTYPE,
     MR_SPV_DTYPE,
+    MR_VBIV_DTYPE,
     MR_BITFLD_DTYPE,
     MR_PROPERTIES_DTYPE
 };
@@ -168,6 +169,13 @@ static int mr_count_payload(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_pack_payload(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_unpack_payload(mr_packet_ctx *pctx, mr_mdata *mdata);
 
+int mr_get_VBIv(mr_packet_ctx *pctx, const int idx, uint32_t **pu32v0, size_t *plen, bool *pexists);
+static int mr_count_VBIv(mr_packet_ctx *pctx, mr_mdata *mdata);
+static int mr_pack_VBIv(mr_packet_ctx *pctx, mr_mdata *mdata);
+static int mr_unpack_VBIv(mr_packet_ctx *pctx, mr_mdata *mdata);
+static int mr_validate_VBIv(mr_packet_ctx *pctx, mr_mdata *mdata);
+static int mr_free_VBIv(mr_packet_ctx *pctx, mr_mdata *mdata);
+
 int mr_get_str(mr_packet_ctx *pctx, const int idx, char **pcv0, bool *pexists);
 static int mr_count_str(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_validate_str(mr_packet_ctx *pctx, mr_mdata *mdata);
@@ -186,6 +194,7 @@ static int mr_printable_hexvalue(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_printable_hexdump(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_printable_string(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_printable_spv(mr_packet_ctx *pctx, mr_mdata *mdata);
+static int mr_printable_VBIv(mr_packet_ctx *pctx, mr_mdata *mdata);
 int mr_get_printable(mr_packet_ctx *pctx, const bool all_flag, char **pcv);
 
 // CONNECT
@@ -217,6 +226,14 @@ static int mr_validate_connack_shared_subscription_available(const uint8_t u8);
 
 static int mr_validate_connack_pack(mr_packet_ctx *pctx);
 int mr_validate_connack_unpack(mr_packet_ctx *pctx);
+
+// PUBLISH
+
+static int mr_check_publish_packet(mr_packet_ctx *pctx);
+
+static int mr_validate_publish_pack(mr_packet_ctx *pctx);
+int mr_validate_publish_unpack(mr_packet_ctx *pctx);
+
 
 // memory
 
