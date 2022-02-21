@@ -392,9 +392,6 @@ int mr_set_publish_payload(mr_packet_ctx *pctx, const uint8_t *u8v0, const size_
 static int mr_validate_publish_cross(mr_packet_ctx *pctx) {
     uint8_t u8;
     uint16_t u16;
-    // uint8_t *u8v0;
-    // size_t len;
-    // char *cv0;
     bool exists_flag;
 
     // qos & packet_identifier
@@ -413,20 +410,6 @@ static int mr_validate_publish_cross(mr_packet_ctx *pctx) {
     if (mr_get_publish_payload_format_indicator(pctx, &u8, &exists_flag)) return -1;
     if (exists_flag && u8 && mr_validate_u8v_utf8(pctx, PUBLISH_PAYLOAD)) return -1;
 
-/*
-    // authentication_method & authentication_data
-    if (mr_get_publish_authentication_data(pctx, &u8v0, &len, &pexists_flag)) return -1;
-
-    if (pexists_flag) {
-        if (mr_get_publish_authentication_method(pctx, &cv0, &pexists_flag)) return -1;
-
-        if (!pexists_flag) {
-            dzlog_error("authentication_method must exist since authentication_data exists");
-            return -1;
-        }
-    }
-
- */
     return 0;
 }
 
@@ -437,15 +420,28 @@ static int mr_validate_publish_pack(mr_packet_ctx *pctx) {
 
 // PUBLISH ptype_fn invoked from packet.c during unpack
 int mr_validate_publish_unpack(mr_packet_ctx *pctx) {
+    uint8_t u8;
     uint16_t u16;
     char *cv0;
     bool exists_flag;
 
+    if (mr_get_publish_qos(pctx, &u8)) return -1;
+    if (mr_validate_publish_qos(u8)) return -1;
+
     if (mr_get_publish_topic_name(pctx, &cv0)) return -1;
     if (mr_validate_publish_topic_name(cv0)) return -1;
 
+    if (mr_get_publish_packet_identifier(pctx, &u16, &exists_flag)) return -1;
+    if (exists_flag && mr_validate_publish_packet_identifier(u16)) return -1;
+
+    if (mr_get_publish_payload_format_indicator(pctx, &u8, &exists_flag)) return -1;
+    if (exists_flag && mr_validate_publish_payload_format_indicator(u8)) return -1;
+
     if (mr_get_publish_topic_alias(pctx, &u16, &exists_flag)) return -1;
     if (exists_flag && mr_validate_publish_topic_alias(u16)) return -1;
+
+    if (mr_get_publish_response_topic(pctx, &cv0, &exists_flag)) return -1;
+    if (exists_flag && mr_validate_publish_response_topic(cv0)) return -1;
 
     if (mr_validate_publish_cross(pctx)) return -1;
 
