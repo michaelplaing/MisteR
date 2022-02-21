@@ -85,13 +85,13 @@ typedef unsigned long mr_mvalue_t;
 typedef struct mr_mdata {
     const char *name;       ///< field name from spec
     const int dtype;        ///< data type
-    const uint8_t bitpos;   ///< bit position for a MR_BITS_DTYPE sub-byte scalar
+//    const uint8_t bitpos;   ///< bit position for a MR_BITS_DTYPE sub-byte scalar
     mr_mvalue_t value;      ///< an unpacked scalar value or a pointer to an unpacked vector
     bool valloc;            ///< value allocated flag
     size_t vlen;            ///< integer byte size OR sub-byte # of bits OR vector length
-    size_t u8vlen;          ///< byte count of packed value as a uint8_t vector
+    size_t u8vlen;          ///< byte count of packed value; bit position for a sub-byte scalar
     bool vexists;           ///< value set flag
-    const int link;         ///< end of range for VBI; byte to stuff for a sub-byte scalar
+    const int link;         ///< end of range for a VBI; byte to stuff for a sub-byte scalar
     const int propid;       ///< property id if any
     const int flagid;       ///< controlling flag id if any
     const int idx;          ///< offset of this mdata instance in the packet's mdata0 vector
@@ -230,6 +230,10 @@ int mr_validate_connack_unpack(mr_packet_ctx *pctx);
 
 static int mr_check_publish_packet(mr_packet_ctx *pctx);
 
+static int mr_validate_publish_topic_name(const char *cv0);
+static int mr_validate_publish_packet_identifier(const uint16_t u16);
+
+static int mr_validate_publish_cross(mr_packet_ctx *pctx);
 static int mr_validate_publish_pack(mr_packet_ctx *pctx);
 int mr_validate_publish_unpack(mr_packet_ctx *pctx);
 
@@ -243,10 +247,11 @@ int mr_free(void *pv);
 
 // util
 
-int utf8val(const uint8_t *u8v, size_t len);
+int mr_utf8_validation(const uint8_t *u8v, size_t len);
+int mr_wildcard_found(const char *cv);
 int mr_bytecount_VBI(uint32_t u32);
 int mr_make_VBI(uint32_t u32, uint8_t *u8v0);
-int mr_get_VBI(uint32_t *pu32, uint8_t *u8v);
+int mr_extract_VBI(uint32_t *pu32, uint8_t *u8v);
 
 #ifdef __cplusplus
 }

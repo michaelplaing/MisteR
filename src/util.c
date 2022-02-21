@@ -42,9 +42,9 @@
 
 /* Return 0 - success,  >0 - index(1-based) of first error char */
 /* MQTT: error on "Disallowed Unicode code points" (control chars) and U+0000 */
-int utf8val(const uint8_t *u8v, size_t len) {
+int mr_utf8_validation(const uint8_t *u8v, size_t len) {
     //mr_print_hexdump(u8v, len);
-    //dzlog_debug("int utf8val:: *ubv: %02hhX; len: %lu", u8v[0], len);
+    //dzlog_debug("int mr_utf8_validation:: *ubv: %02hhX; len: %lu", u8v[0], len);
     int err_pos = 1;
     if (len > 65536) return err_pos; // MQTT: vector too large
 
@@ -118,10 +118,21 @@ int utf8val(const uint8_t *u8v, size_t len) {
     return 0;
 }
 
-int mr_bytecount_VBI(uint32_t u32) {
-    if (u32 >> (7 * 4)) { // overflow: too big for 4 bytes
-        return -1;
+static const uint8_t _WILDCARDS[] = {'#', '+'};
+
+int mr_wildcard_found(const char *cv) {
+    size_t cvlen = strlen(cv);
+
+    for (int i = 0; i < sizeof(_WILDCARDS); i++) {
+        char *pc = memchr(cv, _WILDCARDS[i], cvlen);
+        if (pc) return pc - cv;
     }
+
+    return 0;
+}
+
+int mr_bytecount_VBI(uint32_t u32) {
+    if (u32 >> (7 * 4)) return -1; // overflow: too big for 4 bytes
 
     int i = 0;
     do {
@@ -133,9 +144,7 @@ int mr_bytecount_VBI(uint32_t u32) {
 }
 
 int mr_make_VBI(uint32_t u32, uint8_t *u8v0) {
-    if (u32 >> (7 * 4)) { // overflow: too big for 4 bytes
-        return -1;
-    }
+    if (u32 >> (7 * 4)) return -1; // overflow: too big for 4 bytes
 
     uint8_t *pu8 = u8v0;
     int i = 0;
@@ -143,20 +152,20 @@ int mr_make_VBI(uint32_t u32, uint8_t *u8v0) {
         *pu8 = u32 & 0x7F;
         u32 = u32 >> 7;
         if (u32) *pu8 |= 0x80;
-        i++; pu8++;
+        i++;
+        pu8++;
     } while (u32);
 
     return i;
 }
 
-int mr_get_VBI(uint32_t *pu32, uint8_t *u8v0) {
+int mr_extract_VBI(uint32_t *pu32, uint8_t *u8v0) {
     uint8_t *pu8 = u8v0;
-    uint32_t u32, result_u32 = 0;
+    uint32_t result_u32 = 0;
     int i;
 
     for (i = 0; i < 4; pu8++, i++){
-        u32 = *pu8;
-        result_u32 += (u32 & 0x7F) << (7 * i);
+        result_u32 += (*pu8 & 0x7F) << (7 * i);
         if (!(*pu8 & 0x80)) break;
     }
 
@@ -174,19 +183,12 @@ int mr_print_hexdump(uint8_t *u8v, const size_t u8vlen) {
     int u8vlines = (u8vlen - 1) / 16 + 1;
     if (u8vlines > 60) u8vlines = 60; // 60 lines max - TODO: parameterize
     size_t cvlen = u8vlines * 70 + 1; // trailing 0
-    char *cv0 = calloc(cvlen, 1);
-    if (!cv0) return -1;
-    int rc = mr_get_hexdump(cv0, cvlen, u8v, u8vlen);
-
-    if (rc) {
-        free(cv0);
-        return rc;
-    }
-    else {
-        puts(cv0);
-        free(cv0);
-        return 0;
-    }
+    char *cv0;
+    if (mr_calloc((void **)&cv0, cvlen, 1)) return -1;
+    if (mr_get_hexdump(cv0, cvlen, u8v, u8vlen)) return -1;
+    puts(cv0);
+    if (mr_free(cv0)) return -1;
+    return 0;
 }
 
 int mr_get_hexdump(char *cv0, size_t cvlen, const uint8_t *u8v, size_t u8vlen) {
@@ -239,7 +241,6 @@ int mr_get_hexdump(char *cv0, size_t cvlen, const uint8_t *u8v, size_t u8vlen) {
 }
 
 void mr_compress_spaces_lines(char *cv) {
-    if (!*cv) return;
     size_t slen = strlen(cv);
     char *pc_dest = cv;
     char *pc_src = cv;
@@ -263,12 +264,12 @@ void mr_compress_spaces_lines(char *cv) {
     for (int i = 0; i <= slen; i++) resultv[i] = '\0';
     pc_dest = resultv;
     pc_src = cv;
-    size_t replace_pos = 0, compress_pos = slen - strlen(cv);
+    size_t replace_pos = 0;
+    size_t compress_pos = slen - strlen(cv);
 
     for (int i = 0; *pc_src && replace_pos < compress_pos; i++, pc_src++) {
         if (*pc_src == '\n') { // replace newline with padded '/'
-            // add a leading space if there is room and it is needed
-            if (replace_pos + 1 < compress_pos && i && *(pc_src - 1) != ' ') {
+            if (replace_pos + 1 < compress_pos && i && *(pc_src - 1) != ' ') { // leading space?
                 *pc_dest++ = ' ';
                 replace_pos++;
             }
@@ -276,8 +277,7 @@ void mr_compress_spaces_lines(char *cv) {
             *pc_dest++ = '/'; // break the line
             replace_pos++;
 
-            // add a trailing space if there is room and it is needed
-            if (replace_pos + 1 < compress_pos && *(pc_src + 1) != ' ') {
+            if (replace_pos + 1 < compress_pos && *(pc_src + 1) != ' ') { // trailing space?
                 *pc_dest++ = ' ';
                 replace_pos++;
             }
@@ -329,6 +329,6 @@ void get_uuidbase62cv(char *uuidbase62cv) {
         u64 = 0;
         for (int j = 0; j < 8; j++) u64 += (uuidu8v[i * 8 + j] << 8 * (7 - j));
         u64tobase62cv(u64, base62cv);
-        strlcat(uuidbase62cv, base62cv, 23);
+        strlcat(uuidbase62cv, base62cv, 23); // MQTT max client id length is 23
     }
 }

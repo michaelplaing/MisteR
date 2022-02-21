@@ -166,7 +166,7 @@ int mr_pack_packet(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *pu8vlen) {
     mr_mdata *mdata = pctx->mdata0 + pctx->mdata_count - 1; // last one
 
     for (int i = pctx->mdata_count - 1; i > -1; mdata--, i--) { // go in reverse to calculate VBIs
-        if (mdata->vexists) {
+        if (mdata->vexists && mdata->dtype != MR_BITS_DTYPE) {
             if (mdata->dtype == MR_VBI_DTYPE && vbi_count_fn(pctx, mdata)) return -1;
             pctx->u8vlen += mdata->u8vlen;
         }
@@ -313,7 +313,7 @@ static int mr_count_VBI(mr_packet_ctx *pctx, mr_mdata *mdata) {
     //  accumulate u8vlens in cum_len for the range of the VBI
     for (int i = mdata->idx + 1; i <= mdata->link; i++) {
         cnt_mdata = pctx->mdata0 + i;
-        if (cnt_mdata->vexists) cum_len += cnt_mdata->u8vlen;
+        if (cnt_mdata->vexists && cnt_mdata->dtype != MR_BITS_DTYPE) cum_len += cnt_mdata->u8vlen;
     }
 
     mdata->value = cum_len;
@@ -337,7 +337,7 @@ static int mr_pack_VBI(mr_packet_ctx *pctx, mr_mdata *mdata) {
 
 static int mr_unpack_VBI(mr_packet_ctx *pctx, mr_mdata *mdata) {
     uint32_t u32;
-    int rc = mr_get_VBI(&u32, pctx->u8v0 + pctx->u8vpos);
+    int rc = mr_extract_VBI(&u32, pctx->u8v0 + pctx->u8vpos);
     if (rc < 0) return rc;
     mdata->value = u32;
     mdata->vlen = rc;
@@ -353,7 +353,7 @@ static const uint8_t _BIT_MASKS[] = {
 };
 
 static int mr_pack_bits_in_value(mr_packet_ctx *pctx, mr_mdata *mdata) {
-    uint8_t bitpos = mdata->bitpos;
+    uint8_t bitpos = mdata->u8vlen;
     mr_mdata *flags_mdata = pctx->mdata0 + mdata->link;
     uint8_t flags_u8 = flags_mdata->value;
     flags_u8 &= ~(_BIT_MASKS[mdata->vlen] << bitpos); // reset
@@ -363,7 +363,7 @@ static int mr_pack_bits_in_value(mr_packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_pack_bits(mr_packet_ctx *pctx, mr_mdata *mdata) { // don't advance pctx->u8vpos
-    uint8_t bitpos = mdata->bitpos;
+    uint8_t bitpos = mdata->u8vlen;
     uint8_t *pu8 = pctx->u8v0 + pctx->u8vpos;
     *pu8 &= ~(_BIT_MASKS[mdata->vlen] << bitpos); // reset
     if (mdata->value) *pu8 |= mdata->value << bitpos; // set
@@ -376,7 +376,7 @@ static int mr_pack_incr1(mr_packet_ctx *pctx, mr_mdata *mdata) { // now advance 
 }
 
 static int mr_unpack_bits(mr_packet_ctx *pctx, mr_mdata *mdata) {   // don't advance pctx->u8vpos; unpacking
-    uint8_t bitpos = mdata->bitpos;                                 // the following flags byte will do that
+    uint8_t bitpos = mdata->u8vlen;                                 // the following flags byte will do that
     uint8_t *pu8 = pctx->u8v0 + pctx->u8vpos;
     mdata->value = *pu8 >> bitpos & _BIT_MASKS[mdata->vlen];
     mdata->vexists = true;
@@ -452,6 +452,7 @@ static int mr_pack_u8v(mr_packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_pack_payload(mr_packet_ctx *pctx, mr_mdata *mdata) {
+    if (!mdata->vlen) return 0; // MQTT: 0-length payload is OK
     memcpy(pctx->u8v0 + pctx->u8vpos, (uint8_t *)mdata->value, mdata->vlen);
     pctx->u8vpos += mdata->vlen;
     return 0;
@@ -485,7 +486,7 @@ static int mr_unpack_payload(mr_packet_ctx *pctx, mr_mdata *mdata) {
 
 int mr_validate_u8v_utf8(mr_packet_ctx *pctx, const int idx) {
     mr_mdata *mdata = pctx->mdata0 + idx;
-    int err_pos = utf8val((uint8_t *)mdata->value, mdata->vlen);
+    int err_pos = mr_utf8_validation((uint8_t *)mdata->value, mdata->vlen);
 
     if (err_pos) {
         dzlog_error(
@@ -555,7 +556,7 @@ static int mr_pack_VBIv(mr_packet_ctx *pctx, mr_mdata *mdata) {
 static int mr_unpack_VBIv(mr_packet_ctx *pctx, mr_mdata *mdata) {
     uint8_t *pu8 = pctx->u8v0 + pctx->u8vpos;
     uint32_t u32;
-    int bytecount = mr_get_VBI(&u32, pu8);
+    int bytecount = mr_extract_VBI(&u32, pu8);
 
     if (bytecount < 0) {
         dzlog_error("VBI too big for 4 bytes: packet: %s; name: %s", pctx->mqtt_packet_name, mdata->name);
@@ -623,7 +624,7 @@ static int mr_validate_str(mr_packet_ctx *pctx, mr_mdata *mdata) {
     }
 
     char *pc = (char *)mdata->value;
-    int err_pos = utf8val((uint8_t *)pc, strlen(pc)); // returns error position
+    int err_pos = mr_utf8_validation((uint8_t *)pc, strlen(pc)); // returns error position
 
     if (err_pos) {
         dzlog_error(
@@ -737,8 +738,8 @@ static int mr_validate_spv(mr_packet_ctx *pctx, mr_mdata *mdata) {
 
     mr_string_pair *spv = (mr_string_pair *)mdata->value;
 
-    for (int i = 0; i < mdata->vlen; i++) { // utf8val returns error position
-        int err_pos = utf8val((uint8_t *)spv[i].name, strlen(spv[i].name));
+    for (int i = 0; i < mdata->vlen; i++) { // mr_utf8_validation returns error position
+        int err_pos = mr_utf8_validation((uint8_t *)spv[i].name, strlen(spv[i].name));
 
         if (err_pos) {
             dzlog_error(
@@ -749,7 +750,7 @@ static int mr_validate_spv(mr_packet_ctx *pctx, mr_mdata *mdata) {
             return -1;
         }
 
-        err_pos = utf8val((uint8_t *)spv[i].value, strlen(spv[i].value));
+        err_pos = mr_utf8_validation((uint8_t *)spv[i].value, strlen(spv[i].value));
 
         if (err_pos) {
             dzlog_error(

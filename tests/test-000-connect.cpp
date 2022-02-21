@@ -163,7 +163,7 @@ TEST_CASE("happy CONNECT packet", "[connect][happy]") {
     char *file_printable;
     size_t mdsz;
     REQUIRE(get_binary_file_content(printable_filename, (uint8_t **)&file_printable, &mdsz) == 0);
-    // printf("\nfile printable (%s)::\n%s\n\npacket printable::\n%s\n", printable_filename, file_printable, packet_printable);
+    printf("\nfile printable (%s)::\n%s\n\npacket printable::\n%s\n", printable_filename, file_printable, packet_printable);
     REQUIRE(mdsz == strlen(packet_printable) + 1);
     REQUIRE(strcmp(file_printable, packet_printable) == 0);
     free(file_printable);
@@ -253,22 +253,22 @@ TEST_CASE("unhappy CONNECT packet", "[connect][unhappy]") {
         CHECK(mr_set_connect_request_problem_information(pctx, 2) == -1);
     }
 
+    SECTION("payload_format_indicator") {
+        CHECK(mr_set_connect_payload_format_indicator(pctx, -1) == -1);
+        CHECK(mr_set_connect_payload_format_indicator(pctx, 0) == 0);
+        CHECK(mr_set_connect_payload_format_indicator(pctx, 1) == 0);
+        CHECK(mr_set_connect_payload_format_indicator(pctx, 2) == -1);
+    }
+
     SECTION("payload_format_indicator & will_payload") {
         // already checked above:
         // . will_flag == false && not payload_format_indicator exists
         // . will_flag == true  && payload_format_indicator exists && == 1 && will_payload is valid utf8
-        REQUIRE(mr_set_connect_payload_format_indicator(pctx, -1) == 0);
-        CHECK(mr_pack_connect_packet(pctx, &u8v0, &u8vlen) == -1);
-        REQUIRE(mr_set_connect_payload_format_indicator(pctx, 0) == 0);
-        CHECK(mr_pack_connect_packet(pctx, &u8v0, &u8vlen) == 0);
-        REQUIRE(mr_set_connect_payload_format_indicator(pctx, 2) == 0);
-        CHECK(mr_pack_connect_packet(pctx, &u8v0, &u8vlen) == -1);
-
         uint8_t u8v[] = {'\0'}; // invalid utf8 for mqtt
         REQUIRE(mr_set_connect_will_payload(pctx, u8v, 1) == 0);
         REQUIRE(mr_set_connect_payload_format_indicator(pctx, 0) == 0);
         CHECK(mr_pack_connect_packet(pctx, &u8v0, &u8vlen) == 0);
-        REQUIRE(mr_set_connect_payload_format_indicator(pctx, 1) == 0); // will_payload is utf8
+        REQUIRE(mr_set_connect_payload_format_indicator(pctx, 1) == 0); // will_payload must be utf8
         CHECK(mr_pack_connect_packet(pctx, &u8v0, &u8vlen) == -1);
     }
 
