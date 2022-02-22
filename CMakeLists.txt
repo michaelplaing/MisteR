@@ -35,6 +35,8 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     else()
         message(STATUS "Doxygen not found, not building docs")
     endif()
+
+    add_subdirectory(scratch) # for local code trials - not tracked in git
 endif()
 
 # FetchContent added in CMake 3.11, downloads during the configure step
@@ -68,8 +70,6 @@ add_subdirectory(src)
 # add_subdirectory(apps)
 
 # add_subdirectory(module)
-
-# add_subdirectory(scratch)
 
 message(STATUS "********************************************")
 message(STATUS "********** ${PROJECT_NAME} build options : **********")
