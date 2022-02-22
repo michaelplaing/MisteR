@@ -8,8 +8,9 @@
 build*/*
 dist/*
 
-#ignore archive
+#ignore archive & scratch
 archive/*
+scratch/*
 
 #ignore Redis databases
 dump.rdb
