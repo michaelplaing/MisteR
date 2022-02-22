@@ -1,13 +1,10 @@
 # MisteR
 
-MisteR provides a Redis module (mister.so) that implements MQTT over RESP (REdis Serialization Protocol),
-hence MR or MisteR. It's very incomplete.
+MisteR provides a library for validating, packing & unpacking MQTT5 packets.
 
-It may provide a thin library over the Redis hiredis library to make it easy to test and use MisteR module.
+MisteR is currently part of a playground for me to experiment with and to rebuild my skills in C development.
 
-It may provide an MQTT reverse proxy utilizing said library to complete a useful MQTT server implmentation.
-
-MisteR is currently a playground for me to experiment with and to rebuild my skills in C development.
+Progress will be slow as there are many rabbitholes to explore.
 
 ## License
 
@@ -15,21 +12,13 @@ It's licensed under the [MIT License](./COPYING).<sup><b>1</b></sup>
 
 ## Building
 
-This project uses cmake.
+This project uses cmake. Other projects may include it as a subproject.
 
-Configuration, build, and installation are standard, e.g. for Debian:
-
-```bash
-
-sudo apt-get update
-sudo apt-get install libhiredis-dev libev-dev
-```
-
-...or for Mac:
+Configuration, build, and installation are standard, e.g. for Mac:
 
 ```zsh
 
-brew install hiredis libev
+brew install zlog
 ```
 
 # Create a build directory and cd into it:
@@ -37,6 +26,6 @@ brew install hiredis libev
 
 mkdir -p build ; cd build
 
-# cmake & make
-cmake .. && make
+# cmake & ninja
+cmake -G Ninja .. && ninja
 ```
