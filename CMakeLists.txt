@@ -69,7 +69,7 @@ add_subdirectory(src)
 
 # add_subdirectory(module)
 
-add_subdirectory(scratch)
+# add_subdirectory(scratch)
 
 message(STATUS "********************************************")
 message(STATUS "********** ${PROJECT_NAME} build options : **********")
