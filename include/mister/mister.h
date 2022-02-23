@@ -9,7 +9,7 @@ extern "C" {
 
 #include <stdbool.h>
 #include <stdlib.h>
-
+/*
 // MisteR Commands understood by the Redis mister module
 #define MR_CONNECT          "mr.connect"
 #define MR_CONNACK          "mr.connack"
@@ -26,7 +26,7 @@ extern "C" {
 #define MR_PINGRESP         "mr.pingresp"
 #define MR_DISCONNECT       "mr.disconnect"
 #define MR_AUTH             "mr.auth"
-
+ */
 // spec & mosquitto
 enum mqtt_reason_codes {
     MQTT_RC_SUCCESS = 0,                                    ///< CONNACK, PUBACK, PUBREC, PUBREL, PUBCOMP, UNSUBACK, AUTH
@@ -313,6 +313,31 @@ int mr_pack_publish_packet(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *pu8vlen
 int mr_free_publish_packet(mr_packet_ctx *pctx);
 
 int mr_get_publish_packet_type(mr_packet_ctx *pctx, uint8_t *pu8);
+int mr_get_publish_property_length(mr_packet_ctx *pctx, uint32_t *pu32);
+
+int mr_get_publish_payload_format_indicator(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag);
+int mr_set_publish_payload_format_indicator(mr_packet_ctx *pctx, const uint8_t u8);
+int mr_reset_publish_payload_format_indicator(mr_packet_ctx *pctx);
+
+int mr_get_publish_message_expiry_interval(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag);
+int mr_set_publish_message_expiry_interval(mr_packet_ctx *pctx, const uint32_t u32);
+int mr_reset_publish_message_expiry_interval(mr_packet_ctx *pctx);
+
+int mr_get_publish_topic_alias(mr_packet_ctx *pctx, uint16_t *pu16, bool *pexists_flag);
+int mr_set_publish_topic_alias(mr_packet_ctx *pctx, const uint16_t u16);
+int mr_reset_publish_topic_alias(mr_packet_ctx *pctx);
+
+int mr_get_publish_response_topic(mr_packet_ctx *pctx, char **pcv0, bool *pexists_flag);
+int mr_set_publish_response_topic(mr_packet_ctx *pctx, const char *cv0);
+int mr_reset_publish_response_topic(mr_packet_ctx *pctx);
+
+int mr_get_publish_correlation_data(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *plen, bool *pexists_flag);
+int mr_set_publish_correlation_data(mr_packet_ctx *pctx, const uint8_t *u8v0, const size_t len);
+int mr_reset_publish_correlation_data(mr_packet_ctx *pctx);
+
+int mr_get_publish_user_properties(mr_packet_ctx *pctx, mr_string_pair **pspv0, size_t *plen, bool *pexists_flag);
+int mr_set_publish_user_properties(mr_packet_ctx *pctx, const mr_string_pair *spv0, const size_t len);
+int mr_reset_publish_user_properties(mr_packet_ctx *pctx);
 
 int mr_get_publish_subscription_identifiers(mr_packet_ctx *pctx, uint32_t **pu32v0, size_t *plen, bool *pexists_flag);
 int mr_set_publish_subscription_identifiers(mr_packet_ctx *pctx, const uint32_t *u32v0, const size_t len);

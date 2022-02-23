@@ -5,7 +5,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules")
 
 project(
     mister VERSION 1.0
-    DESCRIPTION "MQTT for Redis"
+    DESCRIPTION "MQTT5 packet validation, packing & unpacking"
     LANGUAGES C CXX
 )
 
@@ -40,7 +40,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 endif()
 
 # FetchContent added in CMake 3.11, downloads during the configure step
-include(FetchContent)
+# include(FetchContent)
 
 ### Require out-of-source builds
 file(TO_CMAKE_PATH "${PROJECT_BINARY_DIR}/CMakeLists.txt" LOC_PATH)
@@ -66,10 +66,6 @@ if (UNIT_TESTING)
 endif ()
 
 add_subdirectory(src)
-
-# add_subdirectory(apps)
-
-# add_subdirectory(module)
 
 message(STATUS "********************************************")
 message(STATUS "********** ${PROJECT_NAME} build options : **********")
