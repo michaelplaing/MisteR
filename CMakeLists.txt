@@ -67,6 +67,8 @@ endif ()
 
 add_subdirectory(src)
 
+add_subdirectory(avltree)
+
 message(STATUS "********************************************")
 message(STATUS "********** ${PROJECT_NAME} build options : **********")
 
