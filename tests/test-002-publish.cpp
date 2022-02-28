@@ -162,3 +162,58 @@ TEST_CASE("happy PUBLISH packet", "[publish][happy]") {
 
     zlog_fini();
 }
+
+TEST_CASE("unhappy PUBLISH packet", "[publish][unhappy]") {
+    dzlog_init("", "mr_init");
+
+    // *** common test prolog ***
+
+    // get the complex packet and unpack it so we have a full deck to play with
+    mr_packet_ctx *pctx;
+    uint8_t *u8v0;
+    size_t u8vlen;
+    REQUIRE(get_binary_file_content("fixtures/complex_publish_packet.bin", &u8v0, &u8vlen) == 0);
+    REQUIRE(mr_init_unpack_publish_packet(&pctx, u8v0, u8vlen) == 0);
+    // puts("");
+    // mr_print_hexdump(u8v0, u8vlen);
+
+    // *** test sections ***
+
+    SECTION("publish_qos") {
+        CHECK(mr_set_publish_qos(pctx, -1) == -1);
+        CHECK(mr_set_publish_qos(pctx, 3) == -1);
+    }
+
+    SECTION("publish_topic_name") {
+        CHECK(mr_set_publish_topic_name(pctx, "$/foo/*/bar//") == 0);
+        CHECK(mr_set_publish_topic_name(pctx, "foobar/#") == -1);
+        CHECK(mr_set_publish_topic_name(pctx, "foo/+/bar") == -1);
+    }
+
+    SECTION("publish_packet_identifier") {
+        CHECK(mr_set_publish_packet_identifier(pctx, 0) == -1);
+    }
+
+    SECTION("publish_payload_format_indicator") {
+        CHECK(mr_set_publish_payload_format_indicator(pctx, -1) == -1);
+        CHECK(mr_set_publish_payload_format_indicator(pctx, 2) == -1);
+    }
+
+    SECTION("publish_topic_alias") {
+        CHECK(mr_set_publish_topic_alias(pctx, 0) == -1);
+    }
+
+    SECTION("publish_response_topic") {
+        CHECK(mr_set_publish_response_topic(pctx, "foobar/#") == -1);
+        CHECK(mr_set_publish_response_topic(pctx, "foo/+/bar") == -1);
+    }
+
+    // common test epilog
+
+    // free packet context
+    REQUIRE(mr_free_publish_packet(pctx) == 0);
+    free(u8v0);
+
+    zlog_fini();
+
+}
