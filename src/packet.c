@@ -107,14 +107,18 @@ static int mr_unpack_packet(mr_packet_ctx *pctx) {
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
         if (!mdata->propid) { // properties are handled by the MR_PROPERTIES_DTYPE unpack_fn
             if (mdata->flagid && mdata->dtype != MR_BITS_DTYPE) { // controlling flagid exists
+                // printf("\nflagid::packet: %s; name: %s; pctx->flagid: %u\n", pctx->mqtt_packet_name, mdata->name, mdata->flagid);
                 mr_mdata *flag_mdata = pctx->mdata0 + mdata->flagid;
+                // printf("flagvalue::packet: %s; name: %s; pctx->flagid: %lu\n", pctx->mqtt_packet_name, flag_mdata->name, flag_mdata->value);
                 if (!flag_mdata->value) continue; // skip this mdata if flag is not set
-            }
+            } else {puts("");}
 
+            // printf("start::packet: %s; name: %s; pctx->u8vpos: %lu\n", pctx->mqtt_packet_name, mdata->name, pctx->u8vpos);
             mr_mdata_fn unpack_fn = _DATA_TYPE[mdata->dtype].unpack_fn;
             if (unpack_fn && unpack_fn(pctx, mdata)) return -1;
             mr_mdata_fn validate_fn = _DATA_TYPE[mdata->dtype].validate_fn;
             if (validate_fn && validate_fn(pctx, mdata)) return -1;
+            // printf("finish::packet: %s; name: %s; pctx->u8vpos: %lu\n", pctx->mqtt_packet_name, mdata->name, pctx->u8vpos);
         }
     }
 
@@ -480,6 +484,7 @@ static int mr_unpack_payload(mr_packet_ctx *pctx, mr_mdata *mdata) {
     mdata->value = (mr_mvalue_t)(pctx->u8v0 + pctx->u8vpos);
     mdata->vexists = true;
     mdata->valloc = false;
+    printf("\npctx->u8vlen: %lu; pctx->u8vpos: %lu\n\n", pctx->u8vlen, pctx->u8vpos);
     mdata->u8vlen = mdata->vlen = pctx->u8vlen - pctx->u8vpos;
     return 0;
 }
@@ -836,7 +841,7 @@ static int mr_printable_hexvalue(mr_packet_ctx *pctx, mr_mdata *mdata) {
     char cv[100] = {'\0'};
     uint8_t u8 = mdata->value;
     if (mr_get_hexdump(cv, sizeof(cv), &u8, 1)) return -1;
-    mr_compress_spaces_lines(cv); // make into a single line
+    mr_compress_spaces_lines(cv);
     size_t slen = strlen(cv);
     char *printable;
     if (mr_calloc((void **)&printable, slen + 1, 1)) return -1;
@@ -848,8 +853,12 @@ static int mr_printable_hexvalue(mr_packet_ctx *pctx, mr_mdata *mdata) {
 static int mr_printable_hexdump(mr_packet_ctx *pctx, mr_mdata *mdata) {
     char cv[200] = {'\0'};
     size_t len = mdata->vlen > 32 ? 32 : mdata->vlen; // limit to 32 bytes
-    if (mr_get_hexdump(cv, sizeof(cv), (uint8_t *)mdata->value, len)) return -1;
-    mr_compress_spaces_lines(cv); // make into a single line
+
+    if (len) {
+        if (mr_get_hexdump(cv, sizeof(cv), (uint8_t *)mdata->value, len)) return -1;
+        mr_compress_spaces_lines(cv); // make into a single line
+    }
+
     size_t slen = strlen(cv);
     char *printable;
     if (mr_calloc((void **)&printable, slen + 1, 1)) return -1;
@@ -944,15 +953,13 @@ int mr_get_printable(mr_packet_ctx *pctx, const bool all_flag, char **pcv) {
     size_t len = 0;
     mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
-        if (_DATA_TYPE[mdata->dtype].print_fn && mr_free(mdata->printable)) return -1;
+        // printf("packet: %s; field: %s\n", pctx->mqtt_packet_name, mdata->name);
+        mr_mdata_fn print_fn = _DATA_TYPE[mdata->dtype].print_fn;
+        if (print_fn && mr_free(mdata->printable)) return -1;
 
-        if (mdata->vexists) {
-            mr_mdata_fn print_fn = _DATA_TYPE[mdata->dtype].print_fn;
-
-            if (print_fn) {
-                if (print_fn(pctx, mdata)) return -1;
-                len += strlen(mdata->name) + 1 + strlen(mdata->printable) + 1; // ':' and '\n'
-            }
+        if (mdata->vexists && print_fn) {
+            if (print_fn(pctx, mdata)) return -1;
+            len += strlen(mdata->name) + 1 + strlen(mdata->printable) + 1; // ':' and '\n'
         }
     }
 

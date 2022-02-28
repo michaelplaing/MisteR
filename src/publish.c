@@ -48,27 +48,27 @@ static const char _S0L[] = "";
 static const mr_mvalue_t _MR_PUBLISH_HEADER = MQTT_PUBLISH << 4;
 
 static const mr_mdata _PUBLISH_MDATA_TEMPLATE[] = {
-//   name                       dtype               value               valloc  vlen    u8vlen  vexists link                    propid                              flagid  idx                                 printable
-    {"packet_type",             MR_BITS_DTYPE,      MQTT_PUBLISH,       _NA,    4,      4,      true,   PUBLISH_MR_HEADER,      _NA,                                _NA,    PUBLISH_PACKET_TYPE,                NULL},
-    {"dup",                     MR_BITS_DTYPE,      0,                  _NA,    1,      3,      true,   PUBLISH_MR_HEADER,      _NA,                                _NA,    PUBLISH_DUP,                        NULL},
-    {"qos",                     MR_BITS_DTYPE,      0,                  _NA,    2,      1,      true,   PUBLISH_MR_HEADER,      _NA,                                _NA,    PUBLISH_QOS,                        NULL},
-    {"retain",                  MR_BITS_DTYPE,      0,                  _NA,    1,      0,      true,   PUBLISH_MR_HEADER,      _NA,                                _NA,    PUBLISH_RETAIN,                     NULL},
-    {"mr_header",               MR_BITFLD_DTYPE,    _MR_PUBLISH_HEADER, _NA,    1,      1,      true,   _NA,                    _NA,                                _NA,    PUBLISH_MR_HEADER,                  NULL},
-    {"remaining_length",        MR_VBI_DTYPE,       0,                  _NA,    0,      0,      true,   PUBLISH_PAYLOAD,        _NA,                                _NA,    PUBLISH_REMAINING_LENGTH,           NULL},
-    {"topic_name",              MR_STR_DTYPE,       (mr_mvalue_t)_S0L,  false,  1,      2,      true,   _NA,                    _NA,                                _NA,    PUBLISH_TOPIC_NAME,                 NULL},
-    {"packet_identifier",       MR_U16_DTYPE,       0,                  _NA,    2,      2,      false,  PUBLISH_QOS,            _NA,                                _NA,    PUBLISH_PACKET_IDENTIFIER,          NULL},
-    {"property_length",         MR_VBI_DTYPE,       0,                  _NA,    0,      0,      true,   PUBLISH_CONTENT_TYPE,   _NA,                                _NA,    PUBLISH_PROPERTY_LENGTH,            NULL},
-    {"mr_properties",           MR_PROPERTIES_DTYPE,(mr_mvalue_t)_PROPS,_NA,    _PSZ,   _NA,    true,   _NA,                    _NA,                                _NA,    PUBLISH_MR_PROPERTIES,              NULL},
-    {"payload_format_indicator",MR_U8_DTYPE,        0,                  _NA,    1,      2,      false,  _NA,                    MQTT_PROP_PAYLOAD_FORMAT_INDICATOR, _NA,    PUBLISH_PAYLOAD_FORMAT_INDICATOR,   NULL},
-    {"message_expiry_interval", MR_U32_DTYPE,       0,                  _NA,    4,      5,      false,  _NA,                    MQTT_PROP_MESSAGE_EXPIRY_INTERVAL,  _NA,    PUBLISH_MESSAGE_EXPIRY_INTERVAL,    NULL},
-    {"topic_alias",             MR_U16_DTYPE,       0,                  _NA,    2,      3,      false,  _NA,                    MQTT_PROP_TOPIC_ALIAS,              _NA,    PUBLISH_TOPIC_ALIAS,                NULL},
-    {"response_topic",          MR_STR_DTYPE,       (mr_mvalue_t)NULL,  false,  0,      0,      false,  _NA,                    MQTT_PROP_RESPONSE_TOPIC,           _NA,    PUBLISH_RESPONSE_TOPIC,             NULL},
-    {"correlation_data",        MR_U8V_DTYPE,       (mr_mvalue_t)NULL,  false,  0,      0,      false,  _NA,                    MQTT_PROP_CORRELATION_DATA,         _NA,    PUBLISH_CORRELATION_DATA,           NULL},
-    {"user_properties",         MR_SPV_DTYPE,       (mr_mvalue_t)NULL,  false,  0,      0,      false,  _NA,                    MQTT_PROP_USER_PROPERTY,            _NA,    PUBLISH_USER_PROPERTIES,            NULL},
-    {"subscription_identifiers",MR_VBIV_DTYPE,      (mr_mvalue_t)NULL,  false,  0,      0,      false,  _NA,                    MQTT_PROP_SUBSCRIPTION_IDENTIFIER,  _NA,    PUBLISH_SUBSCRIPTION_IDENTIFIERS,   NULL},
-    {"content_type",            MR_STR_DTYPE,       (mr_mvalue_t)NULL,  false,  0,      0,      false,  _NA,                    MQTT_PROP_CONTENT_TYPE,             _NA,    PUBLISH_CONTENT_TYPE,               NULL},
-    {"payload",                 MR_PAYLOAD_DTYPE,   (mr_mvalue_t)NULL,  false,  0,      0,      true,   _NA,                    _NA,                                _NA,    PUBLISH_PAYLOAD,                    NULL},
-//   name                       dtype               value               valloc  vlen    u8vlen  vexists link                    propid                              flagid  idx                                 printable
+//   name                       dtype               value               valloc  vlen    u8vlen  vexists link                    propid                              flagid      idx                                 printable
+    {"packet_type",             MR_BITS_DTYPE,      MQTT_PUBLISH,       _NA,    4,      4,      true,   PUBLISH_MR_HEADER,      _NA,                                _NA,        PUBLISH_PACKET_TYPE,                NULL},
+    {"dup",                     MR_BITS_DTYPE,      0,                  _NA,    1,      3,      true,   PUBLISH_MR_HEADER,      _NA,                                _NA,        PUBLISH_DUP,                        NULL},
+    {"qos",                     MR_BITS_DTYPE,      0,                  _NA,    2,      1,      true,   PUBLISH_MR_HEADER,      _NA,                                _NA,        PUBLISH_QOS,                        NULL},
+    {"retain",                  MR_BITS_DTYPE,      0,                  _NA,    1,      0,      true,   PUBLISH_MR_HEADER,      _NA,                                _NA,        PUBLISH_RETAIN,                     NULL},
+    {"mr_header",               MR_BITFLD_DTYPE,    _MR_PUBLISH_HEADER, _NA,    1,      1,      true,   _NA,                    _NA,                                _NA,        PUBLISH_MR_HEADER,                  NULL},
+    {"remaining_length",        MR_VBI_DTYPE,       0,                  _NA,    0,      0,      true,   PUBLISH_PAYLOAD,        _NA,                                _NA,        PUBLISH_REMAINING_LENGTH,           NULL},
+    {"topic_name",              MR_STR_DTYPE,       (mr_mvalue_t)_S0L,  false,  1,      2,      true,   _NA,                    _NA,                                _NA,        PUBLISH_TOPIC_NAME,                 NULL},
+    {"packet_identifier",       MR_U16_DTYPE,       0,                  _NA,    2,      2,      false,  _NA,                    _NA,                                PUBLISH_QOS,PUBLISH_PACKET_IDENTIFIER,          NULL},
+    {"property_length",         MR_VBI_DTYPE,       0,                  _NA,    0,      0,      true,   PUBLISH_CONTENT_TYPE,   _NA,                                _NA,        PUBLISH_PROPERTY_LENGTH,            NULL},
+    {"mr_properties",           MR_PROPERTIES_DTYPE,(mr_mvalue_t)_PROPS,_NA,    _PSZ,   _NA,    true,   _NA,                    _NA,                                _NA,        PUBLISH_MR_PROPERTIES,              NULL},
+    {"payload_format_indicator",MR_U8_DTYPE,        0,                  _NA,    1,      2,      false,  _NA,                    MQTT_PROP_PAYLOAD_FORMAT_INDICATOR, _NA,        PUBLISH_PAYLOAD_FORMAT_INDICATOR,   NULL},
+    {"message_expiry_interval", MR_U32_DTYPE,       0,                  _NA,    4,      5,      false,  _NA,                    MQTT_PROP_MESSAGE_EXPIRY_INTERVAL,  _NA,        PUBLISH_MESSAGE_EXPIRY_INTERVAL,    NULL},
+    {"topic_alias",             MR_U16_DTYPE,       0,                  _NA,    2,      3,      false,  _NA,                    MQTT_PROP_TOPIC_ALIAS,              _NA,        PUBLISH_TOPIC_ALIAS,                NULL},
+    {"response_topic",          MR_STR_DTYPE,       (mr_mvalue_t)NULL,  false,  0,      0,      false,  _NA,                    MQTT_PROP_RESPONSE_TOPIC,           _NA,        PUBLISH_RESPONSE_TOPIC,             NULL},
+    {"correlation_data",        MR_U8V_DTYPE,       (mr_mvalue_t)NULL,  false,  0,      0,      false,  _NA,                    MQTT_PROP_CORRELATION_DATA,         _NA,        PUBLISH_CORRELATION_DATA,           NULL},
+    {"user_properties",         MR_SPV_DTYPE,       (mr_mvalue_t)NULL,  false,  0,      0,      false,  _NA,                    MQTT_PROP_USER_PROPERTY,            _NA,        PUBLISH_USER_PROPERTIES,            NULL},
+    {"subscription_identifiers",MR_VBIV_DTYPE,      (mr_mvalue_t)NULL,  false,  0,      0,      false,  _NA,                    MQTT_PROP_SUBSCRIPTION_IDENTIFIER,  _NA,        PUBLISH_SUBSCRIPTION_IDENTIFIERS,   NULL},
+    {"content_type",            MR_STR_DTYPE,       (mr_mvalue_t)NULL,  false,  0,      0,      false,  _NA,                    MQTT_PROP_CONTENT_TYPE,             _NA,        PUBLISH_CONTENT_TYPE,               NULL},
+    {"payload",                 MR_PAYLOAD_DTYPE,   (mr_mvalue_t)NULL,  false,  0,      0,      true,   _NA,                    _NA,                                _NA,        PUBLISH_PAYLOAD,                    NULL},
+//   name                       dtype               value               valloc  vlen    u8vlen  vexists link                    propid                              flagid      idx                                 printable
 };
 
 static const size_t _PUBLISH_MDATA_COUNT = sizeof(_PUBLISH_MDATA_TEMPLATE) / sizeof(mr_mdata);
