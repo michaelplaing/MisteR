@@ -111,7 +111,7 @@ static int mr_unpack_packet(mr_packet_ctx *pctx) {
                 mr_mdata *flag_mdata = pctx->mdata0 + mdata->flagid;
                 // printf("flagvalue::packet: %s; name: %s; pctx->flagid: %lu\n", pctx->mqtt_packet_name, flag_mdata->name, flag_mdata->value);
                 if (!flag_mdata->value) continue; // skip this mdata if flag is not set
-            } else {puts("");}
+            } // else {puts("");}
 
             // printf("start::packet: %s; name: %s; pctx->u8vpos: %lu\n", pctx->mqtt_packet_name, mdata->name, pctx->u8vpos);
             mr_mdata_fn unpack_fn = _DATA_TYPE[mdata->dtype].unpack_fn;
@@ -484,8 +484,9 @@ static int mr_unpack_payload(mr_packet_ctx *pctx, mr_mdata *mdata) {
     mdata->value = (mr_mvalue_t)(pctx->u8v0 + pctx->u8vpos);
     mdata->vexists = true;
     mdata->valloc = false;
-    printf("\npctx->u8vlen: %lu; pctx->u8vpos: %lu\n\n", pctx->u8vlen, pctx->u8vpos);
+    // printf("\npayload:: pctx->u8vlen: %lu; pctx->u8vpos: %lu\n\n", pctx->u8vlen, pctx->u8vpos);
     mdata->u8vlen = mdata->vlen = pctx->u8vlen - pctx->u8vpos;
+    pctx->u8vpos += mdata->u8vlen;
     return 0;
 }
 
@@ -809,7 +810,11 @@ static int mr_unpack_properties(mr_packet_ctx *pctx, mr_mdata *mdata) {
         prop_index = pprop_index - (uint8_t *)mdata->value;
         prop_mdata = mdata + prop_index + 1;
 
-        if (prop_mdata->vexists && prop_mdata->dtype != MR_SPV_DTYPE) {
+        if (
+            prop_mdata->vexists &&
+            prop_mdata->dtype != MR_SPV_DTYPE &&
+            prop_mdata->dtype != MR_VBIV_DTYPE
+        ) {
             dzlog_error(
                 "duplicate property value:: packet: %s; name: %s",
                 pctx->mqtt_packet_name, prop_mdata->name

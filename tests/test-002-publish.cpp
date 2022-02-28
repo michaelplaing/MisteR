@@ -21,6 +21,69 @@ TEST_CASE("happy PUBLISH packet", "[publish][happy]") {
         strlcpy(printable_filename, "fixtures/default_publish_printable.txt", 50);
         strlcpy(packet_filename, "fixtures/default_publish_packet.bin", 50);
     }
+
+    SECTION("complex packet") {
+        // *** section prolog ***
+
+        // build vector values
+        char topic_name[] = "topic_name";
+        char response_topic[] = "response_topic";
+        uint8_t correlation_data[] = {'a', 'b', 'c'};
+        size_t correlation_data_len = 3;
+        char baz[] = "baz";
+        char bip[] = "bip";
+        mr_string_pair spbaz = {baz, bip};
+        char bam[] = "bam";
+        char boop[] = "boop";
+        mr_string_pair spbam = {bam, boop};
+        mr_string_pair user_properties[] = {spbaz, spbam};
+        uint32_t subscription_identifiers[] = {1,1000000};
+        size_t subscription_identifiers_len = 2;
+        size_t user_properties_len = 2;
+        char content_type[] = "content_type";
+        uint8_t payload[] = {'d', 'e', 'f'};
+        size_t payload_len = 3;
+
+        REQUIRE(mr_set_publish_dup(pctx, true) == 0);
+        REQUIRE(mr_set_publish_qos(pctx, 2) == 0);
+        REQUIRE(mr_set_publish_retain(pctx, true) == 0);
+        REQUIRE(mr_set_publish_topic_name(pctx, topic_name) == 0);
+        REQUIRE(mr_set_publish_packet_identifier(pctx, 1000) == 0);
+        REQUIRE(mr_set_publish_payload_format_indicator(pctx, 1) == 0);
+        REQUIRE(mr_set_publish_message_expiry_interval(pctx, 1000000) == 0);
+        REQUIRE(mr_set_publish_topic_alias(pctx, 1000) == 0);
+        REQUIRE(mr_set_publish_response_topic(pctx, response_topic) == 0);
+        REQUIRE(mr_set_publish_correlation_data(pctx, correlation_data, correlation_data_len) == 0);
+        REQUIRE(mr_set_publish_user_properties(pctx, user_properties, user_properties_len) == 0);
+        REQUIRE(mr_set_publish_subscription_identifiers(pctx, subscription_identifiers, subscription_identifiers_len) == 0);
+        REQUIRE(mr_set_publish_content_type(pctx, content_type) == 0);
+        REQUIRE(mr_set_publish_payload(pctx, payload, payload_len) == 0);
+
+        SECTION("+remaining") { // default + remaining
+            strlcpy(printable_filename, "fixtures/complex_publish_printable.txt", 50);
+            strlcpy(packet_filename, "fixtures/complex_publish_packet.bin", 50);
+        }
+
+        SECTION("-remaining") { // default + remaining - remaining
+            strlcpy(printable_filename, "fixtures/default_publish_printable.txt", 50);
+            strlcpy(packet_filename, "fixtures/default_publish_packet.bin", 50);
+
+            REQUIRE(mr_set_publish_dup(pctx, false) == 0);
+            REQUIRE(mr_set_publish_qos(pctx, 0) == 0);
+            REQUIRE(mr_set_publish_retain(pctx, false) == 0);
+            REQUIRE(mr_set_publish_topic_name(pctx, "") == 0);
+            REQUIRE(mr_reset_publish_packet_identifier(pctx) == 0);
+            REQUIRE(mr_reset_publish_payload_format_indicator(pctx) == 0);
+            REQUIRE(mr_reset_publish_message_expiry_interval(pctx) == 0);
+            REQUIRE(mr_reset_publish_topic_alias(pctx) == 0);
+            REQUIRE(mr_reset_publish_response_topic(pctx) == 0);
+            REQUIRE(mr_reset_publish_correlation_data(pctx) == 0);
+            REQUIRE(mr_reset_publish_user_properties(pctx) == 0);
+            REQUIRE(mr_reset_publish_subscription_identifiers(pctx) == 0);
+            REQUIRE(mr_reset_publish_content_type(pctx) == 0);
+            REQUIRE(mr_set_publish_payload(pctx, NULL, 0) == 0);
+        }
+    }
 /*
     SECTION("sub_ids") {
         const uint32_t u32v0[2] = {1,1000000};

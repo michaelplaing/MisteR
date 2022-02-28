@@ -315,6 +315,26 @@ int mr_free_publish_packet(mr_packet_ctx *pctx);
 int mr_get_publish_packet_type(mr_packet_ctx *pctx, uint8_t *pu8);
 int mr_get_publish_property_length(mr_packet_ctx *pctx, uint32_t *pu32);
 
+int mr_get_publish_dup(mr_packet_ctx *pctx, bool *pflag_value);
+int mr_set_publish_dup(mr_packet_ctx *pctx, const bool flag_value);
+
+int mr_get_publish_qos(mr_packet_ctx *pctx, uint8_t *pu8);
+int mr_set_publish_qos(mr_packet_ctx *pctx, const uint8_t u8);
+
+int mr_get_publish_retain(mr_packet_ctx *pctx, bool *pflag_value);
+int mr_set_publish_retain(mr_packet_ctx *pctx, const bool flag_value);
+
+int mr_get_publish_remaining_length(mr_packet_ctx *pctx, uint32_t *pu32);
+
+int mr_get_publish_topic_name(mr_packet_ctx *pctx, char **pcv0);
+int mr_set_publish_topic_name(mr_packet_ctx *pctx, const char *cv0);
+
+int mr_get_publish_packet_identifier(mr_packet_ctx *pctx, uint16_t *pu16, bool *pexists_flag);
+int mr_set_publish_packet_identifier(mr_packet_ctx *pctx, const uint16_t u16);
+int mr_reset_publish_packet_identifier(mr_packet_ctx *pctx);
+
+int mr_get_publish_property_length(mr_packet_ctx *pctx, uint32_t *pu32);
+
 int mr_get_publish_payload_format_indicator(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag);
 int mr_set_publish_payload_format_indicator(mr_packet_ctx *pctx, const uint8_t u8);
 int mr_reset_publish_payload_format_indicator(mr_packet_ctx *pctx);
@@ -342,6 +362,13 @@ int mr_reset_publish_user_properties(mr_packet_ctx *pctx);
 int mr_get_publish_subscription_identifiers(mr_packet_ctx *pctx, uint32_t **pu32v0, size_t *plen, bool *pexists_flag);
 int mr_set_publish_subscription_identifiers(mr_packet_ctx *pctx, const uint32_t *u32v0, const size_t len);
 int mr_reset_publish_subscription_identifiers(mr_packet_ctx *pctx);
+
+int mr_get_publish_content_type(mr_packet_ctx *pctx, char **pcv0, bool *pexists_flag);
+int mr_set_publish_content_type(mr_packet_ctx *pctx, const char *cv0);
+int mr_reset_publish_content_type(mr_packet_ctx *pctx);
+
+int mr_get_publish_payload(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *plen);
+int mr_set_publish_payload(mr_packet_ctx *pctx, const uint8_t *u8v0, const size_t len);
 
 int mr_get_publish_printable(mr_packet_ctx *pctx, const bool all_flag, char **pcv);
 

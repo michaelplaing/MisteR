@@ -38,6 +38,8 @@ set(
     fixtures/complex_connack_packet.bin
     fixtures/default_publish_printable.txt
     fixtures/default_publish_packet.bin
+    fixtures/complex_publish_printable.txt
+    fixtures/complex_publish_packet.bin
 )
 
 message(STATUS Fixture Files:)

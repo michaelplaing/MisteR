@@ -230,11 +230,12 @@ int mr_validate_connack_unpack(mr_packet_ctx *pctx);
 
 static int mr_check_publish_packet(mr_packet_ctx *pctx);
 
+static int mr_validate_publish_qos(const uint8_t u8);
 static int mr_validate_publish_topic_name(const char *cv0);
+static int mr_validate_publish_packet_identifier(const uint16_t u16);
 static int mr_validate_publish_payload_format_indicator(const uint8_t u8);
 static int mr_validate_publish_topic_alias(const uint16_t u16);
 static int mr_validate_publish_response_topic(const char *cv0);
-static int mr_validate_publish_packet_identifier(const uint16_t u16);
 
 static int mr_validate_publish_cross(mr_packet_ctx *pctx);
 static int mr_validate_publish_pack(mr_packet_ctx *pctx);
