@@ -5,7 +5,7 @@ file(GLOB HEADER_LIST CONFIGURE_DEPENDS "${mister_SOURCE_DIR}/include/mister/*.h
 
 add_library(
     mister SHARED
-    init.c connect.c connack.c publish.c packet.c util.c memory.c
+    init.c connect.c connack.c publish.c puback.c packet.c util.c memory.c
     mister_internal.h ${HEADER_LIST}
 )
 

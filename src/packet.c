@@ -57,7 +57,7 @@ static const mr_ptype _PACKET_TYPE[] = {
     {MQTT_RESERVED,     "RESERVED",         NULL},
     {MQTT_CONNECT,      "CONNECT",          mr_validate_connect_unpack},
     {MQTT_CONNACK,      "CONNACK",          mr_validate_connack_unpack},
-    {MQTT_PUBLISH,      "PUBLISH",          NULL},
+    {MQTT_PUBLISH,      "PUBLISH",          mr_validate_publish_unpack},
     {MQTT_PUBACK,       "PUBACK",           NULL},
     {MQTT_PUBREC,       "PUBREC",           NULL},
     {MQTT_PUBREL,       "PUBREL",           NULL},
@@ -110,7 +110,8 @@ static int mr_unpack_packet(mr_packet_ctx *pctx) {
                 // printf("\nflagid::packet: %s; name: %s; pctx->flagid: %u\n", pctx->mqtt_packet_name, mdata->name, mdata->flagid);
                 mr_mdata *flag_mdata = pctx->mdata0 + mdata->flagid;
                 // printf("flagvalue::packet: %s; name: %s; pctx->flagid: %lu\n", pctx->mqtt_packet_name, flag_mdata->name, flag_mdata->value);
-                if (!flag_mdata->value) continue; // skip this mdata if flag is not set
+                if (flag_mdata->dtype == MR_VBI_DTYPE && pctx->u8vpos >= flag_mdata->value) break; // this value & remaining ones missing;
+                if (!flag_mdata->value) continue; // skip if value is not set
             } // else {puts("");}
 
             // printf("start::packet: %s; name: %s; pctx->u8vpos: %lu\n", pctx->mqtt_packet_name, mdata->name, pctx->u8vpos);

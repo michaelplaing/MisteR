@@ -372,6 +372,36 @@ int mr_set_publish_payload(mr_packet_ctx *pctx, const uint8_t *u8v0, const size_
 
 int mr_get_publish_printable(mr_packet_ctx *pctx, const bool all_flag, char **pcv);
 
+// PUBACK
+
+int mr_init_puback_packet(mr_packet_ctx **ppctx);
+int mr_init_unpack_puback_packet(mr_packet_ctx **ppctx, const uint8_t *u8v0, const size_t u8vlen);
+int mr_pack_puback_packet(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *pu8vlen);
+int mr_free_puback_packet(mr_packet_ctx *pctx);
+
+int mr_get_puback_packet_type(mr_packet_ctx *pctx, uint8_t *pu8);
+int mr_get_puback_reserved_header(mr_packet_ctx *pctx, uint8_t *pu8);
+int mr_get_puback_remaining_length(mr_packet_ctx *pctx, uint32_t *pu32);
+
+int mr_get_puback_packet_identifier(mr_packet_ctx *pctx, uint16_t *pu16);
+int mr_set_puback_packet_identifier(mr_packet_ctx *pctx, const uint16_t u16);
+
+int mr_get_puback_puback_reason_code(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag);
+int mr_set_puback_puback_reason_code(mr_packet_ctx *pctx, const uint8_t u8);
+int mr_reset_puback_puback_reason_code(mr_packet_ctx *pctx);
+
+int mr_get_puback_property_length(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag);
+
+int mr_get_puback_reason_string(mr_packet_ctx *pctx, char **pcv0, bool *pexists_flag);
+int mr_set_puback_reason_string(mr_packet_ctx *pctx, const char *cv0);
+int mr_reset_puback_reason_string(mr_packet_ctx *pctx);
+
+int mr_get_puback_user_properties(mr_packet_ctx *pctx, mr_string_pair **pspv0, size_t *plen, bool *pexists_flag);
+int mr_set_puback_user_properties(mr_packet_ctx *pctx, const mr_string_pair *spv0, const size_t len);
+int mr_reset_puback_user_properties(mr_packet_ctx *pctx);
+
+int mr_get_puback_printable(mr_packet_ctx *pctx, const bool all_flag, char **pcv);
+
 #ifdef __cplusplus
 }
 #endif

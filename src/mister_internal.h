@@ -241,6 +241,15 @@ static int mr_validate_publish_cross(mr_packet_ctx *pctx);
 static int mr_validate_publish_pack(mr_packet_ctx *pctx);
 int mr_validate_publish_unpack(mr_packet_ctx *pctx);
 
+// PUBACK
+
+static int mr_check_puback_packet(mr_packet_ctx *pctx);
+
+static int mr_validate_puback_puback_reason_code(const uint8_t u8);
+
+static int mr_validate_puback_cross(mr_packet_ctx *pctx);
+static int mr_validate_puback_pack(mr_packet_ctx *pctx);
+int mr_validate_puback_unpack(mr_packet_ctx *pctx);
 
 // memory
 
