@@ -17,7 +17,7 @@
 
 #include "mister_internal.h"
 
-enum MR_CONNECT_MDATA_FIELDS { // Same order as _CONNECT_MDATA_TEMPLATE
+enum MR_CONNECT_MDATA_FIELDS { // Same order as CONNECT_MDATA_TEMPLATE
     CONNECT_PACKET_TYPE,
     CONNECT_RESERVED_HEADER,
     CONNECT_MR_HEADER,
@@ -60,12 +60,12 @@ enum MR_CONNECT_MDATA_FIELDS { // Same order as _CONNECT_MDATA_TEMPLATE
     CONNECT_PASSWORD
 };
 
-static const uint8_t _PS[] = {'M', 'Q', 'T', 'T'};  // protocol signature
-#define _PSSZ 4
-#define _PV 5
-#define _NA 0
+static const uint8_t PS[] = {'M', 'Q', 'T', 'T'};  // protocol signature
+static const size_t PSSZ = sizeof(PS) / sizeof(PS[0]);
 
-static const uint8_t _PROPS[] = { // connect property values
+#define NA 0
+
+static const uint8_t PROPS[] = { // connect property values
     MQTT_PROP_SESSION_EXPIRY_INTERVAL,
     MQTT_PROP_RECEIVE_MAXIMUM,
     MQTT_PROP_MAXIMUM_PACKET_SIZE,
@@ -76,9 +76,10 @@ static const uint8_t _PROPS[] = { // connect property values
     MQTT_PROP_AUTHENTICATION_METHOD,
     MQTT_PROP_AUTHENTICATION_DATA
 };
-#define _PSZ 9
 
-static const uint8_t _WPROP[] = { // connect will property values
+static const size_t PSZ = sizeof(PROPS) / sizeof(PROPS[0]);
+
+static const uint8_t WPROPS[] = { // connect will property values
     MQTT_PROP_WILL_DELAY_INTERVAL,
     MQTT_PROP_PAYLOAD_FORMAT_INDICATOR,
     MQTT_PROP_MESSAGE_EXPIRY_INTERVAL,
@@ -87,57 +88,57 @@ static const uint8_t _WPROP[] = { // connect will property values
     MQTT_PROP_CORRELATION_DATA,
     MQTT_PROP_USER_PROPERTY
 };
-#define _WPSZ 7
 
-static const char _S0L[] = "";
-static const mr_mvalue_t _MR_CONNECT_HEADER = MQTT_CONNECT << 4;
+static const size_t WPSZ = sizeof(WPROPS) / sizeof(WPROPS[0]);
+static const char S0L[] = "";
+static const uintptr_t MR_CONNECT_HEADER = MQTT_CONNECT << 4;
 
-static const mr_mdata _CONNECT_MDATA_TEMPLATE[] = { // Same order as enum CONNECT_MDATA_FIELDS (see column idx)
+static const mr_mdata CONNECT_MDATA_TEMPLATE[] = { // Same order as enum CONNECT_MDATA_FIELDS (see column idx)
 //   name                           dtype               value               valloc  vlen    u8vlen  vexists link                            propid                                  flagid                  idx                                     printable
-    {"packet_type",                 MR_BITS_DTYPE,      MQTT_CONNECT,       _NA,    4,      4,      true,   CONNECT_MR_HEADER,              _NA,                                    _NA,                    CONNECT_PACKET_TYPE,                    NULL},
-    {"reserved_header",             MR_BITS_DTYPE,      0,                  _NA,    4,      0,      true,   CONNECT_MR_HEADER,              _NA,                                    _NA,                    CONNECT_RESERVED_HEADER,                NULL},
-    {"mr_header",                   MR_BITFLD_DTYPE,    _MR_CONNECT_HEADER, _NA,    1,      1,      true,   _NA,                            _NA,                                    _NA,                    CONNECT_MR_HEADER,                      NULL},
-    {"remaining_length",            MR_VBI_DTYPE,       0,                  _NA,    0,      0,      true,   CONNECT_PASSWORD,               _NA,                                    _NA,                    CONNECT_REMAINING_LENGTH,               NULL},
-    {"protocol_name",               MR_U8V_DTYPE,       (mr_mvalue_t)_PS,   false,  _PSSZ,  _PSSZ+2,true,   _NA,                            _NA,                                    _NA,                    CONNECT_PROTOCOL_NAME,                  NULL},
-    {"protocol_version",            MR_U8_DTYPE,        _PV,                _NA,    1,      1,      true,   _NA,                            _NA,                                    _NA,                    CONNECT_PROTOCOL_VERSION,               NULL},
-    {"reserved_flags",              MR_BITS_DTYPE,      0,                  _NA,    1,      0,      true,   CONNECT_MR_FLAGS,               _NA,                                    _NA,                    CONNECT_RESERVED,                       NULL},
-    {"clean_start",                 MR_BITS_DTYPE,      0,                  _NA,    1,      1,      true,   CONNECT_MR_FLAGS,               _NA,                                    _NA,                    CONNECT_CLEAN_START,                    NULL},
-    {"will_flag",                   MR_BITS_DTYPE,      0,                  _NA,    1,      2,      true,   CONNECT_MR_FLAGS,               _NA,                                    _NA,                    CONNECT_WILL_FLAG,                      NULL},
-    {"will_qos",                    MR_BITS_DTYPE,      0,                  _NA,    2,      3,      true,   CONNECT_MR_FLAGS,               _NA,                                    CONNECT_WILL_FLAG,      CONNECT_WILL_QOS,                       NULL},
-    {"will_retain",                 MR_BITS_DTYPE,      0,                  _NA,    1,      5,      true,   CONNECT_MR_FLAGS,               _NA,                                    CONNECT_WILL_FLAG,      CONNECT_WILL_RETAIN,                    NULL},
-    {"password_flag",               MR_BITS_DTYPE,      0,                  _NA,    1,      6,      true,   CONNECT_MR_FLAGS,               _NA,                                    _NA,                    CONNECT_PASSWORD_FLAG,                  NULL},
-    {"username_flag",               MR_BITS_DTYPE,      0,                  _NA,    1,      7,      true,   CONNECT_MR_FLAGS,               _NA,                                    _NA,                    CONNECT_USERNAME_FLAG,                  NULL},
-    {"mr_flags",                    MR_BITFLD_DTYPE,    0,                  _NA,    1,      1,      true,   _NA,                            _NA,                                    _NA,                    CONNECT_MR_FLAGS,                       NULL},
-    {"keep_alive",                  MR_U16_DTYPE,       0,                  _NA,    2,      2,      true,   _NA,                            _NA,                                    _NA,                    CONNECT_KEEP_ALIVE,                     NULL},
-    {"property_length",             MR_VBI_DTYPE,       0,                  _NA,    0,      0,      true,   CONNECT_AUTHENTICATION_DATA,    _NA,                                    _NA,                    CONNECT_PROPERTY_LENGTH,                NULL},
-    {"mr_properties",               MR_PROPERTIES_DTYPE,(mr_mvalue_t)_PROPS,_NA,    _PSZ,   _NA,    true,   _NA,                            _NA,                                    _NA,                    CONNECT_MR_PROPERTIES,                  NULL},
-    {"session_expiry_interval",     MR_U32_DTYPE,       0,                  _NA,    4,      5,      false,  _NA,                            MQTT_PROP_SESSION_EXPIRY_INTERVAL,      _NA,                    CONNECT_SESSION_EXPIRY_INTERVAL,        NULL},
-    {"receive_maximum",             MR_U16_DTYPE,       0,                  _NA,    2,      3,      false,  _NA,                            MQTT_PROP_RECEIVE_MAXIMUM,              _NA,                    CONNECT_RECEIVE_MAXIMUM,                NULL},
-    {"maximum_packet_size",         MR_U32_DTYPE,       0,                  _NA,    4,      5,      false,  _NA,                            MQTT_PROP_MAXIMUM_PACKET_SIZE,          _NA,                    CONNECT_MAXIMUM_PACKET_SIZE,            NULL},
-    {"topic_alias_maximum",         MR_U16_DTYPE,       0,                  _NA,    2,      3,      false,  _NA,                            MQTT_PROP_TOPIC_ALIAS_MAXIMUM,          _NA,                    CONNECT_TOPIC_ALIAS_MAXIMUM,            NULL},
-    {"request_response_information",MR_U8_DTYPE,        0,                  _NA,    1,      2,      false,  _NA,                            MQTT_PROP_REQUEST_RESPONSE_INFORMATION, _NA,                    CONNECT_REQUEST_RESPONSE_INFORMATION,   NULL},
-    {"request_problem_information", MR_U8_DTYPE,        0,                  _NA,    1,      2,      false,  _NA,                            MQTT_PROP_REQUEST_PROBLEM_INFORMATION,  _NA,                    CONNECT_REQUEST_PROBLEM_INFORMATION,    NULL},
-    {"user_properties",             MR_SPV_DTYPE,       (mr_mvalue_t)NULL,  false,  0,      0,      false,  _NA,                            MQTT_PROP_USER_PROPERTY,                _NA,                    CONNECT_USER_PROPERTIES,                NULL},
-    {"authentication_method",       MR_STR_DTYPE,       (mr_mvalue_t)NULL,  false,  0,      0,      false,  _NA,                            MQTT_PROP_AUTHENTICATION_METHOD,        _NA,                    CONNECT_AUTHENTICATION_METHOD,          NULL},
-    {"authentication_data",         MR_U8V_DTYPE,       (mr_mvalue_t)NULL,  false,  0,      0,      false,  _NA,                            MQTT_PROP_AUTHENTICATION_DATA,          _NA,                    CONNECT_AUTHENTICATION_DATA,            NULL},
-    {"client_identifier",           MR_STR_DTYPE,       (mr_mvalue_t)_S0L,  false,  1,      2,      true,   _NA,                            _NA,                                    _NA,                    CONNECT_CLIENT_IDENTIFIER,              NULL},
-    {"will_property_length",        MR_VBI_DTYPE,       0,                  _NA,    0,      0,      false,  CONNECT_WILL_USER_PROPERTIES,   _NA,                                    CONNECT_WILL_FLAG,      CONNECT_WILL_PROPERTY_LENGTH,           NULL},
-    {"mr_will_properties",          MR_PROPERTIES_DTYPE,(mr_mvalue_t)_WPROP,_NA,    _WPSZ,  _NA,    false,  _NA,                            _NA,                                    _NA,                    CONNECT_MR_WILL_PROPERTIES,             NULL},
-    {"will_delay_interval",         MR_U32_DTYPE,       0,                  _NA,    4,      5,      false,  _NA,                            MQTT_PROP_WILL_DELAY_INTERVAL,          CONNECT_WILL_FLAG,      CONNECT_WILL_DELAY_INTERVAL,            NULL},
-    {"payload_format_indicator",    MR_U8_DTYPE,        0,                  _NA,    1,      2,      false,  _NA,                            MQTT_PROP_PAYLOAD_FORMAT_INDICATOR,     CONNECT_WILL_FLAG,      CONNECT_PAYLOAD_FORMAT_INDICATOR,       NULL},
-    {"message_expiry_interval",     MR_U32_DTYPE,       0,                  _NA,    4,      5,      false,  _NA,                            MQTT_PROP_MESSAGE_EXPIRY_INTERVAL,      CONNECT_WILL_FLAG,      CONNECT_MESSAGE_EXPIRY_INTERVAL,        NULL},
-    {"content_type",                MR_STR_DTYPE,       (mr_mvalue_t)NULL,  false,  0,      0,      false,  _NA,                            MQTT_PROP_CONTENT_TYPE,                 CONNECT_WILL_FLAG,      CONNECT_CONTENT_TYPE,                   NULL},
-    {"response_topic",              MR_STR_DTYPE,       (mr_mvalue_t)NULL,  false,  0,      0,      false,  _NA,                            MQTT_PROP_RESPONSE_TOPIC,               CONNECT_WILL_FLAG,      CONNECT_RESPONSE_TOPIC,                 NULL},
-    {"correlation_data",            MR_U8V_DTYPE,       (mr_mvalue_t)NULL,  false,  0,      0,      false,  _NA,                            MQTT_PROP_CORRELATION_DATA,             CONNECT_WILL_FLAG,      CONNECT_CORRELATION_DATA,               NULL},
-    {"will_user_properties",        MR_SPV_DTYPE,       (mr_mvalue_t)NULL,  false,  0,      0,      false,  _NA,                            MQTT_PROP_USER_PROPERTY,                CONNECT_WILL_FLAG,      CONNECT_WILL_USER_PROPERTIES,           NULL},
-    {"will_topic",                  MR_STR_DTYPE,       (mr_mvalue_t)NULL,  false,  0,      0,      false,  _NA,                            _NA,                                    CONNECT_WILL_FLAG,      CONNECT_WILL_TOPIC,                     NULL},
-    {"will_payload",                MR_U8V_DTYPE,       (mr_mvalue_t)NULL,  false,  0,      0,      false,  _NA,                            _NA,                                    CONNECT_WILL_FLAG,      CONNECT_WILL_PAYLOAD,                   NULL},
-    {"user_name",                   MR_STR_DTYPE,       (mr_mvalue_t)NULL,  false,  0,      0,      false,  _NA,                            _NA,                                    CONNECT_USERNAME_FLAG,  CONNECT_USER_NAME,                      NULL},
-    {"password",                    MR_U8V_DTYPE,       (mr_mvalue_t)NULL,  false,  0,      0,      false,  _NA,                            _NA,                                    CONNECT_PASSWORD_FLAG,  CONNECT_PASSWORD,                       NULL}
+    {"packet_type",                 MR_BITS_DTYPE,      MQTT_CONNECT,       NA,     4,      4,      true,   CONNECT_MR_HEADER,              NA,                                     NA,                     CONNECT_PACKET_TYPE,                    NULL},
+    {"reserved_header",             MR_BITS_DTYPE,      0,                  NA,     4,      0,      true,   CONNECT_MR_HEADER,              NA,                                     NA,                     CONNECT_RESERVED_HEADER,                NULL},
+    {"mr_header",                   MR_BITFLD_DTYPE,    MR_CONNECT_HEADER,  NA,     1,      1,      true,   NA,                             NA,                                     NA,                     CONNECT_MR_HEADER,                      NULL},
+    {"remaining_length",            MR_VBI_DTYPE,       0,                  NA,     0,      0,      true,   CONNECT_PASSWORD,               NA,                                     NA,                     CONNECT_REMAINING_LENGTH,               NULL},
+    {"protocol_name",               MR_U8V_DTYPE,       (uintptr_t)PS,      false,  PSSZ,   PSSZ+2, true,   NA,                             NA,                                     NA,                     CONNECT_PROTOCOL_NAME,                  NULL},
+    {"protocol_version",            MR_U8_DTYPE,        5,                  NA,     1,      1,      true,   NA,                             NA,                                     NA,                     CONNECT_PROTOCOL_VERSION,               NULL},
+    {"reserved_flags",              MR_BITS_DTYPE,      0,                  NA,     1,      0,      true,   CONNECT_MR_FLAGS,               NA,                                     NA,                     CONNECT_RESERVED,                       NULL},
+    {"clean_start",                 MR_BITS_DTYPE,      0,                  NA,     1,      1,      true,   CONNECT_MR_FLAGS,               NA,                                     NA,                     CONNECT_CLEAN_START,                    NULL},
+    {"will_flag",                   MR_BITS_DTYPE,      0,                  NA,     1,      2,      true,   CONNECT_MR_FLAGS,               NA,                                     NA,                     CONNECT_WILL_FLAG,                      NULL},
+    {"will_qos",                    MR_BITS_DTYPE,      0,                  NA,     2,      3,      true,   CONNECT_MR_FLAGS,               NA,                                     CONNECT_WILL_FLAG,      CONNECT_WILL_QOS,                       NULL},
+    {"will_retain",                 MR_BITS_DTYPE,      0,                  NA,     1,      5,      true,   CONNECT_MR_FLAGS,               NA,                                     CONNECT_WILL_FLAG,      CONNECT_WILL_RETAIN,                    NULL},
+    {"password_flag",               MR_BITS_DTYPE,      0,                  NA,     1,      6,      true,   CONNECT_MR_FLAGS,               NA,                                     NA,                     CONNECT_PASSWORD_FLAG,                  NULL},
+    {"username_flag",               MR_BITS_DTYPE,      0,                  NA,     1,      7,      true,   CONNECT_MR_FLAGS,               NA,                                     NA,                     CONNECT_USERNAME_FLAG,                  NULL},
+    {"mr_flags",                    MR_BITFLD_DTYPE,    0,                  NA,     1,      1,      true,   NA,                             NA,                                     NA,                     CONNECT_MR_FLAGS,                       NULL},
+    {"keep_alive",                  MR_U16_DTYPE,       0,                  NA,     2,      2,      true,   NA,                             NA,                                     NA,                     CONNECT_KEEP_ALIVE,                     NULL},
+    {"property_length",             MR_VBI_DTYPE,       0,                  NA,     0,      0,      true,   CONNECT_AUTHENTICATION_DATA,    NA,                                     NA,                     CONNECT_PROPERTY_LENGTH,                NULL},
+    {"mr_properties",               MR_PROPERTIES_DTYPE,(uintptr_t)PROPS,   NA,     PSZ,    NA,     true,   NA,                             NA,                                     NA,                     CONNECT_MR_PROPERTIES,                  NULL},
+    {"session_expiry_interval",     MR_U32_DTYPE,       0,                  NA,     4,      5,      false,  NA,                             MQTT_PROP_SESSION_EXPIRY_INTERVAL,      NA,                     CONNECT_SESSION_EXPIRY_INTERVAL,        NULL},
+    {"receive_maximum",             MR_U16_DTYPE,       0,                  NA,     2,      3,      false,  NA,                             MQTT_PROP_RECEIVE_MAXIMUM,              NA,                     CONNECT_RECEIVE_MAXIMUM,                NULL},
+    {"maximum_packet_size",         MR_U32_DTYPE,       0,                  NA,     4,      5,      false,  NA,                             MQTT_PROP_MAXIMUM_PACKET_SIZE,          NA,                     CONNECT_MAXIMUM_PACKET_SIZE,            NULL},
+    {"topic_alias_maximum",         MR_U16_DTYPE,       0,                  NA,     2,      3,      false,  NA,                             MQTT_PROP_TOPIC_ALIAS_MAXIMUM,          NA,                     CONNECT_TOPIC_ALIAS_MAXIMUM,            NULL},
+    {"request_response_information",MR_U8_DTYPE,        0,                  NA,     1,      2,      false,  NA,                             MQTT_PROP_REQUEST_RESPONSE_INFORMATION, NA,                     CONNECT_REQUEST_RESPONSE_INFORMATION,   NULL},
+    {"request_problem_information", MR_U8_DTYPE,        0,                  NA,     1,      2,      false,  NA,                             MQTT_PROP_REQUEST_PROBLEM_INFORMATION,  NA,                     CONNECT_REQUEST_PROBLEM_INFORMATION,    NULL},
+    {"user_properties",             MR_SPV_DTYPE,       (uintptr_t)NULL,    false,  0,      0,      false,  NA,                             MQTT_PROP_USER_PROPERTY,                NA,                     CONNECT_USER_PROPERTIES,                NULL},
+    {"authentication_method",       MR_STR_DTYPE,       (uintptr_t)NULL,    false,  0,      0,      false,  NA,                             MQTT_PROP_AUTHENTICATION_METHOD,        NA,                     CONNECT_AUTHENTICATION_METHOD,          NULL},
+    {"authentication_data",         MR_U8V_DTYPE,       (uintptr_t)NULL,    false,  0,      0,      false,  NA,                             MQTT_PROP_AUTHENTICATION_DATA,          NA,                     CONNECT_AUTHENTICATION_DATA,            NULL},
+    {"client_identifier",           MR_STR_DTYPE,       (uintptr_t)S0L,    false,  1,      2,      true,   NA,                             NA,                                     NA,                     CONNECT_CLIENT_IDENTIFIER,              NULL},
+    {"will_property_length",        MR_VBI_DTYPE,       0,                  NA,     0,      0,      false,  CONNECT_WILL_USER_PROPERTIES,   NA,                                     CONNECT_WILL_FLAG,      CONNECT_WILL_PROPERTY_LENGTH,           NULL},
+    {"mr_will_properties",          MR_PROPERTIES_DTYPE,(uintptr_t)WPROPS,  NA,     WPSZ,   NA,     false,  NA,                             NA,                                     NA,                     CONNECT_MR_WILL_PROPERTIES,             NULL},
+    {"will_delay_interval",         MR_U32_DTYPE,       0,                  NA,     4,      5,      false,  NA,                             MQTT_PROP_WILL_DELAY_INTERVAL,          CONNECT_WILL_FLAG,      CONNECT_WILL_DELAY_INTERVAL,            NULL},
+    {"payload_format_indicator",    MR_U8_DTYPE,        0,                  NA,     1,      2,      false,  NA,                             MQTT_PROP_PAYLOAD_FORMAT_INDICATOR,     CONNECT_WILL_FLAG,      CONNECT_PAYLOAD_FORMAT_INDICATOR,       NULL},
+    {"message_expiry_interval",     MR_U32_DTYPE,       0,                  NA,     4,      5,      false,  NA,                             MQTT_PROP_MESSAGE_EXPIRY_INTERVAL,      CONNECT_WILL_FLAG,      CONNECT_MESSAGE_EXPIRY_INTERVAL,        NULL},
+    {"content_type",                MR_STR_DTYPE,       (uintptr_t)NULL,    false,  0,      0,      false,  NA,                             MQTT_PROP_CONTENT_TYPE,                 CONNECT_WILL_FLAG,      CONNECT_CONTENT_TYPE,                   NULL},
+    {"response_topic",              MR_STR_DTYPE,       (uintptr_t)NULL,    false,  0,      0,      false,  NA,                             MQTT_PROP_RESPONSE_TOPIC,               CONNECT_WILL_FLAG,      CONNECT_RESPONSE_TOPIC,                 NULL},
+    {"correlation_data",            MR_U8V_DTYPE,       (uintptr_t)NULL,    false,  0,      0,      false,  NA,                             MQTT_PROP_CORRELATION_DATA,             CONNECT_WILL_FLAG,      CONNECT_CORRELATION_DATA,               NULL},
+    {"will_user_properties",        MR_SPV_DTYPE,       (uintptr_t)NULL,    false,  0,      0,      false,  NA,                             MQTT_PROP_USER_PROPERTY,                CONNECT_WILL_FLAG,      CONNECT_WILL_USER_PROPERTIES,           NULL},
+    {"will_topic",                  MR_STR_DTYPE,       (uintptr_t)NULL,    false,  0,      0,      false,  NA,                             NA,                                     CONNECT_WILL_FLAG,      CONNECT_WILL_TOPIC,                     NULL},
+    {"will_payload",                MR_U8V_DTYPE,       (uintptr_t)NULL,    false,  0,      0,      false,  NA,                             NA,                                     CONNECT_WILL_FLAG,      CONNECT_WILL_PAYLOAD,                   NULL},
+    {"user_name",                   MR_STR_DTYPE,       (uintptr_t)NULL,    false,  0,      0,      false,  NA,                             NA,                                     CONNECT_USERNAME_FLAG,  CONNECT_USER_NAME,                      NULL},
+    {"password",                    MR_U8V_DTYPE,       (uintptr_t)NULL,    false,  0,      0,      false,  NA,                             NA,                                     CONNECT_PASSWORD_FLAG,  CONNECT_PASSWORD,                       NULL}
 //   name                           dtype               value               valloc  vlen    u8vlen  vexists link                            propid                                  flagid                  idx                                     printable
 };
 
-static const size_t _CONNECT_MDATA_COUNT = sizeof(_CONNECT_MDATA_TEMPLATE) / sizeof(mr_mdata);
+static const size_t CONNECT_MDATA_COUNT = sizeof(CONNECT_MDATA_TEMPLATE) / sizeof(CONNECT_MDATA_TEMPLATE[0]);
 
 /**
  * @brief Initialize a CONNECT packet for packing and set the address of the packet context.
@@ -148,7 +149,7 @@ static const size_t _CONNECT_MDATA_COUNT = sizeof(_CONNECT_MDATA_TEMPLATE) / siz
  * the MQTT5 specification.
  */
 int mr_init_connect_packet(mr_packet_ctx **ppctx) {
-    return mr_init_packet(ppctx, _CONNECT_MDATA_TEMPLATE, _CONNECT_MDATA_COUNT);
+    return mr_init_packet(ppctx, CONNECT_MDATA_TEMPLATE, CONNECT_MDATA_COUNT);
 }
 
 /**
@@ -158,7 +159,7 @@ int mr_init_connect_packet(mr_packet_ctx **ppctx) {
  * values and metadata. Set the address of the packet context.
  */
 int mr_init_unpack_connect_packet(mr_packet_ctx **ppctx, const uint8_t *u8v0, const size_t u8vlen) {
-    return mr_init_unpack_packet(ppctx, _CONNECT_MDATA_TEMPLATE, _CONNECT_MDATA_COUNT, u8v0, u8vlen);
+    return mr_init_unpack_packet(ppctx, CONNECT_MDATA_TEMPLATE, CONNECT_MDATA_COUNT, u8v0, u8vlen);
 }
 
 static int mr_check_connect_packet(mr_packet_ctx *pctx) {
@@ -267,7 +268,7 @@ int mr_set_connect_will_flag(mr_packet_ctx *pctx, const bool flag_value) {
     }
     else { // set/reset will-related fields to original values
         mr_mdata *mdata = pctx->mdata0;
-        for (int i = 0; i < _CONNECT_MDATA_COUNT; i++, mdata++) {
+        for (int i = 0; i < CONNECT_MDATA_COUNT; i++, mdata++) {
             if (mdata->flagid == CONNECT_WILL_FLAG) {
                 if (mdata->dtype == MR_BITS_DTYPE) {
                     if (mr_set_scalar(pctx, mdata->idx, 0)) return -1;
@@ -789,7 +790,7 @@ static int mr_validate_connect_pack(mr_packet_ctx *pctx) {
     if (mr_get_boolean(pctx, CONNECT_WILL_FLAG, &will_flag, &exists_flag)) return -1;
 
     mr_mdata *mdata = pctx->mdata0;
-    for (int i = 0; i < _CONNECT_MDATA_COUNT; i++, mdata++) {
+    for (int i = 0; i < CONNECT_MDATA_COUNT; i++, mdata++) {
         if (mdata->flagid == CONNECT_WILL_FLAG && !will_flag) { // governed by will_flag AND will_flag is false
             if (mdata->dtype == MR_BITS_DTYPE) { // MR_BITS_DTYPE always exist so check value
                 if (mdata->value) {

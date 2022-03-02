@@ -4,7 +4,7 @@
 #include "mister/mister.h"
 #include "test_util.h"
 
-static char _S0L[] = "";
+static char S0L[] = "";
 
 TEST_CASE("happy CONNACK packet", "[connack][happy]") {
     dzlog_init("", "mr_init"); // enables logging from the mister library and here

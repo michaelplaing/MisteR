@@ -208,14 +208,14 @@ int mr_free_packet_context(mr_packet_ctx *pctx) {
     return 0;
 }
 
-static int mr_get_scalar(mr_packet_ctx *pctx, const int idx, mr_mvalue_t *pvalue, bool *pexists) {
+static int mr_get_scalar(mr_packet_ctx *pctx, const int idx, uintptr_t *pvalue, bool *pexists) {
     mr_mdata *mdata = pctx->mdata0 + idx;
     *pvalue = mdata->value;
     *pexists = mdata->vexists;
     return 0;
 }
 
-int mr_set_scalar(mr_packet_ctx *pctx, const int idx, const mr_mvalue_t value) {
+int mr_set_scalar(mr_packet_ctx *pctx, const int idx, const uintptr_t value) {
     mr_mdata *mdata = pctx->mdata0 + idx;
     if (mr_free(mdata->printable)) return -1;
     mr_mdata_fn validate_fn = _DATA_TYPE[mdata->dtype].validate_fn;
@@ -235,14 +235,14 @@ int mr_reset_scalar(mr_packet_ctx *pctx, const int idx) {
 }
 
 int mr_get_boolean(mr_packet_ctx *pctx, const int idx, bool *pflag_value, bool *pexists) {
-    mr_mvalue_t value;
+    uintptr_t value;
     mr_get_scalar(pctx, idx, &value, pexists);
     *pflag_value = (bool)value;
     return 0;
 }
 
 int mr_get_u8(mr_packet_ctx *pctx, const int idx, uint8_t *pu8, bool *pexists) {
-    mr_mvalue_t value;
+    uintptr_t value;
     mr_get_scalar(pctx, idx, &value, pexists);
     *pu8 = (uint8_t)value;
     return 0;
@@ -262,7 +262,7 @@ static int mr_unpack_u8(mr_packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 int mr_get_u16(mr_packet_ctx *pctx, const int idx, uint16_t *pu16, bool *pexists) {
-    mr_mvalue_t value;
+    uintptr_t value;
     mr_get_scalar(pctx, idx, &value, pexists);
     *pu16 = (uint16_t)value;
     return 0;
@@ -286,7 +286,7 @@ static int mr_unpack_u16(mr_packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 int mr_get_u32(mr_packet_ctx *pctx, const int idx, uint32_t *pu32, bool *pexists) {
-    mr_mvalue_t value;
+    uintptr_t value;
     mr_get_scalar(pctx, idx, &value, pexists);
     *pu32 = (uint32_t)value;
     return 0;
@@ -388,7 +388,7 @@ static int mr_unpack_bits(mr_packet_ctx *pctx, mr_mdata *mdata) {   // don't adv
     return 0;
 }
 
-static int mr_get_vector(mr_packet_ctx *pctx, const int idx, mr_mvalue_t *ppvoid, size_t *plen, bool *pexists) {
+static int mr_get_vector(mr_packet_ctx *pctx, const int idx, uintptr_t *ppvoid, size_t *plen, bool *pexists) {
     mr_mdata *mdata = pctx->mdata0 + idx;
     *ppvoid = mdata->value; // for a vector, value is a pointer to something or NULL
     *plen = mdata->vlen;
@@ -399,7 +399,7 @@ static int mr_get_vector(mr_packet_ctx *pctx, const int idx, mr_mvalue_t *ppvoid
 int mr_set_vector(mr_packet_ctx *pctx, const int idx, const void *pvoid, const size_t len) {
     if (mr_reset_vector(pctx, idx)) return -1; // frees printable
     mr_mdata *mdata = pctx->mdata0 + idx;
-    mdata->value = (mr_mvalue_t)pvoid;
+    mdata->value = (uintptr_t)pvoid;
     mdata->vexists = true;
     mdata->vlen = len;
     mr_mdata_fn count_fn = _DATA_TYPE[mdata->dtype].count_fn;
@@ -418,7 +418,7 @@ int mr_reset_vector(mr_packet_ctx *pctx, const int idx) {
 
 static int mr_free_vector(mr_packet_ctx *pctx, mr_mdata *mdata) {
     if (mdata->valloc && mr_free((void *)mdata->value)) return -1;
-    mdata->value = (mr_mvalue_t)NULL;
+    mdata->value = (uintptr_t)NULL;
     mdata->valloc = false;
     mdata->vexists = false;
     mdata->vlen = 0;
@@ -427,7 +427,7 @@ static int mr_free_vector(mr_packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 int mr_get_u8v(mr_packet_ctx *pctx, const int idx, uint8_t **pu8v0, size_t *plen, bool *pexists) {
-    mr_mvalue_t pvoid;
+    uintptr_t pvoid;
     mr_get_vector(pctx, idx, &pvoid, plen, pexists);
     *pu8v0 = (uint8_t *)pvoid;
     return 0;
@@ -472,7 +472,7 @@ static int mr_unpack_u8v(mr_packet_ctx *pctx, mr_mdata *mdata) {
     uint8_t *value;
     if (mr_calloc((void **)&value, vlen, 1)) return -1;
     memcpy(value, u8v, u8vlen);
-    mdata->value = (mr_mvalue_t)value;
+    mdata->value = (uintptr_t)value;
     mdata->vlen = vlen;
     mdata->vexists = true;
     mdata->valloc = true;
@@ -482,7 +482,7 @@ static int mr_unpack_u8v(mr_packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_unpack_payload(mr_packet_ctx *pctx, mr_mdata *mdata) {
-    mdata->value = (mr_mvalue_t)(pctx->u8v0 + pctx->u8vpos);
+    mdata->value = (uintptr_t)(pctx->u8v0 + pctx->u8vpos);
     mdata->vexists = true;
     mdata->valloc = false;
     // printf("\npayload:: pctx->u8vlen: %lu; pctx->u8vpos: %lu\n\n", pctx->u8vlen, pctx->u8vpos);
@@ -508,7 +508,7 @@ int mr_validate_u8v_utf8(mr_packet_ctx *pctx, const int idx) {
 }
 
 int mr_get_VBIv(mr_packet_ctx *pctx, const int idx, uint32_t **pu32v0, size_t *plen, bool *pexists) {
-    mr_mvalue_t pvoid;
+    uintptr_t pvoid;
     mr_get_vector(pctx, idx, &pvoid, plen, pexists);
     *pu32v0 = (uint32_t *)pvoid;
     return 0;
@@ -580,7 +580,7 @@ static int mr_unpack_VBIv(mr_packet_ctx *pctx, mr_mdata *mdata) {
         mdata->vlen = 0; // incremented below
     }
 
-    mdata->value = (mr_mvalue_t)VBIv0;
+    mdata->value = (uintptr_t)VBIv0;
     *(VBIv0 + mdata->vlen) = u32;
     mdata->vlen++;
     mdata->vexists = true;
@@ -611,7 +611,7 @@ static int mr_validate_VBIv(mr_packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 int mr_get_str(mr_packet_ctx *pctx, const int idx, char **pcv0, bool *pexists) {
-    mr_mvalue_t pvoid;
+    uintptr_t pvoid;
     size_t len;
     mr_get_vector(pctx, idx, &pvoid, &len, pexists);
     *pcv0 = (char *)pvoid;
@@ -646,7 +646,7 @@ static int mr_validate_str(mr_packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 int mr_get_spv(mr_packet_ctx *pctx, const int idx, mr_string_pair **pspv0, size_t *plen, bool *pexists) {
-    mr_mvalue_t pvoid;
+    uintptr_t pvoid;
     mr_get_vector(pctx, idx, &pvoid, plen, pexists);
     *pspv0 = (mr_string_pair *)pvoid;
     return 0;
@@ -725,7 +725,7 @@ static int mr_unpack_spv(mr_packet_ctx *pctx, mr_mdata *mdata) {
         mdata->vlen = 0; // incremented below
     }
 
-    mdata->value = (mr_mvalue_t)spv0;
+    mdata->value = (uintptr_t)spv0;
     psp = spv0 + mdata->vlen;
     psp->name = name;
     psp->value = value;

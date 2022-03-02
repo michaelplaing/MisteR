@@ -80,13 +80,12 @@ enum mr_data_types {
 };
 
 /// a type that can be cast to/from a pointer or an int up to uint32_t (sufficient for MQTT5)
-typedef unsigned long mr_mvalue_t;
+// typedef unsigned long mr_mvalue_t;
 
 typedef struct mr_mdata {
     const char *name;       ///< field name from spec
     const int dtype;        ///< data type
-//    const uint8_t bitpos;   ///< bit position for a MR_BITS_DTYPE sub-byte scalar
-    mr_mvalue_t value;      ///< an unpacked scalar value or a pointer to an unpacked vector
+    uintptr_t value;        ///< an unpacked scalar value or a pointer to an unpacked vector
     bool valloc;            ///< value allocated flag
     size_t vlen;            ///< integer byte size OR sub-byte # of bits OR vector length
     size_t u8vlen;          ///< byte count of packed value; bit position for a sub-byte scalar
@@ -127,8 +126,8 @@ int mr_init_unpack_packet(
 int mr_pack_packet(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *pu8vlen);
 int mr_free_packet_context(mr_packet_ctx *pctx);
 
-static int mr_get_scalar(mr_packet_ctx *pctx, const int idx, mr_mvalue_t *pvalue, bool *pexists);
-int mr_set_scalar(mr_packet_ctx *pctx, const int idx, const mr_mvalue_t value);
+static int mr_get_scalar(mr_packet_ctx *pctx, const int idx, uintptr_t *pvalue, bool *pexists);
+int mr_set_scalar(mr_packet_ctx *pctx, const int idx, const uintptr_t value);
 int mr_reset_scalar(mr_packet_ctx *pctx, const int idx);
 
 int mr_get_boolean(mr_packet_ctx *pctx, const int idx, bool *pflag_value, bool *pexists);
@@ -154,7 +153,7 @@ static int mr_pack_bits(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_pack_incr1(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_unpack_bits(mr_packet_ctx *pctx, mr_mdata *mdata);
 
-static int mr_get_vector(mr_packet_ctx *pctx, const int idx, mr_mvalue_t *ppvoid, size_t *plen, bool *pexists);
+static int mr_get_vector(mr_packet_ctx *pctx, const int idx, uintptr_t *ppvoid, size_t *plen, bool *pexists);
 int mr_set_vector(mr_packet_ctx *pctx, const int idx, const void *pvoid, const size_t len);
 int mr_reset_vector(mr_packet_ctx *pctx, const int idx);
 static int mr_free_vector(mr_packet_ctx *pctx, mr_mdata *mdata);

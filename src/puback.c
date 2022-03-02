@@ -8,7 +8,7 @@
 
 #include "mister_internal.h"
 
-enum PUBACK_MDATA_FIELDS { // Same order as _PUBACK_MDATA_TEMPLATE
+enum PUBACK_MDATA_FIELDS { // Same order as PUBACK_MDATA_TEMPLATE
     PUBACK_PACKET_TYPE,
     PUBACK_RESERVED_HEADER,
     PUBACK_MR_HEADER,
@@ -21,7 +21,7 @@ enum PUBACK_MDATA_FIELDS { // Same order as _PUBACK_MDATA_TEMPLATE
     PUBACK_USER_PROPERTIES
 };
 
-static const uint8_t _PUBACK_PUBACK_REASON_CODES[] = {
+static const uint8_t PUBACK_PUBACK_REASON_CODES[] = {
     MQTT_RC_SUCCESS,
     MQTT_RC_NO_MATCHING_SUBSCRIBERS,
     MQTT_RC_UNSPECIFIED,
@@ -32,41 +32,43 @@ static const uint8_t _PUBACK_PUBACK_REASON_CODES[] = {
     MQTT_RC_QUOTA_EXCEEDED,
     MQTT_RC_PAYLOAD_FORMAT_INVALID
 };
-static const size_t _CCRCSZ = sizeof(_PUBACK_PUBACK_REASON_CODES) / sizeof(_PUBACK_PUBACK_REASON_CODES[0]);
 
-static const uint8_t _PROPS[] = {
+static const size_t CCRCSZ = sizeof(PUBACK_PUBACK_REASON_CODES) / sizeof(PUBACK_PUBACK_REASON_CODES[0]);
+
+static const uint8_t PROPS[] = {
     MQTT_PROP_REASON_STRING,
     MQTT_PROP_USER_PROPERTY,
 };
-static const size_t _PSZ = sizeof(_PROPS) / sizeof(_PROPS[0]);
+static const size_t PSZ = sizeof(PROPS) / sizeof(PROPS[0]);
 
-#define _NA 0
+#define NA 0
 
-static const char _S0L[] = "";
-static const mr_mvalue_t _MR_PUBACK_HEADER = MQTT_PUBACK << 4;
+static const char S0L[] = "";
+static const uintptr_t MR_PUBACK_HEADER = MQTT_PUBACK << 4;
 
-static const mr_mdata _PUBACK_MDATA_TEMPLATE[] = {
+static const mr_mdata PUBACK_MDATA_TEMPLATE[] = {
 //   name                   dtype               value               valloc  vlen    u8vlen  vexists link                    propid                  flagid                  idx                         printable
-    {"packet_type",         MR_BITS_DTYPE,      MQTT_PUBACK,        _NA,    4,      4,      true,   PUBACK_MR_HEADER,       _NA,                    _NA,                    PUBACK_PACKET_TYPE,         NULL},
-    {"reserved_header",     MR_BITS_DTYPE,      0,                  _NA,    4,      0,      true,   PUBACK_MR_HEADER,       _NA,                    _NA,                    PUBACK_RESERVED_HEADER,     NULL},
-    {"mr_header",           MR_BITFLD_DTYPE,    _MR_PUBACK_HEADER,  _NA,    1,      1,      true,   _NA,                    _NA,                    _NA,                    PUBACK_MR_HEADER,           NULL},
-    {"remaining_length",    MR_VBI_DTYPE,       0,                  _NA,    0,      0,      true,   PUBACK_USER_PROPERTIES, _NA,                    _NA,                    PUBACK_REMAINING_LENGTH,    NULL},
-    {"packet_identifier",   MR_U16_DTYPE,       0,                  _NA,    2,      2,      true,   _NA,                    _NA,                    _NA,                    PUBACK_PACKET_IDENTIFIER,   NULL},
-    {"puback_reason_code",  MR_U8_DTYPE,        0,                  _NA,    1,      1,      false,  _NA,                    _NA,                    PUBACK_REMAINING_LENGTH,PUBACK_PUBACK_REASON_CODE,  NULL},
-    {"property_length",     MR_VBI_DTYPE,       0,                  _NA,    0,      0,      false,  PUBACK_USER_PROPERTIES, _NA,                    _NA,                    PUBACK_PROPERTY_LENGTH,     NULL},
-    {"mr_properties",       MR_PROPERTIES_DTYPE,(mr_mvalue_t)_PROPS,_NA,    _PSZ,   _NA,    true,   _NA,                    _NA,                    PUBACK_REMAINING_LENGTH,PUBACK_MR_PROPERTIES,       NULL},
-    {"reason_string",       MR_STR_DTYPE,       (mr_mvalue_t)NULL,  false,  0,      0,      false,  _NA,                    MQTT_PROP_REASON_STRING,_NA,                    PUBACK_REASON_STRING,       NULL},
-    {"user_properties",     MR_SPV_DTYPE,       (mr_mvalue_t)NULL,  false,  0,      0,      false,  _NA,                    MQTT_PROP_USER_PROPERTY,_NA,                    PUBACK_USER_PROPERTIES,     NULL},
+    {"packet_type",         MR_BITS_DTYPE,      MQTT_PUBACK,        NA,    4,      4,      true,   PUBACK_MR_HEADER,       NA,                    NA,                    PUBACK_PACKET_TYPE,         NULL},
+    {"reserved_header",     MR_BITS_DTYPE,      0,                  NA,    4,      0,      true,   PUBACK_MR_HEADER,       NA,                    NA,                    PUBACK_RESERVED_HEADER,     NULL},
+    {"mr_header",           MR_BITFLD_DTYPE,    MR_PUBACK_HEADER,  NA,    1,      1,      true,   NA,                    NA,                    NA,                    PUBACK_MR_HEADER,           NULL},
+    {"remaining_length",    MR_VBI_DTYPE,       0,                  NA,    0,      0,      true,   PUBACK_USER_PROPERTIES, NA,                    NA,                    PUBACK_REMAINING_LENGTH,    NULL},
+    {"packet_identifier",   MR_U16_DTYPE,       0,                  NA,    2,      2,      true,   NA,                    NA,                    NA,                    PUBACK_PACKET_IDENTIFIER,   NULL},
+    {"puback_reason_code",  MR_U8_DTYPE,        0,                  NA,    1,      1,      false,  NA,                    NA,                    PUBACK_REMAINING_LENGTH,PUBACK_PUBACK_REASON_CODE,  NULL},
+    {"property_length",     MR_VBI_DTYPE,       0,                  NA,    0,      0,      false,  PUBACK_USER_PROPERTIES, NA,                    NA,                    PUBACK_PROPERTY_LENGTH,     NULL},
+    {"mr_properties",       MR_PROPERTIES_DTYPE,(uintptr_t)PROPS,NA,    PSZ,   NA,    true,   NA,                    NA,                    PUBACK_REMAINING_LENGTH,PUBACK_MR_PROPERTIES,       NULL},
+    {"reason_string",       MR_STR_DTYPE,       (uintptr_t)NULL,  false,  0,      0,      false,  NA,                    MQTT_PROP_REASON_STRING,NA,                    PUBACK_REASON_STRING,       NULL},
+    {"user_properties",     MR_SPV_DTYPE,       (uintptr_t)NULL,  false,  0,      0,      false,  NA,                    MQTT_PROP_USER_PROPERTY,NA,                    PUBACK_USER_PROPERTIES,     NULL},
 //   name                   dtype               value               valloc  vlen    u8vlen  vexists link                    propid                  flagid                  idx                         printable
 };
-static const size_t _PUBACK_MDATA_COUNT = sizeof(_PUBACK_MDATA_TEMPLATE) / sizeof(_PUBACK_MDATA_TEMPLATE[0]);
+
+static const size_t PUBACK_MDATA_COUNT = sizeof(PUBACK_MDATA_TEMPLATE) / sizeof(PUBACK_MDATA_TEMPLATE[0]);
 
 int mr_init_puback_packet(mr_packet_ctx **ppctx) {
-    return mr_init_packet(ppctx, _PUBACK_MDATA_TEMPLATE, _PUBACK_MDATA_COUNT);
+    return mr_init_packet(ppctx, PUBACK_MDATA_TEMPLATE, PUBACK_MDATA_COUNT);
 }
 
 int mr_init_unpack_puback_packet(mr_packet_ctx **ppctx, const uint8_t *u8v0, const size_t u8vlen) {
-    return mr_init_unpack_packet(ppctx, _PUBACK_MDATA_TEMPLATE, _PUBACK_MDATA_COUNT, u8v0, u8vlen);
+    return mr_init_unpack_packet(ppctx, PUBACK_MDATA_TEMPLATE, PUBACK_MDATA_COUNT, u8v0, u8vlen);
 }
 
 static int mr_check_puback_packet(mr_packet_ctx *pctx) {
@@ -130,7 +132,7 @@ int mr_get_puback_puback_reason_code(mr_packet_ctx *pctx, uint8_t *pu8, bool *pe
 }
 
 static int mr_validate_puback_puback_reason_code(const uint8_t u8) {
-    if (!memchr(_PUBACK_PUBACK_REASON_CODES, u8, _CCRCSZ)) {
+    if (!memchr(PUBACK_PUBACK_REASON_CODES, u8, CCRCSZ)) {
         dzlog_error("invalid puback_reason_code: %u", u8);
         return -1;
     }

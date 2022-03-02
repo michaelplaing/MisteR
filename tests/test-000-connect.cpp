@@ -4,7 +4,7 @@
 #include "mister/mister.h"
 #include "test_util.h"
 
-static char _S0L[] = "";
+static char S0L[] = "";
 
 TEST_CASE("happy CONNECT packet", "[connect][happy]") {
     dzlog_init("", "mr_init"); // enables logging from the mister library and here
@@ -144,7 +144,7 @@ TEST_CASE("happy CONNECT packet", "[connect][happy]") {
                 REQUIRE(mr_reset_connect_user_properties(pctx) == 0);
                 REQUIRE(mr_reset_connect_authentication_method(pctx) == 0);
                 REQUIRE(mr_reset_connect_authentication_data(pctx) == 0);
-                REQUIRE(mr_set_connect_client_identifier(pctx, _S0L) == 0);
+                REQUIRE(mr_set_connect_client_identifier(pctx, S0L) == 0);
                 REQUIRE(mr_reset_connect_user_name(pctx) == 0);
                 REQUIRE(mr_reset_connect_password(pctx) == 0);
             }
@@ -277,7 +277,7 @@ TEST_CASE("unhappy CONNECT packet", "[connect][unhappy]") {
         CHECK(mr_pack_connect_packet(pctx, &u8v0, &u8vlen) == -1);
         REQUIRE(mr_reset_connect_authentication_data(pctx) == 0);
         CHECK(mr_pack_connect_packet(pctx, &u8v0, &u8vlen) == 0);
-        REQUIRE(mr_set_connect_authentication_method(pctx, _S0L) == 0);
+        REQUIRE(mr_set_connect_authentication_method(pctx, S0L) == 0);
         CHECK(mr_pack_connect_packet(pctx, &u8v0, &u8vlen) == 0); // ok to have a method and no data
     }
 

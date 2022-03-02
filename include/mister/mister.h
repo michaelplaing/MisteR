@@ -85,6 +85,14 @@ typedef struct mr_string_pair {
     char *value;
 } mr_string_pair;
 
+typedef struct mr_subscribe_topic {
+    char *topic;                // packed:
+    uint8_t maximum_qos;        // bits 0-1
+    bool no_local;              // bit 2
+    bool retain_as_published;   // bit 3
+    uint8_t retain_handling;    // bits 4-5
+} mr_subscribe_topic;
+
 // utilities
 
 int mr_print_hexdump(uint8_t *u8v, const size_t u8vlen);
