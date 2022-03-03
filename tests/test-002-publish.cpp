@@ -84,30 +84,17 @@ TEST_CASE("happy PUBLISH packet", "[publish][happy]") {
             REQUIRE(mr_set_publish_payload(pctx, NULL, 0) == 0);
         }
     }
-/*
-    SECTION("sub_ids") {
-        const uint32_t u32v0[2] = {1,1000000};
-        uint32_t *pu32v0;
-        size_t len = 0;
-        bool exists_flag = false;
 
-        CHECK(mr_set_publish_subscription_identifiers(pctx, u32v0, 2) == 0);
-        CHECK(mr_get_publish_subscription_identifiers(pctx, &pu32v0, &len, &exists_flag) == 0);
-        printf("subscription_identifiers:: len: %lu; values:", len);
-        for (int i = 0; i < len; i++) printf(" %u;", pu32v0[i]);
-        puts("");
-    }
- */
     // *** common test epilog ***
 
-    // dump
+    // printable
     char *packet_printable;
     REQUIRE(mr_get_publish_printable(pctx, false, &packet_printable) == 0);
     // REQUIRE(put_binary_file_content(printable_filename, (uint8_t *)packet_printable, strlen(packet_printable) + 1) == 0);
     printf("packet_printable:: strlen: %lu; hexdump:\n", strlen(packet_printable));
     mr_print_hexdump((uint8_t *)packet_printable, strlen(packet_printable) + 1);
 
-    // check dump
+    // check printable
     char *file_printable;
     size_t mdsz;
     REQUIRE(get_binary_file_content(printable_filename, (uint8_t **)&file_printable, &mdsz) == 0);
@@ -115,7 +102,6 @@ TEST_CASE("happy PUBLISH packet", "[publish][happy]") {
     // printf("packet_printable:: strlen: %lu\n", strlen(packet_printable));
     REQUIRE(mdsz == strlen(packet_printable) + 1);
     REQUIRE(strcmp(file_printable, packet_printable) == 0);
-    free(file_printable);
 
     // pack
     uint8_t *packet_u8v0;
@@ -144,12 +130,12 @@ TEST_CASE("happy PUBLISH packet", "[publish][happy]") {
     // printf("reserved_header:\n");
     // mr_print_hexdump(&u8, 1);
 
-    // unpack dump
+    // unpack printable
     REQUIRE(mr_get_publish_printable(pctx, false, &packet_printable) == 0);
     // printf("packet_printable (unpack):: strlen: %lu; hexdump:\n", strlen(packet_printable));
     // mr_print_hexdump((uint8_t *)packet_printable, strlen(packet_printable) + 1);
 
-    // check unpack dump
+    // check unpack printable
     REQUIRE(mdsz == strlen(packet_printable) + 1);
     REQUIRE(strcmp(file_printable, packet_printable) == 0);
     free(file_printable);

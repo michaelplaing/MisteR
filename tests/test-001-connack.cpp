@@ -94,16 +94,17 @@ TEST_CASE("happy CONNACK packet", "[connack][happy]") {
             REQUIRE(mr_reset_connack_authentication_data(pctx) == 0);
         }
     }
+
     // *** common test epilog ***
 
-    // dump
+    // printable
     char *packet_printable;
     REQUIRE(mr_get_connack_printable(pctx, false, &packet_printable) == 0);
     // REQUIRE(put_binary_file_content(printable_filename, (uint8_t *)packet_printable, strlen(packet_printable) + 1) == 0);
     // printf("packet_printable:: strlen: %lu; hexdump:\n", strlen(packet_printable));
     // mr_print_hexdump((uint8_t *)packet_printable, strlen(packet_printable) + 1);
 
-    // check dump
+    // check printable
     char *file_printable;
     size_t mdsz;
     REQUIRE(get_binary_file_content(printable_filename, (uint8_t **)&file_printable, &mdsz) == 0);
@@ -111,7 +112,6 @@ TEST_CASE("happy CONNACK packet", "[connack][happy]") {
     // printf("packet_printable:: strlen: %lu\n", strlen(packet_printable));
     REQUIRE(mdsz == strlen(packet_printable) + 1);
     REQUIRE(strcmp(file_printable, packet_printable) == 0);
-    free(file_printable);
 
     // pack
     uint8_t *packet_u8v0;
@@ -140,12 +140,12 @@ TEST_CASE("happy CONNACK packet", "[connack][happy]") {
     // printf("reserved_header:\n");
     // mr_print_hexdump(&u8, 1);
 
-    // unpack dump
+    // unpack printable
     REQUIRE(mr_get_connack_printable(pctx, false, &packet_printable) == 0);
     // printf("packet_printable (unpack):: strlen: %lu; hexdump:\n", strlen(packet_printable));
     // mr_print_hexdump((uint8_t *)packet_printable, strlen(packet_printable) + 1);
 
-    // check unpack dump
+    // check unpack printable
     REQUIRE(mdsz == strlen(packet_printable) + 1);
     REQUIRE(strcmp(file_printable, packet_printable) == 0);
     free(file_printable);

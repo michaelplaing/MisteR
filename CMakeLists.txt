@@ -36,7 +36,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
         message(STATUS "Doxygen not found, not building docs")
     endif()
 
-    add_subdirectory(scratch) # for local code trials - not tracked in git
+    # add_subdirectory(scratch) # for local code trials - not tracked in git
 endif()
 
 # FetchContent added in CMake 3.11, downloads during the configure step

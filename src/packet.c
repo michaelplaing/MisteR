@@ -112,7 +112,7 @@ static int mr_unpack_packet(mr_packet_ctx *pctx) {
                 // printf("flagvalue::packet: %s; name: %s; pctx->flagid: %lu\n", pctx->mqtt_packet_name, flag_mdata->name, flag_mdata->value);
                 if (flag_mdata->dtype == MR_VBI_DTYPE && pctx->u8vpos >= flag_mdata->value) break; // this value & remaining ones missing;
                 if (!flag_mdata->value) continue; // skip if value is not set
-            } // else {puts("");}
+            } else {puts("");}
 
             // printf("start::packet: %s; name: %s; pctx->u8vpos: %lu\n", pctx->mqtt_packet_name, mdata->name, pctx->u8vpos);
             mr_mdata_fn unpack_fn = _DATA_TYPE[mdata->dtype].unpack_fn;

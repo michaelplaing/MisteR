@@ -152,21 +152,21 @@ TEST_CASE("happy CONNECT packet", "[connect][happy]") {
     }
 
     // dzlog_info("common test epilog");
+
     // *** common test epilog ***
 
-    // dump
+    // printable
     char *packet_printable;
     REQUIRE(mr_get_connect_printable(pctx, false, &packet_printable) == 0);
     // REQUIRE(put_binary_file_content(printable_filename, (uint8_t *)packet_printable, strlen(packet_printable) + 1) == 0);
 
-    // check dump
+    // check printable
     char *file_printable;
     size_t mdsz;
     REQUIRE(get_binary_file_content(printable_filename, (uint8_t **)&file_printable, &mdsz) == 0);
     printf("\nfile printable (%s)::\n%s\n\npacket printable::\n%s\n", printable_filename, file_printable, packet_printable);
     REQUIRE(mdsz == strlen(packet_printable) + 1);
     REQUIRE(strcmp(file_printable, packet_printable) == 0);
-    free(file_printable);
 
     // pack
     uint8_t *packet_u8v0;
@@ -191,10 +191,10 @@ TEST_CASE("happy CONNECT packet", "[connect][happy]") {
     // init unpack context / unpack packet
     REQUIRE(mr_init_unpack_connect_packet(&pctx, u8v0, u8vlen) == 0);
 
-    // unpack dump
+    // unpack printable
     REQUIRE(mr_get_connect_printable(pctx, false, &packet_printable) == 0);
 
-    // check unpack dump
+    // check unpack printable
     REQUIRE(mdsz == strlen(packet_printable) + 1);
     REQUIRE(strcmp(file_printable, packet_printable) == 0);
     free(file_printable);
