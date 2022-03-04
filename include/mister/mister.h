@@ -410,6 +410,35 @@ int mr_reset_puback_user_properties(mr_packet_ctx *pctx);
 
 int mr_get_puback_printable(mr_packet_ctx *pctx, const bool all_flag, char **pcv);
 
+// SUBSCRIBE
+
+int mr_init_subscribe_packet(mr_packet_ctx **ppctx);
+int mr_init_unpack_subscribe_packet(mr_packet_ctx **ppctx, const uint8_t *u8v0, const size_t u8vlen);
+int mr_pack_subscribe_packet(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *pu8vlen);
+int mr_free_subscribe_packet(mr_packet_ctx *pctx);
+
+int mr_get_subscribe_packet_type(mr_packet_ctx *pctx, uint8_t *pu8);
+int mr_get_subscribe_reserved_header(mr_packet_ctx *pctx, uint8_t *pu8);
+int mr_get_subscribe_remaining_length(mr_packet_ctx *pctx, uint32_t *pu32);
+
+int mr_get_subscribe_packet_identifier(mr_packet_ctx *pctx, uint16_t *pu16);
+int mr_set_subscribe_packet_identifier(mr_packet_ctx *pctx, const uint16_t u16);
+
+int mr_get_subscribe_property_length(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag);
+
+int mr_get_subscribe_subscription_identifier(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag);
+int mr_set_subscribe_subscription_identifier(mr_packet_ctx *pctx, const uint32_t u32);
+int mr_reset_subscribe_subscription_identifier(mr_packet_ctx *pctx);
+
+int mr_get_subscribe_user_properties(mr_packet_ctx *pctx, mr_string_pair **pspv0, size_t *plen, bool *pexists_flag);
+int mr_set_subscribe_user_properties(mr_packet_ctx *pctx, const mr_string_pair *spv0, const size_t len);
+int mr_reset_subscribe_user_properties(mr_packet_ctx *pctx);
+
+int mr_get_subscribe_topic_filters(mr_packet_ctx *pctx, mr_topic_filter **ptfv0, size_t *plen);
+int mr_set_subscribe_topic_filters(mr_packet_ctx *pctx, const mr_topic_filter *tfv0, const size_t len);
+
+int mr_get_subscribe_printable(mr_packet_ctx *pctx, const bool all_flag, char **pcv);
+
 #ifdef __cplusplus
 }
 #endif

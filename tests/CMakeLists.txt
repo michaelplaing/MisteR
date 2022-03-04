@@ -12,6 +12,7 @@ set(
     test-001-connack
     test-002-publish
     test-003-puback
+    test-004-subscribe
 )
 
 message(STATUS Tests:)

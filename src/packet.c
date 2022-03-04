@@ -52,7 +52,7 @@ typedef struct mr_ptype {
  *
  * The ptype_fn is invoked at the end of unpacking the packet
  */
-static const mr_ptype _PACKET_TYPE[] = {
+static const mr_ptype PACKET_TYPE[] = {
 //   mqtt_packet_type   mqtt_packet_name    ptype_fn
     {MQTT_RESERVED,     "RESERVED",         NULL},
     {MQTT_CONNECT,      "CONNECT",          mr_validate_connect_unpack},
@@ -72,7 +72,7 @@ static const mr_ptype _PACKET_TYPE[] = {
     {MQTT_AUTH,         "AUTH",             NULL}
 };
 
-static const mr_dtype _DATA_TYPE[] = { // same order as mr_data_types enum
+static const mr_dtype DATA_TYPE[] = { // same order as mr_data_types enum
 //   dtype idx              name                        count_fn            pack_fn             unpack_fn               print_fn               validate_fn         free_fn
     {MR_U8_DTYPE,           "uint8",                    NULL,               mr_pack_u8,         mr_unpack_u8,           mr_printable_scalar,   NULL,               NULL},
     {MR_U16_DTYPE,          "uint16",                   NULL,               mr_pack_u16,        mr_unpack_u16,          mr_printable_scalar,   NULL,               NULL},
@@ -98,7 +98,7 @@ int mr_init_packet(mr_packet_ctx **ppctx, const mr_mdata *MDATA_TEMPLATE, size_t
     memcpy(mdata0, MDATA_TEMPLATE, mdata_count * sizeof(mr_mdata));
     pctx->mdata0 = mdata0;
     pctx->mqtt_packet_type = mdata0->value; // always the value of the 0th mdata row
-    pctx->mqtt_packet_name = _PACKET_TYPE[pctx->mqtt_packet_type].mqtt_packet_name;
+    pctx->mqtt_packet_name = PACKET_TYPE[pctx->mqtt_packet_type].mqtt_packet_name;
     *ppctx = pctx;
     return 0;
 }
@@ -119,15 +119,15 @@ static int mr_unpack_packet(mr_packet_ctx *pctx) {
             //}
 
             // printf("start::packet: %s; name: %s; pctx->u8vpos: %lu\n", pctx->mqtt_packet_name, mdata->name, pctx->u8vpos);
-            mr_mdata_fn unpack_fn = _DATA_TYPE[mdata->dtype].unpack_fn;
+            mr_mdata_fn unpack_fn = DATA_TYPE[mdata->dtype].unpack_fn;
             if (unpack_fn && unpack_fn(pctx, mdata)) return -1;
-            mr_mdata_fn validate_fn = _DATA_TYPE[mdata->dtype].validate_fn;
+            mr_mdata_fn validate_fn = DATA_TYPE[mdata->dtype].validate_fn;
             if (validate_fn && validate_fn(pctx, mdata)) return -1;
             // printf("finish::packet: %s; name: %s; pctx->u8vpos: %lu\n", pctx->mqtt_packet_name, mdata->name, pctx->u8vpos);
         }
     }
 
-    mr_ptype_fn ptype_fn = _PACKET_TYPE[pctx->mqtt_packet_type].ptype_fn;
+    mr_ptype_fn ptype_fn = PACKET_TYPE[pctx->mqtt_packet_type].ptype_fn;
     if (ptype_fn && ptype_fn(pctx)) return -1;
 
     if (pctx->u8vpos == pctx->u8vlen) {
@@ -171,7 +171,7 @@ int mr_init_unpack_packet(
 
 int mr_pack_packet(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *pu8vlen) {
     if (pctx->u8valloc && mr_free(pctx->u8v0)) return -1;
-    const mr_mdata_fn vbi_count_fn = _DATA_TYPE[MR_VBI_DTYPE].count_fn;
+    const mr_mdata_fn vbi_count_fn = DATA_TYPE[MR_VBI_DTYPE].count_fn;
     mr_mdata *mdata = pctx->mdata0 + pctx->mdata_count - 1; // last one
 
     for (int i = pctx->mdata_count - 1; i > -1; mdata--, i--) { // go in reverse to calculate VBIs
@@ -188,7 +188,7 @@ int mr_pack_packet(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *pu8vlen) {
     mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
         if (mdata->vexists) {
-            mr_mdata_fn pack_fn = _DATA_TYPE[mdata->dtype].pack_fn;
+            mr_mdata_fn pack_fn = DATA_TYPE[mdata->dtype].pack_fn;
             if (pack_fn && pack_fn(pctx, mdata)) return -1; // each pack_fn increments pctx->u8vpos
         }
     }
@@ -201,8 +201,8 @@ int mr_pack_packet(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *pu8vlen) {
 int mr_free_packet_context(mr_packet_ctx *pctx) {
     mr_mdata *mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; i++, mdata++) {
-        if (_DATA_TYPE[mdata->dtype].free_fn && mr_free(mdata->printable)) return -1;
-        mr_mdata_fn free_fn = _DATA_TYPE[mdata->dtype].free_fn;
+        if (DATA_TYPE[mdata->dtype].free_fn && mr_free(mdata->printable)) return -1;
+        mr_mdata_fn free_fn = DATA_TYPE[mdata->dtype].free_fn;
         if (mdata->valloc && free_fn && free_fn(pctx, mdata)) return -1;
     }
 
@@ -222,7 +222,7 @@ static int mr_get_scalar(mr_packet_ctx *pctx, const int idx, uintptr_t *pvalue, 
 int mr_set_scalar(mr_packet_ctx *pctx, const int idx, const uintptr_t value) {
     mr_mdata *mdata = pctx->mdata0 + idx;
     if (mr_free(mdata->printable)) return -1;
-    mr_mdata_fn validate_fn = _DATA_TYPE[mdata->dtype].validate_fn;
+    mr_mdata_fn validate_fn = DATA_TYPE[mdata->dtype].validate_fn;
     mdata->value = value;
     mdata->vexists = true; // don't update vlen or u8vlen for scalars
     if (validate_fn && validate_fn(pctx, mdata)) return -1;
@@ -406,9 +406,9 @@ int mr_set_vector(mr_packet_ctx *pctx, const int idx, const void *pvoid, const s
     mdata->value = (uintptr_t)pvoid;
     mdata->vexists = true;
     mdata->vlen = len;
-    mr_mdata_fn count_fn = _DATA_TYPE[mdata->dtype].count_fn;
+    mr_mdata_fn count_fn = DATA_TYPE[mdata->dtype].count_fn;
     if (count_fn(pctx, mdata)) return -1; // sets u8vlen
-    mr_mdata_fn validate_fn = _DATA_TYPE[mdata->dtype].validate_fn;
+    mr_mdata_fn validate_fn = DATA_TYPE[mdata->dtype].validate_fn;
     if (mdata->value && validate_fn && validate_fn(pctx, mdata)) return -1;
     return 0;
 }
@@ -416,7 +416,7 @@ int mr_set_vector(mr_packet_ctx *pctx, const int idx, const void *pvoid, const s
 int mr_reset_vector(mr_packet_ctx *pctx, const int idx) {
     mr_mdata *mdata = pctx->mdata0 + idx;
     if (mr_free(mdata->printable)) return -1;
-    mr_mdata_fn free_fn = _DATA_TYPE[mdata->dtype].free_fn;
+    mr_mdata_fn free_fn = DATA_TYPE[mdata->dtype].free_fn;
     return free_fn(pctx, mdata);
 }
 
@@ -831,10 +831,10 @@ static int mr_pack_tfv(mr_packet_ctx *pctx, mr_mdata *mdata) {
 
         // options
         uint8_t u8 = 0;
-        u8 &= tfv[i].maximum_qos;
-        u8 &= tfv[i].no_local << 2;
-        u8 &= tfv[i].retain_as_published << 3;
-        u8 &= tfv[i].retain_handling << 4;
+        u8 |= tfv[i].maximum_qos;
+        u8 |= tfv[i].no_local << 2;
+        u8 |= tfv[i].retain_as_published << 3;
+        u8 |= tfv[i].retain_handling << 4;
         pctx->u8v0[pctx->u8vpos++] = u8;
     }
 
@@ -976,9 +976,9 @@ static int mr_unpack_properties(mr_packet_ctx *pctx, mr_mdata *mdata) {
             return -1;
         }
 
-        unpack_fn = _DATA_TYPE[prop_mdata->dtype].unpack_fn;
+        unpack_fn = DATA_TYPE[prop_mdata->dtype].unpack_fn;
         if (unpack_fn(pctx, prop_mdata)) return -1;
-        validate_fn = _DATA_TYPE[mdata->dtype].validate_fn;
+        validate_fn = DATA_TYPE[mdata->dtype].validate_fn;
         if (validate_fn && validate_fn(pctx, mdata)) return -1;
     }
 
@@ -1057,26 +1057,33 @@ static int mr_printable_spv(mr_packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_printable_tfv(mr_packet_ctx *pctx, mr_mdata *mdata) {
-/*
     char *printable;
     size_t sz = 0;
-    mr_string_pair *spv = (mr_string_pair *)mdata->value;
+    mr_topic_filter *tfv = (mr_topic_filter *)mdata->value;
 
     for (int i = 0; i < mdata->vlen; i++) {
-        sz += strlen(spv[i].name) + 1 + strlen(spv[i].value) + 1; // ':' and ';'
+        sz += strlen(tfv[i].topic_filter) + 9; // ':' and 'x x x x;'
     }
 
     if (mr_calloc((void **)&printable, sz, 1)) return -1;
 
     char *pc = printable;
     for (int i = 0; i < mdata->vlen; i++) {
-        sprintf(pc, "%s:%s;", spv[i].name, spv[i].value);
-        pc += strlen(spv[i].name) + 1 + strlen(spv[i].value) + 1; // ditto
+        sprintf(
+            pc, "%s:%u %u %u %u;",
+            tfv[i].topic_filter,
+            tfv[i].maximum_qos,
+            tfv[i].no_local,
+            tfv[i].retain_as_published,
+            tfv[i].retain_handling
+        );
+
+        pc += strlen(tfv[i].topic_filter) + 9; // ditto
     }
 
     *(pc - 1) = '\0'; // overwrite trailing ';'
     mdata->printable = printable;
- */
+
     return 0;
 }
 
@@ -1102,7 +1109,7 @@ static int mr_printable_VBIv(mr_packet_ctx *pctx, mr_mdata *mdata) {
     return 0;
 }
 
-static const char _NOT_PRINTABLE[] = "***";
+static const char NOT_PRINTABLE[] = "***";
 
 /**
  * @brief Create the packet's printable metadata by creating and catenating the packet's mdata printable's.
@@ -1124,7 +1131,7 @@ static const char _NOT_PRINTABLE[] = "***";
  */
 int mr_get_printable(mr_packet_ctx *pctx, const bool all_flag, char **pcv) {
     if (mr_free(pctx->printable)) return -1;
-    const mr_mdata_fn vbi_count_fn = _DATA_TYPE[MR_VBI_DTYPE].count_fn;
+    const mr_mdata_fn vbi_count_fn = DATA_TYPE[MR_VBI_DTYPE].count_fn;
 
     // traverse in reverse to calculate VBIs since their u8vlens are variable
     mr_mdata *mdata = pctx->mdata0 + pctx->mdata_count - 1; // last one
@@ -1136,7 +1143,7 @@ int mr_get_printable(mr_packet_ctx *pctx, const bool all_flag, char **pcv) {
     mdata = pctx->mdata0;
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
         // printf("packet: %s; field: %s\n", pctx->mqtt_packet_name, mdata->name);
-        mr_mdata_fn print_fn = _DATA_TYPE[mdata->dtype].print_fn;
+        mr_mdata_fn print_fn = DATA_TYPE[mdata->dtype].print_fn;
         if (print_fn && mr_free(mdata->printable)) return -1;
 
         if (mdata->vexists && print_fn) {
@@ -1156,8 +1163,8 @@ int mr_get_printable(mr_packet_ctx *pctx, const bool all_flag, char **pcv) {
             pc += strlen(mdata->name) + 1 + strlen(mdata->printable) + 1; // ditto
         }
         else if (all_flag) {
-            sprintf(pc, "%s:%s\n", mdata->name, _NOT_PRINTABLE);
-            pc += strlen(mdata->name) + 1 + strlen(_NOT_PRINTABLE) + 1; // ditto
+            sprintf(pc, "%s:%s\n", mdata->name, NOT_PRINTABLE);
+            pc += strlen(mdata->name) + 1 + strlen(NOT_PRINTABLE) + 1; // ditto
         }
         else {
             ; //noop

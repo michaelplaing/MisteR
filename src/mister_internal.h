@@ -259,6 +259,16 @@ static int mr_validate_puback_cross(mr_packet_ctx *pctx);
 static int mr_validate_puback_pack(mr_packet_ctx *pctx);
 int mr_validate_puback_unpack(mr_packet_ctx *pctx);
 
+// SUBSCRIBE
+
+static int mr_check_subscribe_packet(mr_packet_ctx *pctx);
+
+static int mr_validate_subscribe_subscription_identifier(const uint32_t u32);
+
+static int mr_validate_subscribe_cross(mr_packet_ctx *pctx);
+static int mr_validate_subscribe_pack(mr_packet_ctx *pctx);
+int mr_validate_subscribe_unpack(mr_packet_ctx *pctx);
+
 // memory
 
 int mr_calloc(void **ppv, size_t count, size_t sz);

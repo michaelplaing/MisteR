@@ -29,7 +29,7 @@ static const size_t PSZ = sizeof(PROPS) / sizeof(PROPS[0]);
 
 #define NA 0
 
-static const uintptr_t MR_SUBSCRIBE_HEADER = MQTT_SUBSCRIBE << 4;
+static const uintptr_t MR_SUBSCRIBE_HEADER = (MQTT_SUBSCRIBE << 4) | 0x02;
 
 static const mr_mdata SUBSCRIBE_MDATA_TEMPLATE[] = {
 //   name                       dtype               value               valloc  vlen    u8vlen  vexists link                        propid                              flagid  idx                                 printable
@@ -110,52 +110,36 @@ int mr_set_subscribe_packet_identifier(mr_packet_ctx *pctx, const uint16_t u16) 
     return mr_set_scalar(pctx, SUBSCRIBE_PACKET_IDENTIFIER, u16);
 }
 
-// uint8_t subscribe_reason_code
-int mr_get_subscribe_subscribe_reason_code(mr_packet_ctx *pctx, uint8_t *pu8, bool *pexists_flag) {
-    if (mr_check_subscribe_packet(pctx)) return -1;
-    return mr_get_u8(pctx, SUBSCRIBE_SUBSCRIBE_REASON_CODE, pu8, pexists_flag);
-}
-
-static int mr_validate_subscribe_subscribe_reason_code(const uint8_t u8) {
-    if (!memchr(SUBSCRIBE_SUBSCRIBE_REASON_CODES, u8, CCRCSZ)) {
-        dzlog_error("invalid subscribe_reason_code: %u", u8);
-        return -1;
-    }
-
-    return 0;
-}
-
-int mr_set_subscribe_subscribe_reason_code(mr_packet_ctx *pctx, const uint8_t u8) {
-    if (mr_check_subscribe_packet(pctx)) return -1;
-    if (mr_validate_subscribe_subscribe_reason_code(u8)) return -1;
-    return mr_set_scalar(pctx, SUBSCRIBE_SUBSCRIBE_REASON_CODE, u8);
-}
-
-int mr_reset_subscribe_subscribe_reason_code(mr_packet_ctx *pctx) {
-    if (mr_check_subscribe_packet(pctx)) return -1;
-    return mr_reset_scalar(pctx, SUBSCRIBE_SUBSCRIBE_REASON_CODE);
-}
-
 // uint32_t property_length
 int mr_get_subscribe_property_length(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag) {
     if (mr_check_subscribe_packet(pctx)) return -1;
     return mr_get_u32(pctx, SUBSCRIBE_PROPERTY_LENGTH, pu32, pexists_flag);
 }
 
-// char *reason_string
-int mr_get_subscribe_reason_string(mr_packet_ctx *pctx, char **pcv0, bool *pexists_flag) {
+// uint32_t subscription_identifier
+int mr_get_subscribe_subscription_identifier(mr_packet_ctx *pctx, uint32_t *pu32, bool *pexists_flag) {
     if (mr_check_subscribe_packet(pctx)) return -1;
-    return mr_get_str(pctx, SUBSCRIBE_REASON_STRING, pcv0, pexists_flag);
+    return mr_get_u32(pctx, SUBSCRIBE_SUBSCRIPTION_IDENTIFIER, pu32, pexists_flag);
 }
 
-int mr_set_subscribe_reason_string(mr_packet_ctx *pctx, const char *cv0) {
-    if (mr_check_subscribe_packet(pctx)) return -1;
-    return mr_set_vector(pctx, SUBSCRIBE_REASON_STRING, cv0, strlen(cv0) + 1);
+static int mr_validate_subscribe_subscription_identifier(const uint32_t u32) {
+    if (u32 == 0) {
+        dzlog_error("subscription_identifier must be > 0");
+        return -1;
+    }
+
+    return 0;
 }
 
-int mr_reset_subscribe_reason_string(mr_packet_ctx *pctx) {
+int mr_set_subscribe_subscription_identifier(mr_packet_ctx *pctx, const uint32_t u32) {
     if (mr_check_subscribe_packet(pctx)) return -1;
-    return mr_reset_vector(pctx, SUBSCRIBE_REASON_STRING);
+    if (mr_validate_subscribe_subscription_identifier(u32)) return -1;
+    return mr_set_scalar(pctx, SUBSCRIBE_SUBSCRIPTION_IDENTIFIER, u32);
+}
+
+int mr_reset_subscribe_subscription_identifier(mr_packet_ctx *pctx) {
+    if (mr_check_subscribe_packet(pctx)) return -1;
+    return mr_reset_scalar(pctx, SUBSCRIBE_SUBSCRIPTION_IDENTIFIER);
 }
 
 // mr_string_pair *user_properties
@@ -174,27 +158,28 @@ int mr_reset_subscribe_user_properties(mr_packet_ctx *pctx) {
     return mr_reset_vector(pctx, SUBSCRIBE_USER_PROPERTIES);
 }
 
+int mr_get_subscribe_topic_filters(mr_packet_ctx *pctx, mr_topic_filter **ptfv0, size_t *plen) {
+    bool exists_flag;
+    if (mr_check_subscribe_packet(pctx)) return -1;
+    return mr_get_tfv(pctx, SUBSCRIBE_TOPIC_FILTERS, ptfv0, plen, &exists_flag);
+}
+
+int mr_set_subscribe_topic_filters(mr_packet_ctx *pctx, const mr_topic_filter *tfv0, const size_t len) {
+    if (mr_check_subscribe_packet(pctx)) return -1;
+    return mr_set_vector(pctx, SUBSCRIBE_TOPIC_FILTERS, tfv0, len);
+}
+
 // validation
 
 static int mr_validate_subscribe_cross(mr_packet_ctx *pctx) {
-    char *cv0;
-    mr_string_pair *spv0;
-    uint8_t u8;
+    mr_topic_filter *tfv0;
     size_t len;
-    bool reason_string_exists_flag;
-    bool user_properties_exists_flag;
 
-    if (mr_get_subscribe_reason_string(pctx, &cv0, &reason_string_exists_flag)) return -1;
-    if (mr_get_subscribe_user_properties(pctx, &spv0, &len, &user_properties_exists_flag)) return -1;
+    if (mr_get_subscribe_topic_filters(pctx, &tfv0, &len)) return -1;
 
-    if (reason_string_exists_flag || user_properties_exists_flag) {
-        if (mr_set_scalar(pctx, SUBSCRIBE_PROPERTY_LENGTH, 0)) return -1; // set vexists
-    }
-    else { // reset vexists as needed
-        if (mr_reset_scalar(pctx, SUBSCRIBE_PROPERTY_LENGTH)) return -1; // reset vexists
-        bool exists_flag;
-        if (mr_get_subscribe_subscribe_reason_code(pctx, &u8, &exists_flag)) return -1;
-        if (exists_flag && u8 == 0 && mr_reset_subscribe_subscribe_reason_code(pctx)) return -1;
+    if (len < 1) {
+        dzlog_error("number of topic_filters must be > 0");
+        return -1;
     }
 
     return 0;
@@ -207,17 +192,16 @@ static int mr_validate_subscribe_pack(mr_packet_ctx *pctx) {
 
 // SUBSCRIBE ptype_fn invoked from packet.c during unpack
 int mr_validate_subscribe_unpack(mr_packet_ctx *pctx) {
-    uint8_t u8;
+    uint32_t u32;
     bool exists_flag;
 
-    if (mr_get_subscribe_subscribe_reason_code(pctx, &u8, &exists_flag)) return -1;
-    if (exists_flag && mr_validate_subscribe_subscribe_reason_code(u8)) return -1;
+    if (mr_get_subscribe_subscription_identifier(pctx, &u32, &exists_flag)) return -1;
+    if (exists_flag && mr_validate_subscribe_subscription_identifier(u32)) return -1;
 
     return 0;
 }
 
 int mr_get_subscribe_printable(mr_packet_ctx *pctx, const bool all_flag, char **pcv) {
     if (mr_check_subscribe_packet(pctx)) return -1;
-    if (mr_validate_subscribe_cross(pctx)) return -1; // (re)set vexists
     return mr_get_printable(pctx, all_flag, pcv);
 }
