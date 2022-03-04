@@ -85,20 +85,20 @@ typedef struct mr_string_pair {
     char *value;
 } mr_string_pair;
 
-typedef struct mr_subscribe_topic {
-    char *topic;                // packed:
-    uint8_t maximum_qos;        // bits 0-1
-    bool no_local;              // bit 2
-    bool retain_as_published;   // bit 3
-    uint8_t retain_handling;    // bits 4-5
-} mr_subscribe_topic;
+typedef struct mr_topic_filter {
+    char *topic_filter;
+    uint8_t maximum_qos;            // packed into bits 0-1
+    uint8_t no_local;               // packed into bit 2
+    uint8_t retain_as_published;    // packed into bit 3
+    uint8_t retain_handling;        // packed into bits 4-5 (6-7 are reserved and set to 0)
+} mr_topic_filter;
 
 // utilities
 
 int mr_print_hexdump(uint8_t *u8v, const size_t u8vlen);
 int mr_get_hexdump(char *cv0, const size_t cvlen, const uint8_t *u8v, const size_t u8vlen);
 void mr_compress_spaces_lines(char *cv);
-void u64tobase62cv(uint64_t u64, char* cv);
+size_t u64tobase62cv(uint64_t u64, char* cv);
 void get_uuidbase62cv(char *uuidbase62cv);
 
 // connect packet

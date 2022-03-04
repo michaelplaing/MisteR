@@ -83,6 +83,7 @@ static const mr_dtype _DATA_TYPE[] = { // same order as mr_data_types enum
     {MR_PAYLOAD_DTYPE,      "Final U8V - no prefix",    mr_count_payload,   mr_pack_payload,    mr_unpack_payload,      mr_printable_hexdump,  NULL,               mr_free_vector},
     {MR_STR_DTYPE,          "utf8 prefix string",       mr_count_str,       mr_pack_u8v,        mr_unpack_u8v,          mr_printable_string,   mr_validate_str,    mr_free_vector},
     {MR_SPV_DTYPE,          "string pair vector",       mr_count_spv,       mr_pack_spv,        mr_unpack_spv,          mr_printable_spv,      mr_validate_spv,    mr_free_spv},
+    {MR_TFV_DTYPE,          "topic filter vector",      mr_count_tfv,       mr_pack_tfv,        mr_unpack_tfv,          mr_printable_tfv,      mr_validate_tfv,    mr_free_tfv},
     {MR_VBIV_DTYPE,         "VBI vector",               mr_count_VBIv,      mr_pack_VBIv,       mr_unpack_VBIv,         mr_printable_VBIv,     mr_validate_VBIv,   mr_free_vector},
     {MR_BITFLD_DTYPE,       "uint8 flag",               NULL,               mr_pack_incr1,      mr_unpack_u8,           mr_printable_hexvalue, NULL,               NULL},
     {MR_PROPERTIES_DTYPE,   "properties",               NULL,               NULL,               mr_unpack_properties,   NULL,                  NULL,               NULL}
@@ -112,7 +113,10 @@ static int mr_unpack_packet(mr_packet_ctx *pctx) {
                 // printf("flagvalue::packet: %s; name: %s; pctx->flagid: %lu\n", pctx->mqtt_packet_name, flag_mdata->name, flag_mdata->value);
                 if (flag_mdata->dtype == MR_VBI_DTYPE && pctx->u8vpos >= flag_mdata->value) break; // this value & remaining ones missing;
                 if (!flag_mdata->value) continue; // skip if value is not set
-            } else {puts("");}
+            }
+            // else {
+            //    puts("");
+            //}
 
             // printf("start::packet: %s; name: %s; pctx->u8vpos: %lu\n", pctx->mqtt_packet_name, mdata->name, pctx->u8vpos);
             mr_mdata_fn unpack_fn = _DATA_TYPE[mdata->dtype].unpack_fn;
@@ -353,7 +357,7 @@ static int mr_unpack_VBI(mr_packet_ctx *pctx, mr_mdata *mdata) {
  }
 
 // index is vlen: # of bits to be (re)set
-static const uint8_t _BIT_MASKS[] = {
+static const uint8_t BIT_MASKS[] = {
     0x00, 0x01, 0x03, 0x07, 0x0F, 0x1F, 0x3F, 0x7F
 };
 
@@ -361,7 +365,7 @@ static int mr_pack_bits_in_value(mr_packet_ctx *pctx, mr_mdata *mdata) {
     uint8_t bitpos = mdata->u8vlen;
     mr_mdata *flags_mdata = pctx->mdata0 + mdata->link;
     uint8_t flags_u8 = flags_mdata->value;
-    flags_u8 &= ~(_BIT_MASKS[mdata->vlen] << bitpos); // reset
+    flags_u8 &= ~(BIT_MASKS[mdata->vlen] << bitpos); // reset
     if (mdata->value) flags_u8 |= mdata->value << bitpos; // set
     flags_mdata->value = flags_u8;
     return 0;
@@ -370,7 +374,7 @@ static int mr_pack_bits_in_value(mr_packet_ctx *pctx, mr_mdata *mdata) {
 static int mr_pack_bits(mr_packet_ctx *pctx, mr_mdata *mdata) { // don't advance pctx->u8vpos
     uint8_t bitpos = mdata->u8vlen;
     uint8_t *pu8 = pctx->u8v0 + pctx->u8vpos;
-    *pu8 &= ~(_BIT_MASKS[mdata->vlen] << bitpos); // reset
+    *pu8 &= ~(BIT_MASKS[mdata->vlen] << bitpos); // reset
     if (mdata->value) *pu8 |= mdata->value << bitpos; // set
     return 0;
 }
@@ -383,7 +387,7 @@ static int mr_pack_incr1(mr_packet_ctx *pctx, mr_mdata *mdata) { // now advance 
 static int mr_unpack_bits(mr_packet_ctx *pctx, mr_mdata *mdata) {   // don't advance pctx->u8vpos; unpacking
     uint8_t bitpos = mdata->u8vlen;                                 // the following flags byte will do that
     uint8_t *pu8 = pctx->u8v0 + pctx->u8vpos;
-    mdata->value = *pu8 >> bitpos & _BIT_MASKS[mdata->vlen];
+    mdata->value = *pu8 >> bitpos & BIT_MASKS[mdata->vlen];
     mdata->vexists = true;
     return 0;
 }
@@ -786,6 +790,154 @@ static int mr_free_spv(mr_packet_ctx *pctx, mr_mdata *mdata) {
     return mr_free_vector(pctx, mdata);
 }
 
+int mr_get_tfv(mr_packet_ctx *pctx, const int idx, mr_topic_filter **ptfv0, size_t *plen, bool *pexists) {
+    uintptr_t pvoid;
+    mr_get_vector(pctx, idx, &pvoid, plen, pexists);
+    *ptfv0 = (mr_topic_filter *)pvoid;
+    return 0;
+}
+
+static int mr_count_tfv(mr_packet_ctx *pctx, mr_mdata *mdata) { // tfv's are in the payload not properties
+    if (!mdata->value) {
+        dzlog_error("NULL pointer: packet: %s; name: %s", pctx->mqtt_packet_name, mdata->name);
+        return -1;
+    }
+
+    mr_topic_filter *tfv = (mr_topic_filter *)mdata->value;
+
+    mdata->u8vlen = 0;
+    for (int i = 0; i < mdata->vlen; i++) { // u16 + tflen + u8 (options)
+        mdata->u8vlen += 2 + strlen(tfv[i].topic_filter) + 1;
+    }
+
+    return 0;
+}
+
+static int mr_pack_tfv(mr_packet_ctx *pctx, mr_mdata *mdata) {
+    if (!mdata->value) {
+        dzlog_error("NULL pointer: packet: %s; name: %s", pctx->mqtt_packet_name, mdata->name);
+        return -1;
+    }
+
+    mr_topic_filter *tfv = (mr_topic_filter *)mdata->value;
+
+    for (int i = 0; i < mdata->vlen; i++) {
+        // topic filter
+        uint16_t u16 = strlen(tfv[i].topic_filter);
+        pctx->u8v0[pctx->u8vpos++] = (u16 >> 8) & 0xFF;
+        pctx->u8v0[pctx->u8vpos++] = u16 & 0xFF;
+        memcpy(pctx->u8v0 + pctx->u8vpos, tfv[i].topic_filter, u16);
+        pctx->u8vpos += u16;
+
+        // options
+        uint8_t u8 = 0;
+        u8 &= tfv[i].maximum_qos;
+        u8 &= tfv[i].no_local << 2;
+        u8 &= tfv[i].retain_as_published << 3;
+        u8 &= tfv[i].retain_handling << 4;
+        pctx->u8v0[pctx->u8vpos++] = u8;
+    }
+
+    return 0;
+}
+
+static int mr_unpack_tfv(mr_packet_ctx *pctx, mr_mdata *mdata) {
+    uint8_t *u8v = pctx->u8v0 + pctx->u8vpos;
+
+    size_t tflen = (u8v[0] << 8) + u8v[1];
+    u8v += 2;
+
+    char *topic_filter;
+    if (mr_malloc((void **)&topic_filter, tflen + 1)) return -1;
+    memcpy(topic_filter, u8v, tflen);
+    topic_filter[tflen] = '\0';
+    u8v += tflen;
+
+    uint8_t maximum_qos = *u8v & BIT_MASKS[2];
+    uint8_t no_local = *u8v >> 2 & BIT_MASKS[1];
+    uint8_t retain_as_published = *u8v >> 3 & BIT_MASKS[1];
+    uint8_t retain_handling = *u8v >> 4 & BIT_MASKS[2];
+    u8v++;
+
+    mr_topic_filter *tfv0, *ptf;
+    if (mdata->valloc) {
+        tfv0 = (mr_topic_filter *)mdata->value;
+        if (mr_realloc((void **)&tfv0, (mdata->vlen + 1) * sizeof(mr_topic_filter))) return -1;
+    }
+    else {
+        if (mr_malloc((void **)&tfv0, sizeof(mr_topic_filter))) return -1;
+        mdata->vlen = 0; // incremented below
+    }
+
+    mdata->value = (uintptr_t)tfv0;
+    ptf = tfv0 + mdata->vlen;
+    ptf->topic_filter = topic_filter;
+    ptf->maximum_qos = maximum_qos;
+    ptf->no_local = no_local;
+    ptf->retain_as_published = retain_as_published;
+    ptf->retain_handling = retain_handling;
+
+    mdata->vlen++;
+    mdata->vexists = true;
+    mdata->valloc = true;
+    mdata->u8vlen += 2 + tflen + 1;
+    pctx->u8vpos += 2 + tflen + 1;
+    return 0;
+}
+
+static int mr_validate_tfv(mr_packet_ctx *pctx, mr_mdata *mdata) {
+    if (!mdata->value) {
+        dzlog_error("NULL pointer: packet: %s; name: %s", pctx->mqtt_packet_name, mdata->name);
+        return -1;
+    }
+
+    mr_topic_filter *tfv = (mr_topic_filter *)mdata->value;
+
+    for (int i = 0; i < mdata->vlen; i++) { // mr_utf8_validation returns error position
+        int err_pos = mr_utf8_validation((uint8_t *)tfv[i].topic_filter, strlen(tfv[i].topic_filter));
+
+        if (err_pos) {
+            dzlog_error(
+                "invalid utf8: packet: %s; mr_topic_filter: %d; topic_filter: %s; pos: %d",
+                pctx->mqtt_packet_name, i, tfv[i].topic_filter, err_pos
+            );
+
+            return -1;
+        }
+
+        if (tfv[i].maximum_qos > 2) {
+            dzlog_error(
+                "maximum_qos out of range (0..2): packet: %s; mr_topic_filter: %d; maximum_qos: %u",
+                pctx->mqtt_packet_name, i, tfv[i].maximum_qos
+            );
+
+            return -1;
+        }
+
+        if (tfv[i].retain_handling > 2) {
+            dzlog_error(
+                "retain_handling out of range (0..2): packet: %s; mr_topic_filter: %d; retain_handling: %u",
+                pctx->mqtt_packet_name, i, tfv[i].retain_handling
+            );
+
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+static int mr_free_tfv(mr_packet_ctx *pctx, mr_mdata *mdata) {
+    if (mdata->valloc) {
+        mr_topic_filter *ptf = (mr_topic_filter *)mdata->value;
+        for (int i = 0; i < mdata->vlen; ptf++, i++) {
+            if (mr_free(ptf->topic_filter)) return -1;
+        }
+    }
+
+    return mr_free_vector(pctx, mdata);
+}
+
 static int mr_unpack_properties(mr_packet_ctx *pctx, mr_mdata *mdata) {
     mdata->vexists = true;
     size_t end_pos = pctx->u8vpos + (mdata - 1)->value; // use property_length
@@ -901,6 +1053,30 @@ static int mr_printable_spv(mr_packet_ctx *pctx, mr_mdata *mdata) {
 
     *(pc - 1) = '\0'; // overwrite trailing ';'
     mdata->printable = printable;
+    return 0;
+}
+
+static int mr_printable_tfv(mr_packet_ctx *pctx, mr_mdata *mdata) {
+/*
+    char *printable;
+    size_t sz = 0;
+    mr_string_pair *spv = (mr_string_pair *)mdata->value;
+
+    for (int i = 0; i < mdata->vlen; i++) {
+        sz += strlen(spv[i].name) + 1 + strlen(spv[i].value) + 1; // ':' and ';'
+    }
+
+    if (mr_calloc((void **)&printable, sz, 1)) return -1;
+
+    char *pc = printable;
+    for (int i = 0; i < mdata->vlen; i++) {
+        sprintf(pc, "%s:%s;", spv[i].name, spv[i].value);
+        pc += strlen(spv[i].name) + 1 + strlen(spv[i].value) + 1; // ditto
+    }
+
+    *(pc - 1) = '\0'; // overwrite trailing ';'
+    mdata->printable = printable;
+ */
     return 0;
 }
 

@@ -118,13 +118,13 @@ int mr_utf8_validation(const uint8_t *u8v, size_t len) {
     return 0;
 }
 
-static const uint8_t _WILDCARDS[] = {'#', '+'};
+static const uint8_t WILDCARDS[] = {'#', '+'};
 
 int mr_wildcard_found(const char *cv) {
     size_t cvlen = strlen(cv);
 
-    for (int i = 0; i < sizeof(_WILDCARDS); i++) {
-        char *pc = memchr(cv, _WILDCARDS[i], cvlen);
+    for (int i = 0; i < sizeof(WILDCARDS); i++) {
+        char *pc = memchr(cv, WILDCARDS[i], cvlen);
         if (pc) return pc - cv;
     }
 
@@ -290,11 +290,11 @@ void mr_compress_spaces_lines(char *cv) {
     strlcpy(cv, resultv, slen);
 }
 
-void u64tobase62cv(uint64_t u64, char* cv) {
+size_t u64tobase62cv(uint64_t u64, char* cv) { // change to return offset
     if (u64 == 0) {
         cv[0] = '0';
         cv[1] = '\0';
-        return;
+        return 1;
     }
 
     const size_t cvlen = floor(log(u64) / log(62)) + 1;
@@ -316,8 +316,10 @@ void u64tobase62cv(uint64_t u64, char* cv) {
     }
 
     cv[cvlen] = '\0';
+    return cvlen;
 }
 
+/*
 void get_uuidbase62cv(char *uuidbase62cv) {
     char base62cv[12];
     uuid_t uuidu8v;
@@ -330,5 +332,18 @@ void get_uuidbase62cv(char *uuidbase62cv) {
         for (int j = 0; j < 8; j++) u64 += (uuidu8v[i * 8 + j] << 8 * (7 - j));
         u64tobase62cv(u64, base62cv);
         strlcat(uuidbase62cv, base62cv, 23); // MQTT max client id length is 23
+    }
+}
+ */
+void get_uuidbase62cv(char *uuidbase62cv) { // change to rm strlcat
+    uuid_t uuidu8v;
+    uuid_generate(uuidu8v);
+
+    uint64_t u64;
+    size_t offset = 0;
+    for (int i = 0; i < 2; i++) {
+        u64 = 0;
+        for (int j = 0; j < 8; j++) u64 += (uuidu8v[i * 8 + j] << 8 * (7 - j));
+        offset = u64tobase62cv(u64, uuidbase62cv + offset);
     }
 }

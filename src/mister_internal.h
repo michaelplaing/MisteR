@@ -74,6 +74,7 @@ enum mr_data_types {
     MR_PAYLOAD_DTYPE,
     MR_STR_DTYPE,
     MR_SPV_DTYPE,
+    MR_TFV_DTYPE,
     MR_VBIV_DTYPE,
     MR_BITFLD_DTYPE,
     MR_PROPERTIES_DTYPE
@@ -185,6 +186,13 @@ static int mr_unpack_spv(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_validate_spv(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_free_spv(mr_packet_ctx *pctx, mr_mdata *mdata);
 
+int mr_get_tfv(mr_packet_ctx *pctx, const int idx, mr_topic_filter **ptfv0, size_t *plen, bool *pexists);
+static int mr_count_tfv(mr_packet_ctx *pctx, mr_mdata *mdata);
+static int mr_pack_tfv(mr_packet_ctx *pctx, mr_mdata *mdata);
+static int mr_unpack_tfv(mr_packet_ctx *pctx, mr_mdata *mdata);
+static int mr_validate_tfv(mr_packet_ctx *pctx, mr_mdata *mdata);
+static int mr_free_tfv(mr_packet_ctx *pctx, mr_mdata *mdata);
+
 static int mr_unpack_properties(mr_packet_ctx *pctx, mr_mdata *mdata);
 
 static int mr_printable_scalar(mr_packet_ctx *pctx, mr_mdata *mdata);
@@ -192,6 +200,7 @@ static int mr_printable_hexvalue(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_printable_hexdump(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_printable_string(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_printable_spv(mr_packet_ctx *pctx, mr_mdata *mdata);
+static int mr_printable_tfv(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_printable_VBIv(mr_packet_ctx *pctx, mr_mdata *mdata);
 int mr_get_printable(mr_packet_ctx *pctx, const bool all_flag, char **pcv);
 
