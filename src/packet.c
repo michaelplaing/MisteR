@@ -134,6 +134,7 @@ static int mr_unpack_packet(mr_packet_ctx *pctx) {
         return 0;
     }
     else if (pctx->u8vpos < pctx->u8vlen) {
+        // printf("*****************here\n");
         dzlog_error(
             "unparsed bytes in the packet:: packet name: %s; u8vlen: %lu, u8vpos: %lu",
             pctx->mqtt_packet_name, pctx->u8vlen, pctx->u8vpos
@@ -189,7 +190,9 @@ int mr_pack_packet(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *pu8vlen) {
     for (int i = 0; i < pctx->mdata_count; mdata++, i++) {
         if (mdata->vexists) {
             mr_mdata_fn pack_fn = DATA_TYPE[mdata->dtype].pack_fn;
+            // printf("\npack:start::packet: %s; name: %s; pctx->u8vpos: %lu\n", pctx->mqtt_packet_name, mdata->name, pctx->u8vpos);
             if (pack_fn && pack_fn(pctx, mdata)) return -1; // each pack_fn increments pctx->u8vpos
+            // printf("pack:finish::packet: %s; name: %s; pctx->u8vpos: %lu\n", pctx->mqtt_packet_name, mdata->name, pctx->u8vpos);
         }
     }
 
@@ -316,31 +319,40 @@ static int mr_unpack_u32(mr_packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_count_VBI(mr_packet_ctx *pctx, mr_mdata *mdata) {
-    size_t cum_len = 0;
-    mr_mdata *cnt_mdata;
+    if (mdata->link) {
+        size_t cum_len = 0;
+        mr_mdata *cnt_mdata;
 
-    //  accumulate u8vlens in cum_len for the range of the VBI
-    for (int i = mdata->idx + 1; i <= mdata->link; i++) {
-        cnt_mdata = pctx->mdata0 + i;
-        if (cnt_mdata->vexists && cnt_mdata->dtype != MR_BITS_DTYPE) cum_len += cnt_mdata->u8vlen;
+        //  accumulate u8vlens in cum_len for the range of the VBI
+        for (int i = mdata->idx + 1; i <= mdata->link; i++) {
+            cnt_mdata = pctx->mdata0 + i;
+            if (cnt_mdata->vexists && cnt_mdata->dtype != MR_BITS_DTYPE) cum_len += cnt_mdata->u8vlen;
+        }
+
+        mdata->value = cum_len;
     }
 
-    mdata->value = cum_len;
     uint32_t u32 = mdata->value;
     int rc = mr_bytecount_VBI(u32);
     if (rc < 0) return rc;
     mdata->vlen = rc;
     mdata->u8vlen = rc;
+    if (mdata->propid) mdata->u8vlen++;
+    // printf("mr_count_VBI:: name: %s; value: %u; u8vlen: %lu\n", mdata->name, u32, mdata->u8vlen);
     return 0;
 }
 
 static int mr_pack_VBI(mr_packet_ctx *pctx, mr_mdata *mdata) {
+    uint8_t propid = mdata->propid;
+    // printf("mr_pack_VBI:: name: %s; u8vpos: %lu; propid: %u\n", mdata->name, pctx->u8vpos, propid);
+    if (propid) pctx->u8v0[pctx->u8vpos++] = propid;
     uint32_t u32 = mdata->value;
     uint8_t u8v[4];
     int rc = mr_make_VBI(u32, u8v);
     if (rc < 0) return rc;
-    memcpy(pctx->u8v0 + pctx->u8vpos, u8v, mdata->u8vlen);
-    pctx->u8vpos += mdata->u8vlen;
+    memcpy(pctx->u8v0 + pctx->u8vpos, u8v, rc);
+    // printf("mr_pack_VBI:: name: %s; value: %u; u8vpos: %lu; rc: %u\n", mdata->name, u32, pctx->u8vpos, rc);
+    pctx->u8vpos += rc; // already incremented for propid
     return 0;
 }
 
@@ -351,7 +363,9 @@ static int mr_unpack_VBI(mr_packet_ctx *pctx, mr_mdata *mdata) {
     mdata->value = u32;
     mdata->vlen = rc;
     mdata->u8vlen = rc;
+    if (mdata->propid) mdata->u8vlen++;
     mdata->vexists = true;
+    // printf("mr_unpack_VBI:: name: %s; value: %u; u8vpos: %lu; u8vlen: %lu\n", mdata->name, u32, pctx->u8vpos, mdata->u8vlen);
     pctx->u8vpos += rc;
     return 0;
  }
@@ -824,6 +838,7 @@ static int mr_pack_tfv(mr_packet_ctx *pctx, mr_mdata *mdata) {
     for (int i = 0; i < mdata->vlen; i++) {
         // topic filter
         uint16_t u16 = strlen(tfv[i].topic_filter);
+        // printf("mr_pack_tfv:: pctx->u8vpos: %lu; tf: %s; strlen: %u\n", pctx->u8vpos, tfv[i].topic_filter, u16);
         pctx->u8v0[pctx->u8vpos++] = (u16 >> 8) & 0xFF;
         pctx->u8v0[pctx->u8vpos++] = u16 & 0xFF;
         memcpy(pctx->u8v0 + pctx->u8vpos, tfv[i].topic_filter, u16);
@@ -836,14 +851,14 @@ static int mr_pack_tfv(mr_packet_ctx *pctx, mr_mdata *mdata) {
         u8 |= tfv[i].retain_as_published << 3;
         u8 |= tfv[i].retain_handling << 4;
         pctx->u8v0[pctx->u8vpos++] = u8;
+        // printf("mr_pack_tfv:: pctx->u8vpos: %lu; options: %u\n", pctx->u8vpos, u8);
     }
 
     return 0;
 }
 
-static int mr_unpack_tfv(mr_packet_ctx *pctx, mr_mdata *mdata) {
+static int mr_unpack_tfv_single(mr_packet_ctx *pctx, mr_mdata *mdata) {
     uint8_t *u8v = pctx->u8v0 + pctx->u8vpos;
-
     size_t tflen = (u8v[0] << 8) + u8v[1];
     u8v += 2;
 
@@ -882,6 +897,14 @@ static int mr_unpack_tfv(mr_packet_ctx *pctx, mr_mdata *mdata) {
     mdata->valloc = true;
     mdata->u8vlen += 2 + tflen + 1;
     pctx->u8vpos += 2 + tflen + 1;
+    return 0;
+}
+
+static int mr_unpack_tfv(mr_packet_ctx *pctx, mr_mdata *mdata) {
+    while (pctx->u8vpos < pctx->u8vlen) {
+        mr_unpack_tfv_single(pctx, mdata);
+    }
+
     return 0;
 }
 
@@ -941,6 +964,7 @@ static int mr_free_tfv(mr_packet_ctx *pctx, mr_mdata *mdata) {
 static int mr_unpack_properties(mr_packet_ctx *pctx, mr_mdata *mdata) {
     mdata->vexists = true;
     size_t end_pos = pctx->u8vpos + (mdata - 1)->value; // use property_length
+    // printf("mr_unpack_properties:: pctx->u8vpos: %lu; end_pos: %lu\n", pctx->u8vpos, end_pos);
     uint8_t *pu8, *pprop_index;
     int prop_index;
     mr_mdata *prop_mdata;
@@ -952,6 +976,7 @@ static int mr_unpack_properties(mr_packet_ctx *pctx, mr_mdata *mdata) {
         pprop_index = memchr((uint8_t *)mdata->value, *pu8, mdata->vlen);
 
         if (!pprop_index) {
+            // printf("*************here\n");
             dzlog_error(
                 "property id not found:: packet: %s; name: %s; propid: %d",
                 pctx->mqtt_packet_name, mdata->name, *pu8

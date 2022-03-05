@@ -189,6 +189,7 @@ static int mr_free_spv(mr_packet_ctx *pctx, mr_mdata *mdata);
 int mr_get_tfv(mr_packet_ctx *pctx, const int idx, mr_topic_filter **ptfv0, size_t *plen, bool *pexists);
 static int mr_count_tfv(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_pack_tfv(mr_packet_ctx *pctx, mr_mdata *mdata);
+static int mr_unpack_tfv_single(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_unpack_tfv(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_validate_tfv(mr_packet_ctx *pctx, mr_mdata *mdata);
 static int mr_free_tfv(mr_packet_ctx *pctx, mr_mdata *mdata);
