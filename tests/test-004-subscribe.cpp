@@ -69,7 +69,7 @@ TEST_CASE("happy SUBSCRIBE packet", "[subscribe][happy]") {
     // printable
     char *packet_printable;
     REQUIRE(mr_get_subscribe_printable(pctx, false, &packet_printable) == 0);
-    REQUIRE(put_binary_file_content(printable_filename, (uint8_t *)packet_printable, strlen(packet_printable) + 1) == 0);
+    // REQUIRE(put_binary_file_content(printable_filename, (uint8_t *)packet_printable, strlen(packet_printable) + 1) == 0);
 
     // printf("\npacket_printable::\n%s\n", packet_printable);
     // printf("packet_printable:: strlen: %lu; hexdump:\n", strlen(packet_printable));
@@ -91,7 +91,7 @@ TEST_CASE("happy SUBSCRIBE packet", "[subscribe][happy]") {
     printf("\npacket::\n");
     mr_print_hexdump(packet_u8v0, packet_u8vlen);
     puts("");
-    REQUIRE(put_binary_file_content(packet_filename, packet_u8v0, packet_u8vlen) == 0);
+    // REQUIRE(put_binary_file_content(packet_filename, packet_u8v0, packet_u8vlen) == 0);
 
     // check packet
     uint8_t *u8v0;

@@ -46,6 +46,10 @@ set(
     fixtures/default_puback_packet.bin
     fixtures/complex_puback_printable.txt
     fixtures/complex_puback_packet.bin
+    fixtures/default_subscribe_printable.txt
+    fixtures/default_subscribe_packet.bin
+    fixtures/complex_subscribe_printable.txt
+    fixtures/complex_subscribe_packet.bin
 )
 
 message(STATUS Fixture Files:)
