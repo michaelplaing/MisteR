@@ -15,10 +15,10 @@ TEST_CASE("happy SUBSCRIBE packet", "[subscribe][happy]") {
 
     // init
     REQUIRE(mr_init_subscribe_packet(&pctx) == 0);
-
-    char topic_filter_string[] = "my_topic_filter";
-    mr_topic_filter topic_filter = {topic_filter_string, 0, 0, 0, 0};
-    REQUIRE(mr_set_subscribe_topic_filters(pctx, &topic_filter, 1) == 0);
+    mr_topic_filter *default_tfv0;
+    size_t default_tfv0len;
+    bool exists_flag;
+    REQUIRE(mr_get_subscribe_topic_filters(pctx, &default_tfv0, &default_tfv0len, &exists_flag) == 0);
 
     // *** test sections ***
 
@@ -39,6 +39,8 @@ TEST_CASE("happy SUBSCRIBE packet", "[subscribe][happy]") {
         mr_string_pair spbam = {bam, boop};
         mr_string_pair user_properties[] = {spbaz, spbam};
         size_t user_properties_len = 2;
+        char topic_filter_string[] = "my_topic_filter";
+        mr_topic_filter topic_filter = {topic_filter_string, 0, 0, 0, 0};
         char topic_filter_string2[] = "my_second_topic_filter";
         mr_topic_filter topic_filter2 = {topic_filter_string2, 1, 1, 1, 1};
         mr_topic_filter topic_filterv[] = {topic_filter, topic_filter2};
@@ -60,7 +62,7 @@ TEST_CASE("happy SUBSCRIBE packet", "[subscribe][happy]") {
             REQUIRE(mr_set_subscribe_packet_identifier(pctx, 0) == 0);
             REQUIRE(mr_reset_subscribe_user_properties(pctx) == 0);
             REQUIRE(mr_reset_subscribe_subscription_identifier(pctx) == 0);
-            REQUIRE(mr_set_subscribe_topic_filters(pctx, &topic_filter, 1) == 0);
+            REQUIRE(mr_set_subscribe_topic_filters(pctx, default_tfv0, default_tfv0len) == 0);
         }
     }
 
@@ -69,18 +71,20 @@ TEST_CASE("happy SUBSCRIBE packet", "[subscribe][happy]") {
     // printable
     char *packet_printable;
     REQUIRE(mr_get_subscribe_printable(pctx, false, &packet_printable) == 0);
+
     // REQUIRE(put_binary_file_content(printable_filename, (uint8_t *)packet_printable, strlen(packet_printable) + 1) == 0);
 
-    // printf("\npacket_printable::\n%s\n", packet_printable);
-    // printf("packet_printable:: strlen: %lu; hexdump:\n", strlen(packet_printable));
-    // mr_print_hexdump((uint8_t *)packet_printable, strlen(packet_printable) + 1);
-
     // check printable
+    // puts("check printable");
     char *file_printable;
     size_t mdsz;
     REQUIRE(get_binary_file_content(printable_filename, (uint8_t **)&file_printable, &mdsz) == 0);
     // printf("\nfile printable (%s)::\n%s\n\npacket printable::\n%s\n", printable_filename, file_printable, packet_printable);
-    // printf("packet_printable:: strlen: %lu\n", strlen(packet_printable));
+    // printf("\nfile printable (%s) :: mdsz: %lu; packet_printable:: strlen: %lu\n", printable_filename, mdsz, strlen(packet_printable));
+    // printf("\nfile_printable:: mdsz: %lu; hexdump:\n", mdsz);
+    // mr_print_hexdump((uint8_t *)file_printable, mdsz);
+    // printf("packet_printable:: strlen: %lu; hexdump:\n", strlen(packet_printable));
+    // mr_print_hexdump((uint8_t *)packet_printable, strlen(packet_printable) + 1);
     REQUIRE(mdsz == strlen(packet_printable) + 1);
     REQUIRE(strcmp(file_printable, packet_printable) == 0);
 
@@ -88,9 +92,10 @@ TEST_CASE("happy SUBSCRIBE packet", "[subscribe][happy]") {
     uint8_t *packet_u8v0;
     size_t packet_u8vlen;
     REQUIRE(mr_pack_subscribe_packet(pctx, &packet_u8v0, &packet_u8vlen) == 0);
-    printf("\npacket::\n");
-    mr_print_hexdump(packet_u8v0, packet_u8vlen);
-    puts("");
+    // printf("\npacket::\n");
+    // mr_print_hexdump(packet_u8v0, packet_u8vlen);
+    // puts("");
+
     // REQUIRE(put_binary_file_content(packet_filename, packet_u8v0, packet_u8vlen) == 0);
 
     // check packet
@@ -117,6 +122,7 @@ TEST_CASE("happy SUBSCRIBE packet", "[subscribe][happy]") {
     // mr_print_hexdump((uint8_t *)packet_printable, strlen(packet_printable) + 1);
 
     // check unpack printable
+    // puts("check unpack printable");
     REQUIRE(mdsz == strlen(packet_printable) + 1);
     REQUIRE(strcmp(file_printable, packet_printable) == 0);
 
@@ -127,4 +133,37 @@ TEST_CASE("happy SUBSCRIBE packet", "[subscribe][happy]") {
     REQUIRE(mr_free_subscribe_packet(pctx) == 0);
 
     zlog_fini();
+}
+
+TEST_CASE("unhappy SUBSCRIBE packet", "[subscribe][unhappy]") {
+    dzlog_init("", "mr_init");
+
+    // *** common test prolog ***
+
+    // get the complex packet and unpack it so we have a full deck to play with
+    mr_packet_ctx *pctx;
+    uint8_t *u8v0;
+    size_t u8vlen;
+    REQUIRE(get_binary_file_content("fixtures/complex_subscribe_packet.bin", &u8v0, &u8vlen) == 0);
+    REQUIRE(mr_init_unpack_subscribe_packet(&pctx, u8v0, u8vlen) == 0);
+    // puts("");
+    // mr_print_hexdump(u8v0, u8vlen);
+
+    // *** test sections ***
+
+    SECTION("subscribe_subscription_identifier") {
+        CHECK(mr_set_subscribe_subscription_identifier(pctx, 0) == -1);
+    }
+
+    SECTION("subscribe_topic_filters") {
+        CHECK(mr_set_subscribe_topic_filters(pctx, NULL, 0) == -1);
+    }
+
+    // common test epilog
+
+    // free packet context
+    REQUIRE(mr_free_subscribe_packet(pctx) == 0);
+
+    zlog_fini();
+
 }

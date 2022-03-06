@@ -901,6 +901,11 @@ static int mr_unpack_tfv_single(mr_packet_ctx *pctx, mr_mdata *mdata) {
 }
 
 static int mr_unpack_tfv(mr_packet_ctx *pctx, mr_mdata *mdata) {
+    mdata->vlen = 0;
+    mdata->vexists = false;
+    mdata->valloc = false;
+    mdata->u8vlen = 0;
+
     while (pctx->u8vpos < pctx->u8vlen) {
         mr_unpack_tfv_single(pctx, mdata);
     }

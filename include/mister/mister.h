@@ -434,7 +434,7 @@ int mr_get_subscribe_user_properties(mr_packet_ctx *pctx, mr_string_pair **pspv0
 int mr_set_subscribe_user_properties(mr_packet_ctx *pctx, const mr_string_pair *spv0, const size_t len);
 int mr_reset_subscribe_user_properties(mr_packet_ctx *pctx);
 
-int mr_get_subscribe_topic_filters(mr_packet_ctx *pctx, mr_topic_filter **ptfv0, size_t *plen);
+int mr_get_subscribe_topic_filters(mr_packet_ctx *pctx, mr_topic_filter **ptfv0, size_t *plen, bool *pexists_flag);
 int mr_set_subscribe_topic_filters(mr_packet_ctx *pctx, const mr_topic_filter *tfv0, const size_t len);
 
 int mr_get_subscribe_printable(mr_packet_ctx *pctx, const bool all_flag, char **pcv);

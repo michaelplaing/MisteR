@@ -31,6 +31,20 @@ static const size_t PSZ = sizeof(PROPS) / sizeof(PROPS[0]);
 
 static const uintptr_t MR_SUBSCRIBE_HEADER = (MQTT_SUBSCRIBE << 4) | 0x02;
 
+static const mr_topic_filter MR_TFS[] = {
+    {
+        .topic_filter = "#",
+        .maximum_qos = 0,
+        .no_local = 0,
+        .retain_as_published = 0,
+        .retain_handling = 0
+    }
+};
+
+static const size_t TFSSZ = 1;
+static const size_t TFSU8 = 4; // 2 for len as a u16 + 1 for strlen(MR_TFS[0]) + 1 for options byte
+
+
 static const mr_mdata SUBSCRIBE_MDATA_TEMPLATE[] = {
 //   name                       dtype               value               valloc  vlen    u8vlen  vexists link                        propid                              flagid  idx                                 printable
     {"packet_type",             MR_BITS_DTYPE,      MQTT_SUBSCRIBE,     NA,     4,      4,      true,   SUBSCRIBE_MR_HEADER,        NA,                                 NA,     SUBSCRIBE_PACKET_TYPE,              NULL},
@@ -42,7 +56,7 @@ static const mr_mdata SUBSCRIBE_MDATA_TEMPLATE[] = {
     {"mr_properties",           MR_PROPERTIES_DTYPE,(uintptr_t)PROPS,   NA,     PSZ,    NA,     true,   NA,                         NA,                                 NA,     SUBSCRIBE_MR_PROPERTIES,            NULL},
     {"subscription_identifier", MR_VBI_DTYPE,       0,                  NA,     0,      0,      false,  NA,                         MQTT_PROP_SUBSCRIPTION_IDENTIFIER,  NA,     SUBSCRIBE_SUBSCRIPTION_IDENTIFIER,  NULL},
     {"user_properties",         MR_SPV_DTYPE,       (uintptr_t)NULL,    false,  0,      0,      false,  NA,                         MQTT_PROP_USER_PROPERTY,            NA,     SUBSCRIBE_USER_PROPERTIES,          NULL},
-    {"topic_filters",           MR_TFV_DTYPE,       (uintptr_t)NULL,    false,  0,      0,      true,   NA,                         NA,                                 NA,     SUBSCRIBE_TOPIC_FILTERS,            NULL},
+    {"topic_filters",           MR_TFV_DTYPE,       (uintptr_t)MR_TFS,  false,  TFSSZ,  TFSU8,  true,   NA,                         NA,                                 NA,     SUBSCRIBE_TOPIC_FILTERS,            NULL},
 //   name                       dtype               value               valloc  vlen    u8vlen  vexists link                        propid                              flagid  idx                                 printable
 };
 
@@ -158,10 +172,9 @@ int mr_reset_subscribe_user_properties(mr_packet_ctx *pctx) {
     return mr_reset_vector(pctx, SUBSCRIBE_USER_PROPERTIES);
 }
 
-int mr_get_subscribe_topic_filters(mr_packet_ctx *pctx, mr_topic_filter **ptfv0, size_t *plen) {
-    bool exists_flag;
+int mr_get_subscribe_topic_filters(mr_packet_ctx *pctx, mr_topic_filter **ptfv0, size_t *plen, bool *pexists_flag) {
     if (mr_check_subscribe_packet(pctx)) return -1;
-    return mr_get_tfv(pctx, SUBSCRIBE_TOPIC_FILTERS, ptfv0, plen, &exists_flag);
+    return mr_get_tfv(pctx, SUBSCRIBE_TOPIC_FILTERS, ptfv0, plen, pexists_flag);
 }
 
 int mr_set_subscribe_topic_filters(mr_packet_ctx *pctx, const mr_topic_filter *tfv0, const size_t len) {
@@ -174,11 +187,12 @@ int mr_set_subscribe_topic_filters(mr_packet_ctx *pctx, const mr_topic_filter *t
 static int mr_validate_subscribe_cross(mr_packet_ctx *pctx) {
     mr_topic_filter *tfv0;
     size_t len;
+    bool exists_flag;
 
-    if (mr_get_subscribe_topic_filters(pctx, &tfv0, &len)) return -1;
+    if (mr_get_subscribe_topic_filters(pctx, &tfv0, &len, &exists_flag)) return -1;
 
-    if (len < 1) {
-        dzlog_error("number of topic_filters must be > 0");
+    if (!exists_flag || len < 1) {
+        dzlog_error("topic_filters must exist and be > 0");
         return -1;
     }
 
