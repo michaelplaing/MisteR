@@ -4,6 +4,9 @@ MisteR provides a library for validating, packing & unpacking MQTT5 packets.
 MisteR is currently part of a playground for me to experiment with and to rebuild my skills in C development. I am not interested in supporting older standards or existing code.
 
 Progress will be slow as there are many rabbitholes to explore.
+
+Once the basic packet types (CONNECT, CONNACK, SUBSCRIBE, SUBACK, PUBLISH, and PUBACK) can be handled, I may switch gears and work on [mr_redis](https://github.com/michaelplaing/mr_redis) to create a very basic MQTT pubsub server and test client. This will probably provoke some backfilling in this project.
+
 ## Implementation
 The project is coded in C and built with cmake. I use zlog for logging and catch2 for testing. I'm still developing a scheme for error handling.
 
