@@ -39,6 +39,7 @@ static const uint8_t PROPS[] = {
     MQTT_PROP_REASON_STRING,
     MQTT_PROP_USER_PROPERTY,
 };
+
 static const size_t PSZ = sizeof(PROPS) / sizeof(PROPS[0]);
 
 #define NA 0
