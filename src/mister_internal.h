@@ -270,6 +270,16 @@ static int mr_validate_subscribe_cross(mr_packet_ctx *pctx);
 static int mr_validate_subscribe_pack(mr_packet_ctx *pctx);
 int mr_validate_subscribe_unpack(mr_packet_ctx *pctx);
 
+// SUBACK
+
+static int mr_check_suback_packet(mr_packet_ctx *pctx);
+
+static int mr_validate_suback_subscribe_reason_codes(const uint8_t *u8v0, const size_t len);
+
+static int mr_validate_suback_cross(mr_packet_ctx *pctx);
+static int mr_validate_suback_pack(mr_packet_ctx *pctx);
+int mr_validate_suback_unpack(mr_packet_ctx *pctx);
+
 // memory
 
 int mr_calloc(void **ppv, size_t count, size_t sz);

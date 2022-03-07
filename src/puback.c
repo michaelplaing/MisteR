@@ -21,7 +21,7 @@ enum PUBACK_MDATA_FIELDS { // Same order as PUBACK_MDATA_TEMPLATE
     PUBACK_USER_PROPERTIES
 };
 
-static const uint8_t PUBACK_PUBACK_REASON_CODES[] = {
+static const uint8_t VALID_PUBACK_REASON_CODES[] = {
     MQTT_RC_SUCCESS,
     MQTT_RC_NO_MATCHING_SUBSCRIBERS,
     MQTT_RC_UNSPECIFIED,
@@ -33,7 +33,7 @@ static const uint8_t PUBACK_PUBACK_REASON_CODES[] = {
     MQTT_RC_PAYLOAD_FORMAT_INVALID
 };
 
-static const size_t CCRCSZ = sizeof(PUBACK_PUBACK_REASON_CODES) / sizeof(PUBACK_PUBACK_REASON_CODES[0]);
+static const size_t CCRCSZ = sizeof(VALID_PUBACK_REASON_CODES) / sizeof(VALID_PUBACK_REASON_CODES[0]);
 
 static const uint8_t PROPS[] = {
     MQTT_PROP_REASON_STRING,
@@ -133,7 +133,7 @@ int mr_get_puback_puback_reason_code(mr_packet_ctx *pctx, uint8_t *pu8, bool *pe
 }
 
 static int mr_validate_puback_puback_reason_code(const uint8_t u8) {
-    if (!memchr(PUBACK_PUBACK_REASON_CODES, u8, CCRCSZ)) {
+    if (!memchr(VALID_PUBACK_REASON_CODES, u8, CCRCSZ)) {
         dzlog_error("invalid puback_reason_code: %u", u8);
         return -1;
     }

@@ -38,7 +38,7 @@ enum CONNACK_MDATA_FIELDS { // Same order as CONNACK_MDATA_TEMPLATE
     CONNACK_AUTHENTICATION_DATA,
 };
 
-static const uint8_t CONNACK_CONNECT_REASON_CODES[] = {
+static const uint8_t VALID_CONNECT_REASON_CODES[] = {
     MQTT_RC_SUCCESS,
     MQTT_RC_UNSPECIFIED,
     MQTT_RC_MALFORMED_PACKET,
@@ -63,7 +63,7 @@ static const uint8_t CONNACK_CONNECT_REASON_CODES[] = {
     MQTT_RC_CONNECTION_RATE_EXCEEDED
 };
 
-static const size_t CCRCSZ = sizeof(CONNACK_CONNECT_REASON_CODES) / sizeof(CONNACK_CONNECT_REASON_CODES[0]);
+static const size_t CCRCSZ = sizeof(VALID_CONNECT_REASON_CODES) / sizeof(VALID_CONNECT_REASON_CODES[0]);
 
 static const uint8_t PROPS[] = {
     MQTT_PROP_SESSION_EXPIRY_INTERVAL,
@@ -202,7 +202,7 @@ int mr_get_connack_connect_reason_code(mr_packet_ctx *pctx, uint8_t *pu8) {
 }
 
 static int mr_validate_connack_connect_reason_code(const uint8_t u8) {
-    if (!memchr(CONNACK_CONNECT_REASON_CODES, u8, CCRCSZ)) {
+    if (!memchr(VALID_CONNECT_REASON_CODES, u8, CCRCSZ)) {
         dzlog_error("invalid connect_reason_code: %u", u8);
         return -1;
     }
