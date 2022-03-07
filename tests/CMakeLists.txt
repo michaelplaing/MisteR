@@ -13,6 +13,7 @@ set(
     test-002-publish
     test-003-puback
     test-004-subscribe
+    test-005-suback
 )
 
 message(STATUS Tests:)
@@ -21,7 +22,7 @@ foreach(TESTNAME ${TESTLIST})
     message(STATUS ${TESTNAME})
     add_executable(${TESTNAME} ${TESTNAME}.cpp) # tests must be executables
     target_compile_features(${TESTNAME} PRIVATE cxx_std_17)
-    target_link_libraries(${TESTNAME} PRIVATE mister testlib) # link to 'mister'
+    target_link_libraries(${TESTNAME} PRIVATE mister testlib)
     add_test(NAME ${TESTNAME} COMMAND ${TESTNAME}) # COMMAND can be a target
 endforeach()
 list(POP_BACK CMAKE_MESSAGE_INDENT)
@@ -50,6 +51,10 @@ set(
     fixtures/default_subscribe_packet.bin
     fixtures/complex_subscribe_printable.txt
     fixtures/complex_subscribe_packet.bin
+    fixtures/default_suback_printable.txt
+    fixtures/default_suback_packet.bin
+    fixtures/complex_suback_printable.txt
+    fixtures/complex_suback_packet.bin
 )
 
 message(STATUS Fixture Files:)

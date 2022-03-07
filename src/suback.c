@@ -48,7 +48,7 @@ static const size_t PSZ = sizeof(PROPS) / sizeof(PROPS[0]);
 
 static const uintptr_t MR_SUBACK_HEADER = MQTT_SUBACK << 4;
 
-static const uint8_t MR_RCV[] = {0x00};
+static const uint8_t MR_RCV[] = {MQTT_RC_SUCCESS};
 
 static const size_t RCVSZ = 1;
 
@@ -58,11 +58,11 @@ static const mr_mdata SUBACK_MDATA_TEMPLATE[] = {
     {"reserved_header",         MR_BITS_DTYPE,      0,                  NA,     4,      0,      true,   SUBACK_MR_HEADER,               NA,                     NA,                     SUBACK_RESERVED_HEADER,         NULL},
     {"mr_header",               MR_BITFLD_DTYPE,    MR_SUBACK_HEADER,   NA,     1,      1,      true,   NA,                             NA,                     NA,                     SUBACK_MR_HEADER,               NULL},
     {"remaining_length",        MR_VBI_DTYPE,       0,                  NA,     0,      0,      true,   SUBACK_SUBSCRIBE_REASON_CODES,  NA,                     NA,                     SUBACK_REMAINING_LENGTH,        NULL},
-    {"property_length",         MR_VBI_DTYPE,       0,                  NA,     0,      0,      true,   SUBACK_USER_PROPERTIES,         NA,                     SUBACK_REMAINING_LENGTH,SUBACK_PROPERTY_LENGTH,         NULL},
+    {"property_length",         MR_VBI_DTYPE,       0,                  NA,     0,      0,      true,   SUBACK_USER_PROPERTIES,         NA,                     NA,                     SUBACK_PROPERTY_LENGTH,         NULL},
     {"mr_properties",           MR_PROPERTIES_DTYPE,(uintptr_t)PROPS,   NA,     PSZ,    NA,     true,   NA,                             NA,                     NA,                     SUBACK_MR_PROPERTIES,           NULL},
     {"reason_string",           MR_STR_DTYPE,       (uintptr_t)NULL,    false,  0,      0,      false,  NA,                             MQTT_PROP_REASON_STRING,NA,                     SUBACK_REASON_STRING,           NULL},
     {"user_properties",         MR_SPV_DTYPE,       (uintptr_t)NULL,    false,  0,      0,      false,  NA,                             MQTT_PROP_USER_PROPERTY,NA,                     SUBACK_USER_PROPERTIES,         NULL},
-    {"subscribe_reason_codes",  MR_PAYLOAD_DTYPE,   (uintptr_t)MR_RCV,  false,  VSRCSZ, VSRCSZ, true,   NA,                             NA,                     NA,                     SUBACK_SUBSCRIBE_REASON_CODES,  NULL},
+    {"subscribe_reason_codes",  MR_PAYLOAD_DTYPE,   (uintptr_t)MR_RCV,  false,  RCVSZ,  RCVSZ,  true,   NA,                             NA,                     NA,                     SUBACK_SUBSCRIBE_REASON_CODES,  NULL},
 //   name                       dtype               value               valloc  vlen    u8vlen  vexists link                            propid                  flagid                  idx                             printable
 };
 
@@ -174,7 +174,7 @@ static int mr_validate_suback_subscribe_reason_codes(const uint8_t *u8v0, const 
     return 0;
 }
 
-int mr_set_publish_subscribe_reason_codes(mr_packet_ctx *pctx, const uint8_t *u8v0, const size_t len) {
+int mr_set_suback_subscribe_reason_codes(mr_packet_ctx *pctx, const uint8_t *u8v0, const size_t len) {
     if (mr_check_suback_packet(pctx)) return -1;
     if (mr_validate_suback_subscribe_reason_codes(u8v0, len)) return -1;
     return mr_set_vector(pctx, SUBACK_SUBSCRIBE_REASON_CODES, u8v0, len);

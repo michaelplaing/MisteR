@@ -460,7 +460,7 @@ int mr_set_suback_user_properties(mr_packet_ctx *pctx, const mr_string_pair *spv
 int mr_reset_suback_user_properties(mr_packet_ctx *pctx);
 
 int mr_get_suback_subscribe_reason_codes(mr_packet_ctx *pctx, uint8_t **pu8v0, size_t *plen, bool *pexists_flag);
-int mr_set_publish_subscribe_reason_codes(mr_packet_ctx *pctx, const uint8_t *u8v0, const size_t len);
+int mr_set_suback_subscribe_reason_codes(mr_packet_ctx *pctx, const uint8_t *u8v0, const size_t len);
 
 int mr_get_suback_printable(mr_packet_ctx *pctx, const bool all_flag, char **pcv);
 
