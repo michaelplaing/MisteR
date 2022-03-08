@@ -163,6 +163,11 @@ int mr_get_suback_subscribe_reason_codes(mr_packet_ctx *pctx, uint8_t **pu8v0, s
 }
 
 static int mr_validate_suback_subscribe_reason_codes(const uint8_t *u8v0, const size_t len) {
+    if (!u8v0 || len < 1) {
+        dzlog_error("subscribe_reason_codes must exist and there must be at least 1");
+        return -1;
+    }
+
     uint8_t *pu8 = (uint8_t *)u8v0;
     for (int i = 0; i < len; i++, pu8++) {
         if (!memchr(VALID_SUBSCRIBE_REASON_CODES, *pu8, VSRCSZ)) {
@@ -182,7 +187,7 @@ int mr_set_suback_subscribe_reason_codes(mr_packet_ctx *pctx, const uint8_t *u8v
 
 
 // validation
-
+/*
 static int mr_validate_suback_cross(mr_packet_ctx *pctx) {
     uint8_t *u8v0;
     size_t len;
@@ -190,16 +195,16 @@ static int mr_validate_suback_cross(mr_packet_ctx *pctx) {
 
     if (mr_get_suback_subscribe_reason_codes(pctx, &u8v0, &len, &exists_flag)) return -1;
 
-    if (!exists_flag || len < 1) {
-        dzlog_error("subscribe_reason_codes must exist and be > 0");
+    if (!exists_flag || !u8v0 || len < 1) {
+        dzlog_error("subscribe_reason_codes must exist and there must be at least 1");
         return -1;
     }
 
     return 0;
 }
-
+ */
 static int mr_validate_suback_pack(mr_packet_ctx *pctx) {
-    if (mr_validate_suback_cross(pctx)) return -1;
+    // if (mr_validate_suback_cross(pctx)) return -1;
     return 0;
 }
 
@@ -211,8 +216,7 @@ int mr_validate_suback_unpack(mr_packet_ctx *pctx) {
 
     if (mr_get_suback_subscribe_reason_codes(pctx, &u8v0, &len, &exists_flag)) return -1;
     if (mr_validate_suback_subscribe_reason_codes(u8v0, len)) return -1;
-
-    if (mr_validate_suback_cross(pctx)) return -1;
+    // if (mr_validate_suback_cross(pctx)) return -1;
     return 0;
 }
 

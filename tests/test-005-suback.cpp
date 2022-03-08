@@ -127,7 +127,7 @@ TEST_CASE("happy SUBACK packet", "[suback][happy]") {
 
     zlog_fini();
 }
-/*
+
 TEST_CASE("unhappy SUBACK packet", "[suback][unhappy]") {
     dzlog_init("", "mr_init");
 
@@ -144,12 +144,11 @@ TEST_CASE("unhappy SUBACK packet", "[suback][unhappy]") {
 
     // *** test sections ***
 
-    SECTION("suback_subscription_identifier") {
-        CHECK(mr_set_suback_subscription_identifier(pctx, 0) == -1);
-    }
-
     SECTION("suback_topic_filters") {
-        CHECK(mr_set_suback_topic_filters(pctx, NULL, 0) == -1);
+        CHECK(mr_set_suback_subscribe_reason_codes(pctx, NULL, 0) == -1);
+        uint8_t subscribe_reason_codes[] = {0xFF};
+        size_t subscribe_reason_codes_len = 1;
+        CHECK(mr_set_suback_subscribe_reason_codes(pctx, subscribe_reason_codes, subscribe_reason_codes_len) == -1);
     }
 
     // common test epilog
@@ -158,6 +157,4 @@ TEST_CASE("unhappy SUBACK packet", "[suback][unhappy]") {
     REQUIRE(mr_free_suback_packet(pctx) == 0);
 
     zlog_fini();
-
 }
- */
